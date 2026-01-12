@@ -13,11 +13,14 @@ struct ArticleRow: Decodable {
     let title: String
     let summary: String?
     let content: String?
+    let source: String?
     let source_name: String?
+    let url: String?
     let source_url: String?
     let image_url: String?
     let image_path: String?
     let published_at: String?
+    let created_at: String?
     let rating: Double?
     let views_count: Int?
     let read_minutes: Int?
@@ -67,29 +70,15 @@ final class ArticlesModel {
     }
 
     func fetchArticles(search: String?, category: String?, sort: ArticleSort) async throws -> [ArticleRow] {
-        var query: PostgrestFilterBuilder = client
-            .from("articles_with_tags")
-            .select("*")
-
-        if let search = search?.trimmingCharacters(in: .whitespacesAndNewlines), !search.isEmpty {
-            query = query.ilike("title", pattern: "%\(search)%")
-        }
-
-        if let category = category?.trimmingCharacters(in: .whitespacesAndNewlines), !category.isEmpty {
-            query = query.contains("tags", value: [category])
-        }
-
+        let limit = 30
         switch sort {
-        case .recent:
-            _ = query.order("published_at", ascending: false)
-        case .topRated:
-            _ = query.order("rating", ascending: false)
         case .forYou:
-            _ = query.order("published_at", ascending: false)
+            return try await fetchPersonalizedArticles(limit: limit)
+        case .topRated:
+            return try await fetchTopRatedArticles(search: search, category: category, limit: limit)
+        case .recent:
+            return try await fetchRecentArticles(search: search, category: category, limit: limit)
         }
-
-        let rows: [ArticleRow] = try await query.execute().value
-        return rows
     }
 
     func submitRating(articleID: UUID, rating: Int) async throws {
@@ -136,7 +125,7 @@ final class ArticlesModel {
 
     func fetchArticle(id: UUID) async throws -> ArticleRow {
         let row: ArticleRow = try await client
-            .from("articles_with_tags")
+            .from("articles")
             .select("*")
             .eq("id", value: id.uuidString)
             .single()
@@ -150,5 +139,54 @@ final class ArticlesModel {
         _ = try await client
             .rpc("increment_article_view", params: Args(p_article_id: articleID))
             .execute()
+    }
+
+    private func baseArticlesQuery(search: String?, category: String?) -> PostgrestTransformBuilder {
+        var query = client
+            .from("articles")
+            .select("*")
+
+        if let search = search?.trimmingCharacters(in: .whitespacesAndNewlines), !search.isEmpty {
+            query = query.ilike("title", pattern: "%\(search)%")
+        }
+
+        return query
+    }
+
+    private func fetchRecentArticles(search: String?, category: String?, limit: Int) async throws -> [ArticleRow] {
+        var query = baseArticlesQuery(search: search, category: category)
+        _ = query.order("published_at", ascending: false)
+        _ = query.order("created_at", ascending: false)
+        _ = query.limit(limit)
+        return try await query.execute().value
+    }
+
+    private func fetchTopRatedArticles(search: String?, category: String?, limit: Int) async throws -> [ArticleRow] {
+        var query = baseArticlesQuery(search: search, category: category)
+        _ = query.order("rating", ascending: false)
+        _ = query.order("published_at", ascending: false)
+        _ = query.limit(limit)
+        return try await query.execute().value
+    }
+
+    private func fetchPersonalizedArticles(limit: Int) async throws -> [ArticleRow] {
+        let session = try await client.auth.session
+        let userID = session.user.id
+
+        struct FeedRow: Decodable {
+            let created_at: String?
+            let reason: String?
+            let articles: ArticleRow?
+        }
+
+        var query = client
+            .from("user_article_feed")
+            .select("created_at,reason,articles:article_id(*)")
+            .eq("user_id", value: userID.uuidString)
+            .order("created_at", ascending: false)
+            .limit(limit)
+
+        let rows: [FeedRow] = try await query.execute().value
+        return rows.compactMap { $0.articles }
     }
 }

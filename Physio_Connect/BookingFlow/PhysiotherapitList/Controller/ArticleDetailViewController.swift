@@ -50,7 +50,7 @@ final class ArticleDetailViewController: UIViewController {
 
     @objc private func shareTapped() {
         let shareText = article.title
-        let shareURL = URL(string: article.source_url ?? article.image_url ?? "")
+        let shareURL = URL(string: article.url ?? article.source_url ?? article.image_url ?? "")
         let items: [Any] = [shareText, shareURL as Any].compactMap { $0 }
         let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
         present(vc, animated: true)

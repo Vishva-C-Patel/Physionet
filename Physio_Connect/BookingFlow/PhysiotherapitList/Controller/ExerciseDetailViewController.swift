@@ -141,6 +141,11 @@ final class ExerciseDetailViewController: UIViewController {
     }
 
     @objc private func playTapped() {
+        ArticleTriggerService.shared.triggerArticles(
+            keyword: titleText,
+            source: "video",
+            context: ["video_id": exerciseID.uuidString]
+        )
         Task {
             do {
                 let url = try await videosModel.signedVideoURL(path: videoPath)

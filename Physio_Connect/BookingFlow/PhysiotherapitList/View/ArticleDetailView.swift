@@ -49,7 +49,7 @@ final class ArticleDetailView: UIView {
         titleLabel.text = "Read Article"
         articleTitleLabel.text = article.title
         summaryLabel.text = article.summary
-        bodyLabel.text = article.content ?? "Full article content will appear here."
+        bodyLabel.text = preferredBodyText(for: article)
         sourceLabel.text = article.source_name ?? "Source"
         dateLabel.text = article.published_at ?? ""
 
@@ -60,6 +60,18 @@ final class ArticleDetailView: UIView {
 
         setTags(article.tags ?? [])
         setUserRating(currentUserRating)
+    }
+
+    private func preferredBodyText(for article: ArticleRow) -> String {
+        let content = article.content?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let content, !content.isEmpty {
+            return content
+        }
+        let summary = article.summary?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let summary, !summary.isEmpty {
+            return summary
+        }
+        return "Full article content will appear here."
     }
 
     func setCoverImage(_ image: UIImage?) {

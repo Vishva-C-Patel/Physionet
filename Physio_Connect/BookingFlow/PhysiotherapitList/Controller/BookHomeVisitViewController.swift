@@ -12,6 +12,7 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
     private let bookView = BookHomeVisitView()
     private let physioID: UUID
     private let isReschedule: Bool
+    private var specializationForTrigger: String?
 
     private var physioNameForSummary: String?
     private var slots: [SlotRow] = []
@@ -116,6 +117,7 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
 
                 await MainActor.run {
                     self.physioNameForSummary = physio.name
+                    self.specializationForTrigger = spec
 
                     self.bookView.setPhysio(
                         name: physio.name,
@@ -419,6 +421,8 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
             }
         }
 
+        struct AppointmentIDRow: Decodable { let id: UUID }
+
         let payload = AppointmentPayload(
             customerID: userUUID,
             physioID: physioID,
@@ -431,13 +435,24 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
         )
 
         // 1) insert appointment
-        _ = try await SupabaseManager.shared.client
+        let inserted: AppointmentIDRow = try await SupabaseManager.shared.client
             .from("appointments")
             .insert(payload)
+            .select("id")
+            .single()
             .execute()
+            .value
 
         // 2) mark slot booked
         try await PhysioService.shared.markSlotBooked(slotID: slotID)
+        ArticleTriggerService.shared.triggerArticles(
+            keyword: specializationForTrigger ?? "Physiotherapy",
+            source: "appointment",
+            context: [
+                "appointment_id": inserted.id.uuidString,
+                "physio_id": physioID.uuidString
+            ]
+        )
 
         await MainActor.run {
             let a = UIAlertController(
