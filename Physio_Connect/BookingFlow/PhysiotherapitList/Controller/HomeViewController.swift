@@ -378,7 +378,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
 
     private func loadArticleImages(for articles: [ArticleRow]) {
         for article in articles {
-            let pathOrUrl = article.image_path ?? article.image_url
+            let pathOrUrl = article.image_url ?? article.image_path
             guard let pathOrUrl, !pathOrUrl.isEmpty else { continue }
             Task {
                 do {

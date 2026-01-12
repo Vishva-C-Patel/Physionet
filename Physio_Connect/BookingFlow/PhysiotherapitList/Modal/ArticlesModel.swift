@@ -43,17 +43,11 @@ final class ArticlesModel {
             return url
         }
         let normalized = normalizeImagePath(pathOrUrl)
-        do {
-            return try await client.storage
-                .from(imageBucket)
-                .createSignedURL(path: normalized, expiresIn: 3600)
-        } catch {
-            if let base = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
-               let url = URL(string: "\(base)/storage/v1/object/public/\(imageBucket)/\(normalized)") {
-                return url
-            }
-            throw error
+        if let base = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+           let url = URL(string: "\(base)/storage/v1/object/public/\(imageBucket)/\(normalized)") {
+            return url
         }
+        throw URLError(.badURL)
     }
 
     private func normalizeImagePath(_ raw: String) -> String {

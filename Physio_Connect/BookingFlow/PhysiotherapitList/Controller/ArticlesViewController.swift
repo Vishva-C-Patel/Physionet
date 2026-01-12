@@ -124,7 +124,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         let article = articles[indexPath.row]
         cell.configure(with: article)
         cell.setBookmarked(bookmarkedIDs.contains(article.id))
-        let path = article.image_path ?? article.image_url
+        let path = article.image_url ?? article.image_path
         cell.coverImagePath = path
         cell.setCoverImage(nil)
         loadCoverImage(for: path, in: cell)

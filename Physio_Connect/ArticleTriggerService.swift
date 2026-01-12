@@ -38,15 +38,78 @@ final class ArticleTriggerService {
                 let context: [String: String]?
             }
 
-            do {
-                let payload = Payload(keyword: normalized, source: source, context: context)
-                let options = FunctionInvokeOptions(method: .post, body: payload)
-                try await self.client.functions.invoke("trigger_articles", options: options)
-                self.store(keyword: normalized, at: now)
-            } catch {
-                print("❌ trigger_articles failed for \(normalized): \(error)")
+            await self.invokeTrigger(
+                payload: Payload(keyword: normalized, source: source, context: context),
+                keyword: normalized,
+                timestamp: now,
+                retryOn401: true
+            )
+        }
+    }
+
+    private func invokeTrigger(
+        payload: some Encodable,
+        keyword: String,
+        timestamp: Date,
+        retryOn401: Bool
+    ) async {
+        do {
+            SupabaseManager.shared.debugPrintConfig()
+            SupabaseManager.shared.debugPrintFunctionTarget(name: "trigger_articles")
+            var session = try await client.auth.session
+            // If token looks empty/invalid, try refreshing once before invoke
+            if session.accessToken.isEmpty {
+                session = try await client.auth.refreshSession()
+            }
+            // Proactively refresh to avoid stale tokens
+            if let refreshed = try? await client.auth.refreshSession() {
+                session = refreshed
+            }
+            let jwt = session.accessToken
+            print("🧾 JWT iss =", jwtIssuer(jwt) ?? "nil")
+            print("🪪 trigger_articles user=\(session.user.id) token_prefix=\(jwt.prefix(24))")
+
+            let options = FunctionInvokeOptions(
+                method: .post,
+                headers: ["Authorization": "Bearer \(jwt)"],
+                body: payload
+            )
+
+            try await client.functions.invoke("trigger_articles", options: options)
+            store(keyword: keyword, at: timestamp)
+        } catch {
+            if case let FunctionsError.httpError(code, data) = error, code == 401, retryOn401 {
+                // Try refreshing session once, then retry
+                do {
+                    _ = try await client.auth.refreshSession()
+                    await invokeTrigger(payload: payload, keyword: keyword, timestamp: timestamp, retryOn401: false)
+                    return
+                } catch {
+                    print("❌ trigger_articles refresh failed for \(keyword): \(error)")
+                }
+            }
+
+            if case let FunctionsError.httpError(code, data) = error {
+                let body = String(data: data, encoding: .utf8) ?? "<no body>"
+                print("❌ trigger_articles failed for \(keyword): code=\(code) body=\(body)")
+            } else {
+                print("❌ trigger_articles failed for \(keyword): \(error)")
             }
         }
+    }
+
+    private func jwtIssuer(_ jwt: String) -> String? {
+        let parts = jwt.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+        var base64 = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while base64.count % 4 != 0 { base64.append("=") }
+        guard
+            let data = Data(base64Encoded: base64),
+            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return obj["iss"] as? String
     }
 
     private func loadCache() {

@@ -112,7 +112,7 @@ final class ArticleDetailViewController: UIViewController {
     }
 
     private func loadCoverImage(for article: ArticleRow) {
-        let path = article.image_path ?? article.image_url
+        let path = article.image_url ?? article.image_path
         guard let path else {
             detailView.setCoverImage(nil)
             return
