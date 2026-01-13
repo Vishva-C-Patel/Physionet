@@ -181,15 +181,16 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                         self.videosView.tableView.tableFooterView = nil
                     }
                 } else if let programID = rows.first?.program_id {
-                    let startDate = (try? await model.fetchProgramStartDate(programID: programID)) ?? Date()
-                    programStartDate = startDate
+                    let fetchedStartDate = try? await model.fetchProgramStartDate(programID: programID)
                     let progressRows = try await model.fetchProgress(programID: programID)
+                    let resolvedStartDate = fetchedStartDate ?? earliestProgressDate(from: progressRows) ?? Date()
+                    programStartDate = resolvedStartDate
                     programSections = buildProgramSections(rows)
                     completedRowKeys = buildCompletedRowKeys(
                         rows: rows,
                         progressRows: progressRows,
                         programID: programID,
-                        programStartDate: startDate
+                        programStartDate: resolvedStartDate
                     )
                     let totalCount = rows.count
                     let completedCount = rows.filter { completedRowKeys.contains(rowKey(for: $0)) }.count
@@ -197,7 +198,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     let adherencePercent = totalCount == 0 ? 0 : Int(Double(completedCount) / Double(totalCount) * 100.0)
                     let series = buildSeries(from: progressRows,
                                              totalDays: programSections.count,
-                                             programStartDate: startDate)
+                                             programStartDate: resolvedStartDate)
                     let completedDays = programSections.filter { isDayComplete($0) }.count
                     programCompleted = programSections.count > 0 && completedDays == programSections.count
                     await MainActor.run {
@@ -560,10 +561,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     private func isDayLocked(_ sectionIndex: Int) -> Bool {
         let dayNumber = sectionIndex + 1
-        if dayNumber > availableDayCount() { return true }
-        guard sectionIndex > 0 else { return false }
-        let previousSection = programSections[sectionIndex - 1]
-        return !isDayComplete(previousSection)
+        return dayNumber > availableDayCount()
     }
 
     private func rowKey(for row: MyProgramExerciseRow) -> String {
@@ -595,6 +593,19 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
+    }
+
+    private func earliestProgressDate(from rows: [ExerciseProgressRow]) -> Date? {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        let dates = rows.compactMap { row -> Date? in
+            guard let dateString = row.progress_date else { return nil }
+            return formatter.date(from: dateString)
+        }
+        return dates.min()
     }
 
     private func buildCompletedRowKeys(rows: [MyProgramExerciseRow],
