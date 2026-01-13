@@ -44,8 +44,11 @@ final class ProfileView: UIView {
     private let genderRow = ProfileRowView(title: "Gender")
     private let dobRow = ProfileRowView(title: "Date of Birth")
 
+    private let addressRow = ProfileRowView(title: "Address")
     private let locationRow = ProfileRowView(title: "Location")
     private let notificationRow = ProfileToggleRowView(title: "Notifications")
+    private let aboutRow = ProfileRowView(title: "About")
+    private let yearsRow = ProfileRowView(title: "Years of Experience")
 
     private let privacyButton = ProfileActionRowButton(title: "Privacy Policy")
     private let termsButton = ProfileActionRowButton(title: "Terms of Service")
@@ -84,7 +87,10 @@ final class ProfileView: UIView {
         phoneRow.setValue(data.phone)
         genderRow.setValue(data.gender)
         dobRow.setValue(data.dateOfBirth)
+        addressRow.setValue(data.address)
         locationRow.setValue(data.location)
+        aboutRow.setValue(data.about)
+        yearsRow.setValue(data.yearsExperience)
         notificationRow.setOn(data.notificationsEnabled)
         setAvatar(with: data.avatarURL)
     }
@@ -96,7 +102,10 @@ final class ProfileView: UIView {
         phoneRow.setValue("—")
         genderRow.setValue("—")
         dobRow.setValue("—")
+        addressRow.setValue("—")
         locationRow.setValue("—")
+        aboutRow.setValue("—")
+        yearsRow.setValue("—")
         notificationRow.setOn(false)
         setAvatar(with: nil)
     }
@@ -151,6 +160,7 @@ final class ProfileView: UIView {
         buildTopBar()
         buildHeader()
         buildPersonalInfo()
+        buildProfessionalInfo()
         buildSettings()
         buildAvailability()
         buildPrivacy()
@@ -245,6 +255,23 @@ final class ProfileView: UIView {
         stackView.addArrangedSubview(card)
     }
 
+    private func buildProfessionalInfo() {
+        let sectionLabel = makeSectionLabel("Professional Details")
+        stackView.addArrangedSubview(sectionLabel)
+
+        let card = makeCardView()
+        let stack = makeCardStack()
+
+        stack.addArrangedSubview(aboutRow)
+        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(yearsRow)
+
+        card.addSubview(stack)
+        pinCardStack(stack, to: card)
+
+        stackView.addArrangedSubview(card)
+    }
+
     private func buildTopBar() {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
@@ -284,6 +311,8 @@ final class ProfileView: UIView {
         let card = makeCardView()
         let stack = makeCardStack()
 
+        stack.addArrangedSubview(addressRow)
+        stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(locationRow)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(notificationRow)

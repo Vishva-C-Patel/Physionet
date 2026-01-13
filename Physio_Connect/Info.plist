@@ -4,6 +4,8 @@
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We use your location to show nearby physiotherapists.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use your photo library to upload verification documents.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>sb_publishable_CQrdtsEZH2JTGsm2tjELfQ_RYm63cyq</string>
 	<key>SUPABASE_URL</key>

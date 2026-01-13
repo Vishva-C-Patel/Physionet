@@ -32,6 +32,8 @@ struct ProfileViewData {
     let dateOfBirth: String
     let healthIdentifier: String
     let location: String
+    let about: String
+    let yearsExperience: String
     let notificationsEnabled: Bool
     let avatarURL: String?
 
@@ -60,6 +62,8 @@ struct ProfileViewData {
             dateOfBirth: dob?.isEmpty == false ? dob! : "—",
             healthIdentifier: health?.isEmpty == false ? health! : "—",
             location: location?.isEmpty == false ? location! : (address?.isEmpty == false ? address! : "—"),
+            about: "—",
+            yearsExperience: "—",
             notificationsEnabled: row?.notifications_enabled ?? true,
             avatarURL: row?.avatar_url
         )

@@ -20,6 +20,10 @@ struct PhysioAuthModel {
         let name: String
         let email: String
         let password: String
+        let idProofData: Data?
+        let idProofFilename: String?
+        let licenseProofData: Data?
+        let licenseProofFilename: String?
     }
 
     func login(email: String, password: String) async throws -> User {
@@ -59,34 +63,101 @@ struct PhysioAuthModel {
     }
 
     func signup(input: PhysioSignupInput) async throws -> User {
-        let result = try await client.auth.signUp(email: input.email, password: input.password)
-        let user = result.user
+        _ = try await client.auth.signUp(email: input.email, password: input.password)
 
-        // Best effort: create/update physiotherapist profile row if schema supports it.
-        try? await upsertPhysioProfile(userID: user.id, name: input.name, email: input.email)
-        _ = try await client.auth.signIn(email: input.email, password: input.password)
+        // Ensure we have an authenticated session before hitting Storage policies.
+        let session = try await client.auth.signIn(email: input.email, password: input.password)
+        let user = session.user
+
+        let proofPaths = try await uploadProofs(
+            userID: user.id,
+            idProofData: input.idProofData,
+            idProofFilename: input.idProofFilename,
+            licenseProofData: input.licenseProofData,
+            licenseProofFilename: input.licenseProofFilename
+        )
+
+        do {
+            try await createPhysioProfile(
+                userID: user.id,
+                name: input.name,
+                email: input.email,
+                idProofPath: proofPaths.idProofPath,
+                licenseProofPath: proofPaths.licenseProofPath
+            )
+        } catch {
+            throw PhysioAuthError(message: "Profile creation failed. \(error.localizedDescription)")
+        }
         return user
     }
 
-    private func upsertPhysioProfile(userID: UUID, name: String, email: String) async throws {
-        struct PhysioUpsert: Encodable {
-            let id: UUID
+    private func createPhysioProfile(userID: UUID, name: String, email: String, idProofPath: String?, licenseProofPath: String?) async throws {
+        struct Payload: Encodable {
+            let user_id: String
             let name: String
             let email: String
-            let updated_at: String
+            let id_proof_path: String?
+            let license_proof_path: String?
         }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let payload = PhysioUpsert(
-            id: userID,
+
+        let payload = Payload(
+            user_id: userID.uuidString,
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             email: email.lowercased(),
-            updated_at: formatter.string(from: Date())
+            id_proof_path: idProofPath,
+            license_proof_path: licenseProofPath
         )
 
         _ = try await client
-            .from("physiotherapists")
-            .upsert(payload, onConflict: "id")
+            .rpc("create_physio_profile", params: payload)
             .execute()
+    }
+
+    private func uploadProofs(userID: UUID,
+                              idProofData: Data?,
+                              idProofFilename: String?,
+                              licenseProofData: Data?,
+                              licenseProofFilename: String?) async throws -> (idProofPath: String?, licenseProofPath: String?) {
+        let bucket = "physio_proofs"
+        let basePath = "physios/\(userID.uuidString)"
+        let uploadOptions = FileOptions(contentType: "image/jpeg", upsert: false)
+
+        var idPath: String?
+        if let data = idProofData {
+            let safeName = uniqueProofFilename(prefix: "id_proof", original: idProofFilename)
+            let path = "\(basePath)/\(safeName)"
+            do {
+                _ = try await client.storage
+                    .from(bucket)
+                    .upload(path, data: data, options: uploadOptions)
+            } catch {
+                throw PhysioAuthError(message: "ID proof upload failed. \(error.localizedDescription)")
+            }
+            idPath = path
+        }
+
+        var licensePath: String?
+        if let data = licenseProofData {
+            let safeName = uniqueProofFilename(prefix: "physio_proof", original: licenseProofFilename)
+            let path = "\(basePath)/\(safeName)"
+            do {
+                _ = try await client.storage
+                    .from(bucket)
+                    .upload(path, data: data, options: uploadOptions)
+            } catch {
+                throw PhysioAuthError(message: "Physio proof upload failed. \(error.localizedDescription)")
+            }
+            licensePath = path
+        }
+
+        return (idPath, licensePath)
+    }
+
+    private func uniqueProofFilename(prefix: String, original: String?) -> String {
+        let trimmed = original?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let ext = (trimmed as NSString).pathExtension
+        let suffix = UUID().uuidString
+        let resolvedExt = ext.isEmpty ? "jpg" : ext
+        return "\(prefix)_\(suffix).\(resolvedExt)"
     }
 }

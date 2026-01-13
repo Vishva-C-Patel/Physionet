@@ -14,6 +14,10 @@ struct PhysioSignupInput {
     let password: String
     let confirmPassword: String
     let acceptedTerms: Bool
+    let idProofData: Data?
+    let idProofFilename: String?
+    let licenseProofData: Data?
+    let licenseProofFilename: String?
 }
 
 final class PhysioSignupView: UIView {
@@ -22,6 +26,8 @@ final class PhysioSignupView: UIView {
     var onBack: (() -> Void)?
     var onCreateAccount: ((PhysioSignupInput) -> Void)?
     var onLoginLink: (() -> Void)?
+    var onPickIdProof: (() -> Void)?
+    var onPickLicenseProof: (() -> Void)?
 
     // MARK: - Theme
     private let bg = UIColor(hex: "E6F1FF")
@@ -52,6 +58,15 @@ final class PhysioSignupView: UIView {
     let confirmPasswordEyeButton = UIButton(type: .system)
 
     private let passwordHint = UILabel()
+
+    // MARK: - Proof uploads
+    private let proofTitle = UILabel()
+    private let idProofRow = ProofUploadRow(title: "ID Proof *", subtitle: "Upload government-issued ID")
+    private let licenseProofRow = ProofUploadRow(title: "Physio Proof *", subtitle: "Upload license or registration")
+    private var idProofData: Data?
+    private var idProofFilename: String?
+    private var licenseProofData: Data?
+    private var licenseProofFilename: String?
 
     // MARK: - Terms
     private let termsCard = UIView()
@@ -232,6 +247,16 @@ final class PhysioSignupView: UIView {
         stack.addArrangedSubview(passwordHint)
 
         stack.addArrangedSubview(confirmPasswordField)
+
+        proofTitle.text = "Verification documents"
+        proofTitle.font = .systemFont(ofSize: 18, weight: .bold)
+        proofTitle.textColor = .black
+        stack.addArrangedSubview(proofTitle)
+
+        idProofRow.onTap = { [weak self] in self?.onPickIdProof?() }
+        licenseProofRow.onTap = { [weak self] in self?.onPickLicenseProof?() }
+        stack.addArrangedSubview(idProofRow)
+        stack.addArrangedSubview(licenseProofRow)
 
         // Terms card
         styleCard(termsCard)
@@ -425,7 +450,11 @@ final class PhysioSignupView: UIView {
             phone: (phoneField.textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
             password: passwordField.textField.text ?? "",
             confirmPassword: confirmPasswordField.textField.text ?? "",
-            acceptedTerms: isTermsChecked
+            acceptedTerms: isTermsChecked,
+            idProofData: idProofData,
+            idProofFilename: idProofFilename,
+            licenseProofData: licenseProofData,
+            licenseProofFilename: licenseProofFilename
         )
         onCreateAccount?(input)
     }
@@ -438,6 +467,18 @@ final class PhysioSignupView: UIView {
     func showError(_ message: String?) {
         statusLabel.text = message
         statusLabel.isHidden = (message == nil || message?.isEmpty == true)
+    }
+
+    func setIdProof(data: Data, filename: String) {
+        idProofData = data
+        idProofFilename = filename
+        idProofRow.setSelected(filename: filename)
+    }
+
+    func setLicenseProof(data: Data, filename: String) {
+        licenseProofData = data
+        licenseProofFilename = filename
+        licenseProofRow.setSelected(filename: filename)
     }
 }
 
@@ -486,4 +527,84 @@ private final class OrDividerView: UIView {
             line2.heightAnchor.constraint(equalToConstant: 1)
         ])
     }
+}
+
+private final class ProofUploadRow: UIView {
+    private let titleLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    private let actionButton = UIButton(type: .system)
+    private let statusLabel = UILabel()
+    var onTap: (() -> Void)?
+
+    init(title: String, subtitle: String) {
+        super.init(frame: .zero)
+        titleLabel.text = title
+        subtitleLabel.text = subtitle
+        build()
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func setSelected(filename: String) {
+        statusLabel.text = filename
+        statusLabel.textColor = UIColor.black.withAlphaComponent(0.75)
+        actionButton.setTitle("Change", for: .normal)
+    }
+
+    private func build() {
+        translatesAutoresizingMaskIntoConstraints = false
+        layer.cornerRadius = 18
+        backgroundColor = .white
+        layer.borderWidth = 1
+        layer.borderColor = UIColor.black.withAlphaComponent(0.06).cgColor
+        layer.shadowColor = UIColor.black.withAlphaComponent(0.06).cgColor
+        layer.shadowOpacity = 1
+        layer.shadowRadius = 8
+        layer.shadowOffset = CGSize(width: 0, height: 4)
+
+        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.textColor = UIColor.black.withAlphaComponent(0.85)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        subtitleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        statusLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        statusLabel.textColor = UIColor.black.withAlphaComponent(0.4)
+        statusLabel.text = "No file selected"
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        actionButton.setTitle("Upload", for: .normal)
+        actionButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        actionButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
+        actionButton.addTarget(self, action: #selector(tapped), for: .touchUpInside)
+        actionButton.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubview(titleLabel)
+        addSubview(subtitleLabel)
+        addSubview(statusLabel)
+        addSubview(actionButton)
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: actionButton.leadingAnchor, constant: -8),
+
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+
+            statusLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 6),
+            statusLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            statusLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            statusLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+
+            actionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            actionButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            actionButton.heightAnchor.constraint(equalToConstant: 34)
+        ])
+    }
+
+    @objc private func tapped() { onTap?() }
 }

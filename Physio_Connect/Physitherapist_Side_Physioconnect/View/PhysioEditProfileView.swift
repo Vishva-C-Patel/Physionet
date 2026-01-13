@@ -26,11 +26,17 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     private let genderField = PhysioLabeledTextField(title: "Gender", placeholder: "Gender")
     private let customGenderField = PhysioLabeledTextField(title: "Custom Gender", placeholder: "Enter your gender")
     private let dobField = PhysioLabeledTextField(title: "Date of Birth", placeholder: "YYYY-MM-DD")
-    private let locationField = PhysioLabeledTextField(title: "Location", placeholder: "City")
+    private let locationField = PhysioLabeledTextField(title: "Address (Pincode)", placeholder: "Street, Area, Pincode")
+    private let placeOfWorkField = PhysioLabeledTextField(title: "Place of Work", placeholder: "Clinic or hospital")
+    private let consultationFeeField = PhysioLabeledTextField(title: "Consultation Fee", placeholder: "e.g., 500")
+    private let yearsExperienceField = PhysioLabeledTextField(title: "Years of Experience", placeholder: "e.g., 6")
+    private let aboutField = PhysioLabeledTextField(title: "About", placeholder: "Short bio")
     private let genderPicker = UIPickerView()
     private let dobPicker = UIDatePicker()
     private let genderOptions = ["male", "female"]
     private var selectedGenderIndex = 0
+    private var storedLatitude: String = ""
+    private var storedLongitude: String = ""
     private static let dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
@@ -46,12 +52,18 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func apply(_ data: ProfileViewData) {
-        nameField.text = data.name == "—" ? "" : data.name
-        locationField.text = data.location == "—" ? "" : data.location
-        phoneField.text = data.phone == "—" ? "" : data.phone
-        applyGenderText(data.gender == "—" ? "" : data.gender)
-        if data.dateOfBirth != "—" {
+    func apply(_ data: PhysioProfileModel.EditProfileData) {
+        nameField.text = data.name
+        locationField.text = data.address
+        phoneField.text = data.phone
+        placeOfWorkField.text = data.placeOfWork
+        consultationFeeField.text = data.consultationFee
+        yearsExperienceField.text = data.yearsExperience
+        aboutField.text = data.about
+        storedLatitude = data.latitude
+        storedLongitude = data.longitude
+        applyGenderText(data.gender)
+        if !data.dateOfBirth.isEmpty {
             dobField.text = data.dateOfBirth
             if let date = Self.dateFormatter.date(from: data.dateOfBirth) {
                 dobPicker.date = date
@@ -70,9 +82,14 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
             name: nameField.text,
             gender: resolvedGender,
             location: locationField.text,
-            placeOfWork: phoneField.text,
+            placeOfWork: placeOfWorkField.text,
             phone: phoneField.text,
             dateOfBirth: dobField.text,
+            about: aboutField.text,
+            yearsExperience: yearsExperienceField.text,
+            consultationFee: consultationFeeField.text,
+            latitude: storedLatitude,
+            longitude: storedLongitude,
             profileImagePath: ""
         )
     }
@@ -80,6 +97,24 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     func setSaving(_ saving: Bool) {
         saveButton.isEnabled = !saving
         saveButton.alpha = saving ? 0.6 : 1
+    }
+
+    func setCoordinates(latitude: Double, longitude: Double) {
+        storedLatitude = String(format: "%.6f", latitude)
+        storedLongitude = String(format: "%.6f", longitude)
+    }
+
+    func setLocationText(_ text: String) {
+        locationField.text = text
+    }
+
+    func hasCoordinates() -> Bool {
+        !storedLatitude.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !storedLongitude.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    func currentAddress() -> String {
+        locationField.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func build() {
@@ -174,6 +209,8 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         genderField.setInputView(genderPicker, toolbarTitle: "Select Gender")
         customGenderField.isHidden = true
         phoneField.textField.keyboardType = .phonePad
+        consultationFeeField.textField.keyboardType = .decimalPad
+        yearsExperienceField.textField.keyboardType = .numberPad
         dobField.textField.keyboardType = .numbersAndPunctuation
         dobPicker.datePickerMode = .date
         dobPicker.preferredDatePickerStyle = .wheels
@@ -183,9 +220,13 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
 
         formStack.addArrangedSubview(nameField)
         formStack.addArrangedSubview(phoneField)
+        formStack.addArrangedSubview(placeOfWorkField)
         formStack.addArrangedSubview(genderField)
         formStack.addArrangedSubview(dobField)
         formStack.addArrangedSubview(locationField)
+        formStack.addArrangedSubview(consultationFeeField)
+        formStack.addArrangedSubview(yearsExperienceField)
+        formStack.addArrangedSubview(aboutField)
 
         card.addSubview(formStack)
 

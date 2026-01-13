@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import PhotosUI
 
 final class PhysioAuthViewController: UIViewController {
 
@@ -19,6 +20,12 @@ final class PhysioAuthViewController: UIViewController {
     private let model = PhysioAuthModel()
     private var mode: Mode = .login
     private let onboardingKey = "physioconnect.physio_onboarded"
+    private var activeProof: ProofType?
+
+    private enum ProofType {
+        case idProof
+        case licenseProof
+    }
 
     override func loadView() {
         view = UIView()
@@ -81,6 +88,8 @@ final class PhysioAuthViewController: UIViewController {
         signupView.onCreateAccount = { [weak self] input in
             self?.handleSignup(input: input)
         }
+        signupView.onPickIdProof = { [weak self] in self?.presentPicker(for: .idProof) }
+        signupView.onPickLicenseProof = { [weak self] in self?.presentPicker(for: .licenseProof) }
     }
 
     private func show(mode: Mode, animated: Bool) {
@@ -150,13 +159,31 @@ final class PhysioAuthViewController: UIViewController {
             showInlineError("Please accept the Terms to continue.")
             return
         }
+        guard input.idProofData != nil else {
+            signupView.setLoading(false)
+            showInlineError("Please upload your ID proof.")
+            return
+        }
+        guard input.licenseProofData != nil else {
+            signupView.setLoading(false)
+            showInlineError("Please upload your physio proof.")
+            return
+        }
 
         showInlineError(nil)
         signupView.setLoading(true)
 
         Task {
             do {
-                let signupInput = PhysioAuthModel.PhysioSignupInput(name: name, email: email, password: input.password)
+                let signupInput = PhysioAuthModel.PhysioSignupInput(
+                    name: name,
+                    email: email,
+                    password: input.password,
+                    idProofData: input.idProofData,
+                    idProofFilename: input.idProofFilename,
+                    licenseProofData: input.licenseProofData,
+                    licenseProofFilename: input.licenseProofFilename
+                )
                 _ = try await model.signup(input: signupInput)
                 await MainActor.run {
                     self.signupView.setLoading(false)
@@ -200,6 +227,40 @@ final class PhysioAuthViewController: UIViewController {
             nav.popViewController(animated: true)
         } else {
             dismiss(animated: true)
+        }
+    }
+
+    private func presentPicker(for type: ProofType) {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        activeProof = type
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+}
+
+extension PhysioAuthViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        dismiss(animated: true)
+        guard let itemProvider = results.first?.itemProvider else { return }
+        guard itemProvider.canLoadObject(ofClass: UIImage.self) else { return }
+
+        itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let self, let image = object as? UIImage else { return }
+            guard let data = image.jpegData(compressionQuality: 0.85) else { return }
+            let filename = (self.activeProof == .licenseProof) ? "physio_proof.jpg" : "id_proof.jpg"
+            DispatchQueue.main.async {
+                switch self.activeProof {
+                case .idProof:
+                    self.signupView.setIdProof(data: data, filename: filename)
+                case .licenseProof:
+                    self.signupView.setLicenseProof(data: data, filename: filename)
+                case .none:
+                    break
+                }
+            }
         }
     }
 }

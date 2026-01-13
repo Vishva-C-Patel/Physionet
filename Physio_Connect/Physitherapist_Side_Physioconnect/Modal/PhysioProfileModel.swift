@@ -11,6 +11,21 @@ import Supabase
 struct PhysioProfileModel {
     private let client = SupabaseManager.shared.client
 
+    struct EditProfileData {
+        let name: String
+        let gender: String
+        let address: String
+        let placeOfWork: String
+        let phone: String
+        let dateOfBirth: String
+        let about: String
+        let yearsExperience: String
+        let consultationFee: String
+        let latitude: String
+        let longitude: String
+        let profileImagePath: String
+    }
+
     struct UpdateInput {
         let name: String
         let gender: String
@@ -18,6 +33,11 @@ struct PhysioProfileModel {
         let placeOfWork: String
         let phone: String
         let dateOfBirth: String
+        let about: String
+        let yearsExperience: String
+        let consultationFee: String
+        let latitude: String
+        let longitude: String
         let profileImagePath: String
     }
 
@@ -35,17 +55,24 @@ struct PhysioProfileModel {
             let phone: String?
             let date_of_birth: String?
             let profile_image_path: String?
+            let about: String?
+            let years_experience: Int?
         }
 
         let rows: [Row] = try await client
             .from("physiotherapists")
-            .select("id,name,email,gender,location_text,place_of_work,phone,date_of_birth,profile_image_path")
+            .select("id,name,email,gender,location_text,place_of_work,phone,date_of_birth,profile_image_path,about,years_experience")
             .eq("id", value: userID)
             .limit(1)
             .execute()
             .value
 
         let row = rows.first
+        let yearsText: String = {
+            guard let value = row?.years_experience else { return "—" }
+            return "\(value)"
+        }()
+        let aboutText = row?.about?.trimmingCharacters(in: .whitespacesAndNewlines)
         return ProfileViewData(
             name: row?.name ?? "Physiotherapist",
             email: row?.email ?? (session.user.email ?? "—"),
@@ -54,9 +81,68 @@ struct PhysioProfileModel {
             gender: row?.gender ?? "—",
             dateOfBirth: row?.date_of_birth ?? "—",
             healthIdentifier: "—",
-            location: row?.location_text ?? "—",
+            location: "—",
+            about: aboutText?.isEmpty == false ? aboutText! : "—",
+            yearsExperience: yearsText,
             notificationsEnabled: true,
             avatarURL: row?.profile_image_path
+        )
+    }
+
+    func fetchEditProfile() async throws -> EditProfileData {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+
+        struct Row: Decodable {
+            let name: String?
+            let gender: String?
+            let location_text: String?
+            let place_of_work: String?
+            let phone: String?
+            let date_of_birth: String?
+            let about: String?
+            let years_experience: Int?
+            let consultation_fee: Double?
+            let latitude: Double?
+            let longitude: Double?
+            let profile_image_path: String?
+        }
+
+        let rows: [Row] = try await client
+            .from("physiotherapists")
+            .select("""
+                name,
+                gender,
+                location_text,
+                place_of_work,
+                phone,
+                date_of_birth,
+                about,
+                years_experience,
+                consultation_fee,
+                latitude,
+                longitude,
+                profile_image_path
+            """)
+            .eq("id", value: userID)
+            .limit(1)
+            .execute()
+            .value
+
+        let row = rows.first
+        return EditProfileData(
+            name: row?.name ?? "",
+            gender: row?.gender ?? "",
+            address: row?.location_text ?? "",
+            placeOfWork: row?.place_of_work ?? "",
+            phone: row?.phone ?? "",
+            dateOfBirth: row?.date_of_birth ?? "",
+            about: row?.about ?? "",
+            yearsExperience: row?.years_experience.map { String($0) } ?? "",
+            consultationFee: row?.consultation_fee.map { String(format: "%.2f", $0) } ?? "",
+            latitude: row?.latitude.map { String($0) } ?? "",
+            longitude: row?.longitude.map { String($0) } ?? "",
+            profileImagePath: row?.profile_image_path ?? ""
         )
     }
 
@@ -73,6 +159,11 @@ struct PhysioProfileModel {
             let place_of_work: String?
             let phone: String?
             let date_of_birth: String?
+            let about: String?
+            let years_experience: Int?
+            let consultation_fee: Double?
+            let latitude: Double?
+            let longitude: Double?
             let profile_image_path: String?
             let updated_at: String
         }
@@ -88,6 +179,11 @@ struct PhysioProfileModel {
             place_of_work: input.placeOfWork.trimmedOrNil,
             phone: input.phone.trimmedOrNil,
             date_of_birth: input.dateOfBirth.trimmedOrNil,
+            about: input.about.trimmedOrNil,
+            years_experience: input.yearsExperience.intOrNil,
+            consultation_fee: input.consultationFee.doubleOrNil,
+            latitude: input.latitude.doubleOrNil,
+            longitude: input.longitude.doubleOrNil,
             profile_image_path: input.profileImagePath.trimmedOrNil,
             updated_at: formatter.string(from: Date())
         )
@@ -103,5 +199,15 @@ private extension String {
     var trimmedOrNil: String? {
         let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
+    }
+
+    var intOrNil: Int? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return Int(trimmed)
+    }
+
+    var doubleOrNil: Double? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return Double(trimmed)
     }
 }
