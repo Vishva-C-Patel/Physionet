@@ -10,5 +10,9 @@
 	<string>sb_publishable_CQrdtsEZH2JTGsm2tjELfQ_RYm63cyq</string>
 	<key>SUPABASE_URL</key>
 	<string>https://bvguhuumnumebhblmjrd.supabase.co</string>
+	<key>N8N_WEBHOOK_URL</key>
+	<string>https://n8n.ayushrai.in/webhook-test/articles-trigger</string>
+	<key>N8N_WEBHOOK_TOKEN</key>
+	<string></string>
 </dict>
 </plist>

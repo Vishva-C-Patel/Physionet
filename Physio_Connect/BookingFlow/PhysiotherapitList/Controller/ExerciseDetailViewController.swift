@@ -144,6 +144,7 @@ final class ExerciseDetailViewController: UIViewController {
         ArticleTriggerService.shared.triggerArticles(
             keyword: titleText,
             source: "video",
+            userID: nil,
             context: ["video_id": exerciseID.uuidString]
         )
         Task {

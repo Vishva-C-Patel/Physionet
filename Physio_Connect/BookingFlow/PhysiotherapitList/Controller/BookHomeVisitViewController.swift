@@ -448,9 +448,12 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
         ArticleTriggerService.shared.triggerArticles(
             keyword: specializationForTrigger ?? "Physiotherapy",
             source: "appointment",
+            userID: userUUID.uuidString,
             context: [
+                "event": "booking_completed",
                 "appointment_id": inserted.id.uuidString,
-                "physio_id": physioID.uuidString
+                "physio_id": physioID.uuidString,
+                "user_id": userUUID.uuidString
             ]
         )
 

@@ -10,12 +10,32 @@ final class ArticleTriggerService {
     private var lastKeyword: String?
     private var lastSentAt: Date?
     private let defaultsKey = "article_trigger_cache"
+    private let n8nWebhookURL: URL?
+    private let n8nWebhookToken: String?
 
     private init() {
+        let urlString = Bundle.main.object(forInfoDictionaryKey: "N8N_WEBHOOK_URL") as? String
+        if let urlString = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !urlString.isEmpty,
+           let url = URL(string: urlString) {
+            n8nWebhookURL = url
+        } else {
+            n8nWebhookURL = nil
+        }
+
+        let token = Bundle.main.object(forInfoDictionaryKey: "N8N_WEBHOOK_TOKEN") as? String
+        let trimmedToken = token?.trimmingCharacters(in: .whitespacesAndNewlines)
+        n8nWebhookToken = trimmedToken?.isEmpty == false ? trimmedToken : nil
+
         loadCache()
     }
 
-    func triggerArticles(keyword: String, source: String, context: [String: String]? = nil) {
+    func triggerArticles(
+        keyword: String,
+        source: String,
+        userID: String? = nil,
+        context: [String: String]? = nil
+    ) {
         let normalized = keyword
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
@@ -35,11 +55,30 @@ final class ArticleTriggerService {
             struct Payload: Encodable {
                 let keyword: String
                 let source: String
+                let userID: String?
                 let context: [String: String]?
+
+                enum CodingKeys: String, CodingKey {
+                    case keyword
+                    case source
+                    case userID = "user_id"
+                    case context
+                }
+            }
+
+            let payload = Payload(
+                keyword: normalized,
+                source: source,
+                userID: userID,
+                context: context
+            )
+
+            if await self.invokeWebhook(payload: payload, keyword: normalized, timestamp: now) {
+                return
             }
 
             await self.invokeTrigger(
-                payload: Payload(keyword: normalized, source: source, context: context),
+                payload: payload,
                 keyword: normalized,
                 timestamp: now,
                 retryOn401: true
@@ -69,9 +108,14 @@ final class ArticleTriggerService {
             print("🧾 JWT iss =", jwtIssuer(jwt) ?? "nil")
             print("🪪 trigger_articles user=\(session.user.id) token_prefix=\(jwt.prefix(24))")
 
+            var headers = ["Authorization": "Bearer \(jwt)"]
+            if let anonKey = supabaseAnonKey() {
+                headers["apikey"] = anonKey
+            }
+
             let options = FunctionInvokeOptions(
                 method: .post,
-                headers: ["Authorization": "Bearer \(jwt)"],
+                headers: headers,
                 body: payload
             )
 
@@ -96,6 +140,44 @@ final class ArticleTriggerService {
                 print("❌ trigger_articles failed for \(keyword): \(error)")
             }
         }
+    }
+
+    private func invokeWebhook(
+        payload: some Encodable,
+        keyword: String,
+        timestamp: Date
+    ) async -> Bool {
+        guard let url = n8nWebhookURL else { return false }
+
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let token = n8nWebhookToken {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            request.httpBody = try JSONEncoder().encode(payload)
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) {
+                store(keyword: keyword, at: timestamp)
+                return true
+            }
+
+            let body = String(data: data, encoding: .utf8) ?? "<no body>"
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("❌ n8n webhook failed for \(keyword): code=\(status) body=\(body)")
+        } catch {
+            print("❌ n8n webhook error for \(keyword): \(error)")
+        }
+
+        return false
+    }
+
+    private func supabaseAnonKey() -> String? {
+        let key = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String
+        let trimmed = key?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
     }
 
     private func jwtIssuer(_ jwt: String) -> String? {
