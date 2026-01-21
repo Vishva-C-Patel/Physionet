@@ -369,6 +369,8 @@ final class ProfileView: UIView {
         let startRow = makeAvailabilityRow(title: "Start Time", picker: availabilityStartPicker, mode: .time)
         let endRow = makeAvailabilityRow(title: "End Time", picker: availabilityEndPicker, mode: .time)
 
+        availabilityDatePicker.minimumDate = Calendar.current.startOfDay(for: Date())
+
         availabilityHintLabel.text = "Slots are created in 1-hour blocks."
         availabilityHintLabel.font = .systemFont(ofSize: 12, weight: .semibold)
         availabilityHintLabel.textColor = UIColor.black.withAlphaComponent(0.5)

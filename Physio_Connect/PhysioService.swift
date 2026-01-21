@@ -43,6 +43,7 @@ final class PhysioService {
 struct PhysioListRow: Decodable {
     let id: UUID
     let name: String
+    let gender: String?
     let consultation_fee: Double?
     let latitude: Double?
     let longitude: Double?
@@ -105,6 +106,7 @@ extension PhysioService {
             .select("""
                 id,
                 name,
+                gender,
                 consultation_fee,
                 latitude,
                 longitude,
@@ -120,6 +122,25 @@ extension PhysioService {
             """)
             .execute()
             .value
+    }
+
+    func fetchAvailablePhysioIDs(at date: Date) async throws -> Set<UUID> {
+        struct AvailabilityRow: Decodable { let physio_id: UUID }
+
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let value = f.string(from: date)
+
+        let rows: [AvailabilityRow] = try await client
+            .from("physio_availability_slots")
+            .select("physio_id")
+            .eq("is_booked", value: false)
+            .lte("start_time", value: value)
+            .gt("end_time", value: value)
+            .execute()
+            .value
+
+        return Set(rows.map(\.physio_id))
     }
 
 

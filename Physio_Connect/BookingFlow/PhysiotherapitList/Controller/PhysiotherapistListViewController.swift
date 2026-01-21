@@ -13,8 +13,11 @@ final class PhysiotherapistListViewController: UIViewController {
     private let listView = PhysiotherapistListView()
 
     private var items: [PhysiotherapistCardModel] = []
+    private var availableItems: [PhysiotherapistCardModel] = []
     private var filtered: [PhysiotherapistCardModel] = []
-    private var isSearching = false
+    private var availablePhysioIDs: Set<UUID>?
+    private var searchQuery = ""
+    private var selectedDate = Date()
 
     var activeFilters = Filters()
 
@@ -33,9 +36,9 @@ final class PhysiotherapistListViewController: UIViewController {
         listView.tableView.delegate = self
         listView.searchBar.delegate = self
 
-        listView.calendarButton.addTarget(self, action: #selector(openCalendar), for: .touchUpInside)
         listView.backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
-        listView.datePicker.addTarget(self, action: #selector(dateSelected(_:)), for: .valueChanged)
+        listView.datePill.addTarget(self, action: #selector(datePillTapped), for: .touchUpInside)
+        listView.timePill.addTarget(self, action: #selector(timePillTapped), for: .touchUpInside)
         listView.filterButton.addTarget(self, action: #selector(openFilters), for: .touchUpInside)
 
         setupLocationUpdates()
@@ -44,14 +47,14 @@ final class PhysiotherapistListViewController: UIViewController {
     }
 
     private func setInitialDatePills() {
-        let now = Date()
+        let now = selectedDate
         let d = DateFormatter()
         d.dateFormat = "dd MMM yyyy"
-        listView.datePill.text = d.string(from: now)
+        listView.setDateText(d.string(from: now))
 
         let t = DateFormatter()
         t.dateFormat = "h:mm a"
-        listView.timePill.text = t.string(from: now)
+        listView.setTimeText(t.string(from: now))
     }
 
     // MARK: - Fetch from Supabase (NEW TABLE)
@@ -67,9 +70,10 @@ final class PhysiotherapistListViewController: UIViewController {
 
                 await MainActor.run {
                     self.items = cards
-                    self.filtered = cards
-                    self.listView.tableView.reloadData()
+                    self.applyAvailabilityFilter()
+                    self.applyFilters()
                 }
+                await refreshAvailability()
             } catch {
                 print("❌ fetchPhysios error:", error)
             }
@@ -95,6 +99,7 @@ final class PhysiotherapistListViewController: UIViewController {
         return PhysiotherapistCardModel(
             id: p.id,
             name: p.name,
+            gender: p.gender,
             rating: p.avg_rating ?? 0,
             reviewsCount: p.reviews_count ?? 0,
             specializationText: spec,
@@ -116,25 +121,21 @@ final class PhysiotherapistListViewController: UIViewController {
             guard let loc = location else { return }
 
             for i in self.items.indices { self.items[i].updateDistance(from: loc) }
-            for i in self.filtered.indices { self.filtered[i].updateDistance(from: loc) }
-            self.listView.tableView.reloadData()
+            self.applyAvailabilityFilter()
+            self.applyFilters()
         }
         LocationService.shared.requestLocation()
     }
 
     // MARK: - Actions
-    @objc private func openCalendar() { listView.showDatePicker() }
-
     @objc private func goBack() { navigationController?.popViewController(animated: true) }
 
-    @objc private func dateSelected(_ sender: UIDatePicker) {
-        let d = DateFormatter()
-        d.dateFormat = "dd MMM yyyy"
-        listView.datePill.text = d.string(from: sender.date)
+    @objc private func datePillTapped() {
+        presentDatePicker(mode: .date)
+    }
 
-        let t = DateFormatter()
-        t.dateFormat = "h:mm a"
-        listView.timePill.text = t.string(from: sender.date)
+    @objc private func timePillTapped() {
+        presentDatePicker(mode: .time)
     }
 
     @objc private func openFilters() {
@@ -159,13 +160,25 @@ final class PhysiotherapistListViewController: UIViewController {
         present(vc, animated: false)
     }
 
+    private func applyAvailabilityFilter() {
+        if let ids = availablePhysioIDs {
+            availableItems = items.filter { ids.contains($0.id) }
+        } else {
+            availableItems = items
+        }
+    }
+
     private func applyFilters() {
-        var list = items
+        var list = availableItems
 
         // NOTE: Your Filters struct might be "specialities" or "specialties"
         // Use whichever exists in YOUR project.
         if !activeFilters.specialities.isEmpty {
-            list = list.filter { activeFilters.specialities.contains($0.specializationText) }
+            let specials = activeFilters.specialities.map { $0.lowercased() }
+            list = list.filter { model in
+                let specialization = model.specializationText.lowercased()
+                return specials.contains { specialization.contains($0) }
+            }
         }
 
         list = list.filter { extractKm(from: $0.distanceText) <= activeFilters.maxDistance }
@@ -174,8 +187,104 @@ final class PhysiotherapistListViewController: UIViewController {
             list = list.filter { Int($0.rating) >= activeFilters.minRating }
         }
 
+        if let gender = activeFilters.gender, gender != "Prefer not to say" {
+            let target = gender.lowercased()
+            list = list.filter { $0.gender?.lowercased() == target }
+        }
+
+        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !trimmedQuery.isEmpty {
+            list = list.filter {
+                $0.name.lowercased().contains(trimmedQuery) ||
+                $0.specializationText.lowercased().contains(trimmedQuery) ||
+                $0.distanceText.lowercased().contains(trimmedQuery)
+            }
+        }
+
         filtered = list
         listView.tableView.reloadData()
+    }
+
+    private func presentDatePicker(mode: UIDatePicker.Mode) {
+        let picker = UIDatePicker()
+        if #available(iOS 14.0, *) {
+            picker.preferredDatePickerStyle = .wheels
+        }
+        picker.datePickerMode = mode
+        picker.date = selectedDate
+        if mode == .date {
+            picker.minimumDate = Date()
+        }
+
+        let title = mode == .date ? "Select Date" : "Select Time"
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+
+        let contentView = UIViewController()
+        contentView.view.addSubview(picker)
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            picker.topAnchor.constraint(equalTo: contentView.view.topAnchor),
+            picker.leadingAnchor.constraint(equalTo: contentView.view.leadingAnchor),
+            picker.trailingAnchor.constraint(equalTo: contentView.view.trailingAnchor),
+            picker.bottomAnchor.constraint(equalTo: contentView.view.bottomAnchor),
+            contentView.view.heightAnchor.constraint(equalToConstant: 216)
+        ])
+
+        alert.setValue(contentView, forKey: "contentViewController")
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak self] _ in
+            self?.updateSelectedDate(with: picker.date, mode: mode)
+        }))
+        present(alert, animated: true)
+    }
+
+    private func updateSelectedDate(with value: Date, mode: UIDatePicker.Mode) {
+        let calendar = Calendar.current
+        switch mode {
+        case .date:
+            let newDate = calendar.startOfDay(for: value)
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: selectedDate)
+            selectedDate = calendar.date(
+                bySettingHour: timeComponents.hour ?? 0,
+                minute: timeComponents.minute ?? 0,
+                second: 0,
+                of: newDate
+            ) ?? newDate
+        case .time:
+            let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: value)
+            selectedDate = calendar.date(
+                bySettingHour: timeComponents.hour ?? 0,
+                minute: timeComponents.minute ?? 0,
+                second: 0,
+                of: calendar.date(from: dateComponents) ?? selectedDate
+            ) ?? selectedDate
+        default:
+            selectedDate = value
+        }
+
+        let d = DateFormatter()
+        d.dateFormat = "dd MMM yyyy"
+        listView.setDateText(d.string(from: selectedDate))
+
+        let t = DateFormatter()
+        t.dateFormat = "h:mm a"
+        listView.setTimeText(t.string(from: selectedDate))
+
+        Task { await refreshAvailability() }
+    }
+
+    private func refreshAvailability() async {
+        do {
+            let ids = try await PhysioService.shared.fetchAvailablePhysioIDs(at: selectedDate)
+            await MainActor.run {
+                self.availablePhysioIDs = ids
+                self.applyAvailabilityFilter()
+                self.applyFilters()
+            }
+        } catch {
+            print("❌ availability fetch error:", error)
+        }
     }
 
     private func extractKm(from text: String) -> Double {
@@ -188,7 +297,7 @@ final class PhysiotherapistListViewController: UIViewController {
 extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        isSearching ? filtered.count : items.count
+        filtered.count
     }
 
     func tableView(_ tableView: UITableView,
@@ -199,7 +308,7 @@ extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewD
             for: indexPath
         ) as! PhysiotherapistCardCell
 
-        let model = isSearching ? filtered[indexPath.row] : items[indexPath.row]
+        let model = filtered[indexPath.row]
         cell.configure(with: model)
         cell.avatarPath = model.profileImagePath
         cell.setAvatarImage(nil)
@@ -208,7 +317,7 @@ extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewD
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let model = isSearching ? filtered[indexPath.row] : items[indexPath.row]
+        let model = filtered[indexPath.row]
 
         let vc = PhysiotherapistProfileViewController(physioID: model.id, preloadCard: model)
         navigationController?.pushViewController(vc, animated: true)
@@ -230,27 +339,13 @@ extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewD
 extension PhysiotherapistListViewController: UISearchBarDelegate {
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-
-        if searchText.isEmpty {
-            isSearching = false
-            filtered = items
-        } else {
-            isSearching = true
-            let q = searchText.lowercased()
-            filtered = items.filter {
-                $0.name.lowercased().contains(q) ||
-                $0.specializationText.lowercased().contains(q) ||
-                $0.distanceText.lowercased().contains(q)
-            }
-        }
-
-        listView.tableView.reloadData()
+        searchQuery = searchText
+        applyFilters()
     }
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        isSearching = false
-        filtered = items
+        searchQuery = ""
         searchBar.text = ""
-        listView.tableView.reloadData()
+        applyFilters()
     }
 }

@@ -45,6 +45,10 @@ final class FiltersOverlayViewController: UIViewController {
     private func preloadFromSelectedFilters() {
         selectedDistance = selectedFilters.maxDistance
         selectedRating = selectedFilters.minRating
+        distanceSlider.value = Float(selectedDistance)
+        distanceLabel.text = "within \(Int(selectedDistance)) km"
+        updateRatingUI()
+        updateSelectionUI()
     }
 
     private func buildUI() {
@@ -204,16 +208,12 @@ final class FiltersOverlayViewController: UIViewController {
 
         // Speciality
         specialityButtons.forEach { (_, btn) in
-            btn.isSelected = false
-            btn.backgroundColor = .white
-            btn.layer.borderColor = UIColor.lightGray.cgColor
+            updateButton(btn, selected: false)
         }
 
         // Gender
         genderButtons.forEach { (_, btn) in
-            btn.isSelected = false
-            btn.backgroundColor = .white
-            btn.layer.borderColor = UIColor.lightGray.cgColor
+            updateButton(btn, selected: false)
         }
 
         // Distance
@@ -223,7 +223,7 @@ final class FiltersOverlayViewController: UIViewController {
 
         // Rating
         selectedRating = 0
-        ratingButtons.forEach { $0.setImage(UIImage(systemName: "star"), for: .normal) }
+        updateRatingUI()
 
         selectedFilters = Filters()
     }
@@ -397,9 +397,15 @@ final class FiltersOverlayViewController: UIViewController {
 
     // MARK: - Toggle / Slider / Rating
     @objc private func toggleOption(_ sender: UIButton) {
-        sender.isSelected.toggle()
-        sender.backgroundColor = sender.isSelected ? UIColor(hex: "1E6EF7") : .white
-        sender.layer.borderColor = sender.isSelected ? UIColor.clear.cgColor : UIColor.lightGray.cgColor
+        if genderButtons.contains(where: { $0.1 == sender }) {
+            let willSelect = !sender.isSelected
+            genderButtons.forEach { (_, button) in
+                updateButton(button, selected: false)
+            }
+            updateButton(sender, selected: willSelect)
+        } else {
+            updateButton(sender, selected: !sender.isSelected)
+        }
     }
 
     @objc private func distanceChanged() {
@@ -409,7 +415,26 @@ final class FiltersOverlayViewController: UIViewController {
 
     @objc private func ratingSelected(_ sender: UIButton) {
         selectedRating = sender.tag
-        for star in ratingButtons {
+        updateRatingUI()
+    }
+
+    private func updateSelectionUI() {
+        specialityButtons.forEach { title, button in
+            updateButton(button, selected: selectedFilters.specialities.contains(title))
+        }
+        genderButtons.forEach { title, button in
+            updateButton(button, selected: selectedFilters.gender == title)
+        }
+    }
+
+    private func updateButton(_ button: UIButton, selected: Bool) {
+        button.isSelected = selected
+        button.backgroundColor = selected ? UIColor(hex: "1E6EF7") : .white
+        button.layer.borderColor = selected ? UIColor.clear.cgColor : UIColor.lightGray.cgColor
+    }
+
+    private func updateRatingUI() {
+        ratingButtons.forEach { star in
             let filled = star.tag <= selectedRating
             star.setImage(UIImage(systemName: filled ? "star.fill" : "star"), for: .normal)
         }

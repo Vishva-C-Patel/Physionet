@@ -11,6 +11,7 @@ import CoreLocation
 struct PhysiotherapistCardModel: Identifiable {
     let id: UUID
     let name: String
+    let gender: String?
 
     let rating: Double
     let reviewsCount: Int

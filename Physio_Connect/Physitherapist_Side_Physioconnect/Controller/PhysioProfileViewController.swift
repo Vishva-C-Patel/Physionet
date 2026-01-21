@@ -29,7 +29,7 @@ final class PhysioProfileViewController: UIViewController {
         profileView.setShowsEditButton(true)
         profileView.setAvailabilityVisible(true)
         profileView.onAvailabilitySave = { [weak self] day, start, end in
-            self?.saveAvailability(day: day, start: start, end: end)
+            self?.presentRepeatPicker(for: day, start: start, end: end)
         }
 
         profileView.setLoggedIn(true)
@@ -104,17 +104,33 @@ final class PhysioProfileViewController: UIViewController {
         }
     }
 
-    private func saveAvailability(day: Date, start: Date, end: Date) {
+    private func presentRepeatPicker(for day: Date, start: Date, end: Date) {
+        let weekday = Calendar.current.component(.weekday, from: day) - 1
+        let controller = RepeatSelectionViewController(
+            selectedDate: day,
+            initialWeekdays: [weekday]
+        )
+        controller.onSave = { [weak self] repeatWeekdays, isSingleDate in
+            self?.saveAvailability(day: day, start: start, end: end, repeatWeekdays: repeatWeekdays, isSingleDate: isSingleDate)
+        }
+        controller.onCancel = { [weak self] in
+            self?.profileView.setAvailabilitySaving(false)
+        }
+        present(controller, animated: true)
+    }
+
+    private func saveAvailability(day: Date, start: Date, end: Date, repeatWeekdays: [Int], isSingleDate: Bool) {
         profileView.setAvailabilitySaving(true)
         Task {
             do {
                 let session = try await SupabaseManager.shared.client.auth.session
                 let physioID = session.user.id
-                let result = try await availabilityModel.createHourlySlots(
+                let result = try await availabilityModel.saveAvailability(
                     physioID: physioID,
                     day: day,
                     startTime: start,
-                    endTime: end
+                    endTime: end,
+                    repeatWeekdays: isSingleDate ? [] : repeatWeekdays
                 )
                 await MainActor.run {
                     self.profileView.setAvailabilitySaving(false)

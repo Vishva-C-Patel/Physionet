@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class AssignPatientsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+final class AssignPatientsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, UISearchBarDelegate {
 
     var onAssigned: ((String) -> Void)?
 
@@ -17,9 +17,11 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
     private let footerView = UIView()
     private let cancelButton = UIButton(type: .system)
     private let assignButton = UIButton(type: .system)
+    private let searchController = UISearchController(searchResultsController: nil)
 
     private var physioID: String?
     private var patients: [ProgramsCustomerRow] = []
+    private var filteredPatients: [ProgramsCustomerRow] = []
     private var selectedIDs = Set<UUID>()
     private var isLoading = false
 
@@ -37,10 +39,21 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
         title = "Assign Patients"
         view.backgroundColor = UIColor(hex: "E6F1FF")
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Close", style: .plain, target: self, action: #selector(closeTapped))
+        setupSearch()
 
         setupFooter()
         setupTableView()
         Task { await loadPatients() }
+    }
+
+    private func setupSearch() {
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search patients"
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        definesPresentationContext = true
     }
 
     private func setupTableView() {
@@ -119,11 +132,29 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
 
             await MainActor.run {
                 self.patients = filtered
-                self.tableView.reloadData()
+                self.applyFilter(query: self.searchController.searchBar.text)
             }
         } catch {
             await MainActor.run { self.showError("Patients Error", error.localizedDescription) }
         }
+    }
+
+    private func applyFilter(query: String?) {
+        let trimmed = query?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty {
+            filteredPatients = patients
+        } else {
+            let lowercased = trimmed.lowercased()
+            filteredPatients = patients.filter { patient in
+                let name = patient.full_name.lowercased()
+                let email = patient.email?.lowercased() ?? ""
+                let location = patient.location?.lowercased() ?? ""
+                return name.contains(lowercased)
+                    || email.contains(lowercased)
+                    || location.contains(lowercased)
+            }
+        }
+        tableView.reloadData()
     }
 
     @objc private func closeTapped() {
@@ -161,13 +192,13 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        patients.count
+        filteredPatients.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "patientCell")
             ?? UITableViewCell(style: .subtitle, reuseIdentifier: "patientCell")
-        let patient = patients[indexPath.row]
+        let patient = filteredPatients[indexPath.row]
         cell.textLabel?.text = patient.full_name
         cell.textLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         cell.detailTextLabel?.text = patient.location ?? patient.email ?? ""
@@ -178,13 +209,21 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let patient = patients[indexPath.row]
+        let patient = filteredPatients[indexPath.row]
         if selectedIDs.contains(patient.id) {
             selectedIDs.remove(patient.id)
         } else {
             selectedIDs.insert(patient.id)
         }
         tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+
+    func updateSearchResults(for searchController: UISearchController) {
+        applyFilter(query: searchController.searchBar.text)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        applyFilter(query: nil)
     }
 
     private func showError(_ title: String, _ message: String) {

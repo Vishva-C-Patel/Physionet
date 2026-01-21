@@ -60,6 +60,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
         tableView.register(ProgramDayCell.self, forCellReuseIdentifier: ProgramDayCell.reuseID)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "BasicCell")
         tableView.keyboardDismissMode = .interactive
+        tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 120
         if #available(iOS 15.0, *) {
@@ -86,15 +87,21 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
         nameField.placeholder = "Enter program name"
         nameField.autocapitalizationType = .words
         nameField.returnKeyType = .next
+        nameField.font = .systemFont(ofSize: 17)
+        nameField.textColor = .label
         nameField.delegate = self
 
         durationField.placeholder = "14"
         durationField.keyboardType = .numberPad
+        durationField.font = .systemFont(ofSize: 17)
+        durationField.textColor = .label
         durationField.delegate = self
         durationField.addTarget(self, action: #selector(inputsChanged), for: .editingChanged)
 
         perDayField.placeholder = "5"
         perDayField.keyboardType = .numberPad
+        perDayField.font = .systemFont(ofSize: 17)
+        perDayField.textColor = .label
         perDayField.delegate = self
         perDayField.addTarget(self, action: #selector(inputsChanged), for: .editingChanged)
     }
@@ -409,16 +416,13 @@ final class ProgramInfoCell: UITableViewCell {
     private func build() {
         selectionStyle = .none
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        titleLabel.textColor = .secondaryLabel
 
         textFieldContainer.translatesAutoresizingMaskIntoConstraints = false
-        textFieldContainer.backgroundColor = .white
+        textFieldContainer.backgroundColor = .secondarySystemGroupedBackground
         textFieldContainer.layer.cornerRadius = 12
-        textFieldContainer.layer.shadowColor = UIColor.black.cgColor
-        textFieldContainer.layer.shadowOpacity = 0.04
-        textFieldContainer.layer.shadowRadius = 6
-        textFieldContainer.layer.shadowOffset = CGSize(width: 0, height: 2)
+        textFieldContainer.layer.masksToBounds = true
 
         contentView.addSubview(titleLabel)
         contentView.addSubview(textFieldContainer)

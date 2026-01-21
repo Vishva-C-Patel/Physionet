@@ -50,14 +50,8 @@ final class PhysiotherapistListView: UIView {
         return l
     }()
 
-    let datePill = UILabel()
-    let timePill = UILabel()
-    let calendarButton = UIButton(type: .system)
-
-    // Popup date picker
-    let popupBackground = UIView()
-    let datePopupContainer = UIView()
-    let datePicker = UIDatePicker()
+    let datePill = UIButton(type: .system)
+    let timePill = UIButton(type: .system)
 
     // MARK: - INIT
     override init(frame: CGRect) {
@@ -66,7 +60,6 @@ final class PhysiotherapistListView: UIView {
         setupHeader()
         setupTable()
         setupTableHeaderContents()
-        setupDatePopup()
     }
 
     required init?(coder: NSCoder) {
@@ -163,23 +156,20 @@ final class PhysiotherapistListView: UIView {
 
         // Pills style
         [datePill, timePill].forEach {
-            $0.textColor = .black
-            $0.font = .systemFont(ofSize: 13)
+            $0.setTitleColor(.label, for: .normal)
+            $0.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
             $0.backgroundColor = .white
-            $0.textAlignment = .center
+            $0.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
             $0.layer.cornerRadius = 8
             $0.layer.masksToBounds = true
         }
-        datePill.text = "13 Nov 2025"
-        timePill.text = "10:35 AM"
-
-        calendarButton.setImage(UIImage(systemName: "calendar"), for: .normal)
-        calendarButton.tintColor = UIColor(hex: "1E6EF7")
+        datePill.setTitle("13 Nov 2025", for: .normal)
+        timePill.setTitle("10:35 AM", for: .normal)
 
         [locationIcon, cityLabel,
          searchBar, filterButton,
          selectDateLabel,
-         datePill, timePill, calendarButton].forEach {
+         datePill, timePill].forEach {
             headerContentView.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -214,19 +204,11 @@ final class PhysiotherapistListView: UIView {
             datePill.topAnchor.constraint(equalTo: selectDateLabel.bottomAnchor, constant: 8),
             datePill.leadingAnchor.constraint(equalTo: headerContentView.leadingAnchor, constant: 16),
             datePill.heightAnchor.constraint(equalToConstant: 30),
-            datePill.widthAnchor.constraint(equalToConstant: 120),
 
             timePill.leadingAnchor.constraint(equalTo: datePill.trailingAnchor, constant: 8),
             timePill.centerYAnchor.constraint(equalTo: datePill.centerYAnchor),
             timePill.heightAnchor.constraint(equalToConstant: 30),
-            timePill.widthAnchor.constraint(equalToConstant: 100),
-
-            calendarButton.centerYAnchor.constraint(equalTo: datePill.centerYAnchor),
-            calendarButton.widthAnchor.constraint(equalToConstant: 32),
-            calendarButton.heightAnchor.constraint(equalToConstant: 32),
-            calendarButton.trailingAnchor.constraint(equalTo: headerContentView.trailingAnchor, constant: -16),
-
-            calendarButton.bottomAnchor.constraint(equalTo: headerContentView.bottomAnchor, constant: -16)
+            timePill.bottomAnchor.constraint(equalTo: headerContentView.bottomAnchor, constant: -16)
         ])
     }
 
@@ -244,73 +226,11 @@ final class PhysiotherapistListView: UIView {
         tableView.tableHeaderView = headerContentView
     }
 
-    // MARK: Date popup
-    private func setupDatePopup() {
-        popupBackground.backgroundColor = UIColor.black.withAlphaComponent(0.2)
-        popupBackground.alpha = 0
-        popupBackground.isHidden = true
-        popupBackground.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(popupBackground)
-
-        NSLayoutConstraint.activate([
-            popupBackground.topAnchor.constraint(equalTo: topAnchor),
-            popupBackground.leadingAnchor.constraint(equalTo: leadingAnchor),
-            popupBackground.trailingAnchor.constraint(equalTo: trailingAnchor),
-            popupBackground.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
-
-        let tap = UITapGestureRecognizer(target: self, action: #selector(hideDatePicker))
-        popupBackground.addGestureRecognizer(tap)
-
-        datePopupContainer.backgroundColor = .white
-        datePopupContainer.layer.cornerRadius = 16
-        datePopupContainer.layer.shadowColor = UIColor.black.cgColor
-        datePopupContainer.layer.shadowOpacity = 0.15
-        datePopupContainer.layer.shadowRadius = 8
-        datePopupContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
-        datePopupContainer.alpha = 0
-
-        addSubview(datePopupContainer)
-        datePopupContainer.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            datePopupContainer.centerXAnchor.constraint(equalTo: centerXAnchor),
-            datePopupContainer.topAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: 100),
-            datePopupContainer.widthAnchor.constraint(equalToConstant: 340),
-            datePopupContainer.heightAnchor.constraint(equalToConstant: 380)
-        ])
-
-        if #available(iOS 14.0, *) {
-            datePicker.preferredDatePickerStyle = .inline
-        }
-        datePicker.datePickerMode = .dateAndTime
-        datePicker.minimumDate = Date()
-
-        datePopupContainer.addSubview(datePicker)
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            datePicker.topAnchor.constraint(equalTo: datePopupContainer.topAnchor, constant: 8),
-            datePicker.leadingAnchor.constraint(equalTo: datePopupContainer.leadingAnchor, constant: 8),
-            datePicker.trailingAnchor.constraint(equalTo: datePopupContainer.trailingAnchor, constant: -8),
-            datePicker.bottomAnchor.constraint(equalTo: datePopupContainer.bottomAnchor, constant: -8)
-        ])
+    func setDateText(_ text: String) {
+        datePill.setTitle(text, for: .normal)
     }
 
-    func showDatePicker() {
-        popupBackground.isHidden = false
-        UIView.animate(withDuration: 0.25) {
-            self.popupBackground.alpha = 1
-            self.datePopupContainer.alpha = 1
-        }
-    }
-
-    @objc func hideDatePicker() {
-        UIView.animate(withDuration: 0.2, animations: {
-            self.popupBackground.alpha = 0
-            self.datePopupContainer.alpha = 0
-        }) { _ in
-            self.popupBackground.isHidden = true
-        }
+    func setTimeText(_ text: String) {
+        timePill.setTitle(text, for: .normal)
     }
 }
