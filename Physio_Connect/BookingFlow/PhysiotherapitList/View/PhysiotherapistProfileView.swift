@@ -17,28 +17,31 @@ final class PhysiotherapistProfileView: UIView {
     let scrollView = UIScrollView()
     private let contentView = UIView()
 
-    // MARK: Header (gradient)
+    // MARK: Header (background)
     private let header = UIView()
     private let headerGradient = CAGradientLayer()
 
     let backButton = UIButton(type: .system)
 
+    private let profileCard = UIView()
     private let avatar = UIImageView()
     private let nameLabel = UILabel()
-    private let ratingLabel = UILabel()
+    private let specializationLabel = UILabel()
     private let servicePlaceLabel = UILabel()
+    private let locationIcon = UIImageView()
 
-    private let onlineDot = UIView()
+    private let statsDivider = UIView()
 
-    // MARK: Spec + Fee card (floating)
+    // MARK: Consultation fee card
     private let specFeeCard = UIView()
     private let specTitle = UILabel()
-    private let specValue = UILabel()
-    private let feeTitle = UILabel()
+    private let consultRow = UIView()
+    private let consultIconContainer = UIView()
+    private let consultIcon = UIImageView()
+    private let consultName = UILabel()
+    private let consultSubtitle = UILabel()
     private let feeValue = UILabel()
 
-    // MARK: Stats card
-    private let statsCard = UIView()
     private let statsStack = UIStackView()
 
     private let patientsLabel = UILabel()
@@ -155,13 +158,8 @@ final class PhysiotherapistProfileView: UIView {
 
         headerGradient.colors = [
             UIColor(hex: "1E6EF7").cgColor,
-            UIColor(hex: "1E6EF7").withAlphaComponent(0.75).cgColor,
-            UIColor(hex: "5EC6F5").cgColor
+            UIColor(hex: "1E6EF7").cgColor
         ]
-        headerGradient.locations = [0.0, 0.55, 1.0] as [NSNumber]
-        // Diagonal gradient: top-left (primary) -> bottom-right (cyan)
-        headerGradient.startPoint = CGPoint(x: 0.0, y: 0.0)
-        headerGradient.endPoint = CGPoint(x: 1.0, y: 1.0)
         header.layer.insertSublayer(headerGradient, at: 0)
 
         // Back button (chevron only)
@@ -170,162 +168,111 @@ final class PhysiotherapistProfileView: UIView {
         backButton.tintColor = .white
         backButton.backgroundColor = .clear
 
+        // Profile card
+        profileCard.translatesAutoresizingMaskIntoConstraints = false
+        profileCard.backgroundColor = .white
+        profileCard.layer.cornerRadius = 20
+        profileCard.layer.shadowColor = UIColor.black.cgColor
+        profileCard.layer.shadowOpacity = 0.08
+        profileCard.layer.shadowRadius = 10
+        profileCard.layer.shadowOffset = CGSize(width: 0, height: 6)
+        contentView.addSubview(profileCard)
+
         // Avatar
         avatar.translatesAutoresizingMaskIntoConstraints = false
-        avatar.layer.cornerRadius = 32
+        avatar.layer.cornerRadius = 14
         avatar.clipsToBounds = true
         avatar.contentMode = .scaleAspectFill
-        avatar.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        avatar.backgroundColor = UIColor.black.withAlphaComponent(0.05)
         avatar.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-        avatar.tintColor = .white
+        avatar.tintColor = .lightGray
 
-        // Online dot
-        onlineDot.translatesAutoresizingMaskIntoConstraints = false
-        onlineDot.backgroundColor = UIColor.systemGreen
-        onlineDot.layer.cornerRadius = 8
-        onlineDot.layer.borderWidth = 2
-        onlineDot.layer.borderColor = UIColor.white.cgColor
-
-        // Name + rating + distance
+        // Name + specialization + location
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = .boldSystemFont(ofSize: 22)
-        nameLabel.textColor = .white
+        nameLabel.font = .boldSystemFont(ofSize: 20)
+        nameLabel.textColor = .black
 
-        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
-        ratingLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        ratingLabel.textColor = UIColor.white.withAlphaComponent(0.95)
+        specializationLabel.translatesAutoresizingMaskIntoConstraints = false
+        specializationLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        specializationLabel.textColor = UIColor.black.withAlphaComponent(0.7)
 
         servicePlaceLabel.translatesAutoresizingMaskIntoConstraints = false
-        servicePlaceLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        servicePlaceLabel.textColor = UIColor.white.withAlphaComponent(0.95)
+        servicePlaceLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        servicePlaceLabel.textColor = UIColor.black.withAlphaComponent(0.55)
 
-        [backButton, avatar, onlineDot, nameLabel, ratingLabel, servicePlaceLabel].forEach { header.addSubview($0) }
+        locationIcon.translatesAutoresizingMaskIntoConstraints = false
+        locationIcon.image = UIImage(systemName: "mappin.and.ellipse")
+        locationIcon.tintColor = UIColor.black.withAlphaComponent(0.4)
+
+        statsDivider.translatesAutoresizingMaskIntoConstraints = false
+        statsDivider.backgroundColor = UIColor.clear
+
+        [backButton].forEach { header.addSubview($0) }
+        [avatar, nameLabel, specializationLabel, locationIcon, servicePlaceLabel, statsDivider].forEach { profileCard.addSubview($0) }
 
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: contentView.topAnchor),
             header.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            header.heightAnchor.constraint(equalToConstant: 230),
+            header.heightAnchor.constraint(equalToConstant: 160),
 
             // Back button down a bit
             backButton.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 12),
-            backButton.topAnchor.constraint(equalTo: header.safeAreaLayoutGuide.topAnchor, constant: 36),
+            backButton.topAnchor.constraint(equalTo: header.safeAreaLayoutGuide.topAnchor, constant: 14),
             backButton.widthAnchor.constraint(equalToConstant: 44),
             backButton.heightAnchor.constraint(equalToConstant: 44),
 
-            avatar.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 12),
-            avatar.centerYAnchor.constraint(equalTo: ratingLabel.centerYAnchor),
-            avatar.widthAnchor.constraint(equalToConstant: 64),
-            avatar.heightAnchor.constraint(equalToConstant: 64),
+            profileCard.topAnchor.constraint(equalTo: header.bottomAnchor, constant: -46),
+            profileCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            profileCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            onlineDot.widthAnchor.constraint(equalToConstant: 16),
-            onlineDot.heightAnchor.constraint(equalToConstant: 16),
-            onlineDot.trailingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 2),
-            onlineDot.bottomAnchor.constraint(equalTo: avatar.bottomAnchor, constant: 2),
+            avatar.leadingAnchor.constraint(equalTo: profileCard.leadingAnchor, constant: 16),
+            avatar.topAnchor.constraint(equalTo: profileCard.topAnchor, constant: 16),
+            avatar.widthAnchor.constraint(equalToConstant: 56),
+            avatar.heightAnchor.constraint(equalToConstant: 56),
 
             nameLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 12),
-            nameLabel.topAnchor.constraint(equalTo: backButton.topAnchor, constant: 2),
-            nameLabel.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -16),
+            nameLabel.trailingAnchor.constraint(equalTo: profileCard.trailingAnchor, constant: -16),
+            nameLabel.topAnchor.constraint(equalTo: avatar.topAnchor, constant: 2),
 
-            ratingLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            ratingLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 6),
-            ratingLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+            specializationLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            specializationLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+            specializationLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
 
-            // Distance BELOW rating
-            servicePlaceLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            servicePlaceLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 6),
-            servicePlaceLabel.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -16)
+            locationIcon.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            locationIcon.topAnchor.constraint(equalTo: specializationLabel.bottomAnchor, constant: 6),
+            locationIcon.widthAnchor.constraint(equalToConstant: 14),
+            locationIcon.heightAnchor.constraint(equalToConstant: 14),
+
+            servicePlaceLabel.leadingAnchor.constraint(equalTo: locationIcon.trailingAnchor, constant: 6),
+            servicePlaceLabel.centerYAnchor.constraint(equalTo: locationIcon.centerYAnchor),
+            servicePlaceLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+
+            statsDivider.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: 14),
+            statsDivider.leadingAnchor.constraint(equalTo: profileCard.leadingAnchor, constant: 16),
+            statsDivider.trailingAnchor.constraint(equalTo: profileCard.trailingAnchor, constant: -16),
+            statsDivider.heightAnchor.constraint(equalToConstant: 0)
         ])
 
-        // Spec + Fee floating card
-        specFeeCard.translatesAutoresizingMaskIntoConstraints = false
-        specFeeCard.backgroundColor = .white
-        specFeeCard.layer.cornerRadius = 18
-        specFeeCard.layer.shadowColor = UIColor.black.cgColor
-        specFeeCard.layer.shadowOpacity = 0.08
-        specFeeCard.layer.shadowRadius = 10
-        specFeeCard.layer.shadowOffset = CGSize(width: 0, height: 6)
-
-        specTitle.text = "Specialization"
-        specTitle.font = .systemFont(ofSize: 13, weight: .medium)
-        specTitle.textColor = .darkGray
-
-        specValue.font = .systemFont(ofSize: 15, weight: .bold)
-        specValue.textColor = .black
-        specValue.numberOfLines = 1
-
-        feeTitle.text = "Consultation fees"
-        feeTitle.font = .systemFont(ofSize: 13, weight: .medium)
-        feeTitle.textColor = .darkGray
-        feeTitle.textAlignment = .right
-
-        feeValue.font = .systemFont(ofSize: 16, weight: .bold)
-        feeValue.textColor = primaryBlue
-        feeValue.textAlignment = .right
-
-        [specTitle, specValue, feeTitle, feeValue].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            specFeeCard.addSubview($0)
-        }
-
-        contentView.addSubview(specFeeCard)
-
-        NSLayoutConstraint.activate([
-            specFeeCard.topAnchor.constraint(equalTo: header.bottomAnchor, constant: -26),
-            specFeeCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            specFeeCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            specFeeCard.heightAnchor.constraint(equalToConstant: 74),
-
-            specTitle.leadingAnchor.constraint(equalTo: specFeeCard.leadingAnchor, constant: 16),
-            specTitle.topAnchor.constraint(equalTo: specFeeCard.topAnchor, constant: 14),
-
-            specValue.leadingAnchor.constraint(equalTo: specTitle.leadingAnchor),
-            specValue.topAnchor.constraint(equalTo: specTitle.bottomAnchor, constant: 6),
-            specValue.trailingAnchor.constraint(lessThanOrEqualTo: feeTitle.leadingAnchor, constant: -10),
-
-            feeTitle.trailingAnchor.constraint(equalTo: specFeeCard.trailingAnchor, constant: -16),
-            feeTitle.topAnchor.constraint(equalTo: specFeeCard.topAnchor, constant: 14),
-
-            feeValue.trailingAnchor.constraint(equalTo: feeTitle.trailingAnchor),
-            feeValue.topAnchor.constraint(equalTo: feeTitle.bottomAnchor, constant: 6),
-            feeValue.leadingAnchor.constraint(greaterThanOrEqualTo: specValue.trailingAnchor, constant: 10)
-        ])
-
-        // Stats card (same idea as yours, but no statItem)
-        statsCard.translatesAutoresizingMaskIntoConstraints = false
-        statsCard.backgroundColor = .white
-        statsCard.layer.cornerRadius = 20
-        statsCard.layer.shadowColor = UIColor.black.cgColor
-        statsCard.layer.shadowOpacity = 0.05
-        statsCard.layer.shadowRadius = 8
-        statsCard.layer.shadowOffset = CGSize(width: 0, height: 4)
-
+        // Stats card moved into profileCard
         statsStack.axis = .horizontal
         statsStack.distribution = .fillEqually
         statsStack.alignment = .center
         statsStack.spacing = 10
         statsStack.translatesAutoresizingMaskIntoConstraints = false
 
+        let rView  = makeStatCard(icon: "star.fill", label: ratingNumLabel)
         let pView  = makeStatCard(icon: "person.2.fill", label: patientsLabel)
         let eView  = makeStatCard(icon: "rosette", label: experienceLabel)
-        let rView  = makeStatCard(icon: "star.fill", label: ratingNumLabel)
-        let rcView = makeStatCard(icon: "text.bubble.fill", label: reviewsCountLabel)
 
-        [pView, eView, rView, rcView].forEach { statsStack.addArrangedSubview($0) }
-
-        statsCard.addSubview(statsStack)
-        contentView.addSubview(statsCard)
+        [rView, pView, eView].forEach { statsStack.addArrangedSubview($0) }
+        profileCard.addSubview(statsStack)
 
         NSLayoutConstraint.activate([
-            statsCard.topAnchor.constraint(equalTo: specFeeCard.bottomAnchor, constant: 16),
-            statsCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            statsCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            statsCard.heightAnchor.constraint(equalToConstant: 110),
-
-            statsStack.topAnchor.constraint(equalTo: statsCard.topAnchor, constant: 18),
-            statsStack.leadingAnchor.constraint(equalTo: statsCard.leadingAnchor, constant: 14),
-            statsStack.trailingAnchor.constraint(equalTo: statsCard.trailingAnchor, constant: -14),
-            statsStack.bottomAnchor.constraint(equalTo: statsCard.bottomAnchor, constant: -18)
+            statsStack.topAnchor.constraint(equalTo: statsDivider.bottomAnchor, constant: 12),
+            statsStack.leadingAnchor.constraint(equalTo: profileCard.leadingAnchor, constant: 14),
+            statsStack.trailingAnchor.constraint(equalTo: profileCard.trailingAnchor, constant: -14),
+            statsStack.bottomAnchor.constraint(equalTo: profileCard.bottomAnchor, constant: -16)
         ])
 
         // About card (expandable) — FIXED ORDER (prevents crash)
@@ -360,7 +307,7 @@ final class PhysiotherapistProfileView: UIView {
         contentView.addSubview(aboutCard)
 
         NSLayoutConstraint.activate([
-            aboutCard.topAnchor.constraint(equalTo: statsCard.bottomAnchor, constant: 16),
+            aboutCard.topAnchor.constraint(equalTo: profileCard.bottomAnchor, constant: 16),
             aboutCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             aboutCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
@@ -377,6 +324,91 @@ final class PhysiotherapistProfileView: UIView {
             aboutMoreButton.bottomAnchor.constraint(equalTo: aboutCard.bottomAnchor, constant: -14)
         ])
 
+        // Consultation fee card
+        specFeeCard.translatesAutoresizingMaskIntoConstraints = false
+        specFeeCard.backgroundColor = .white
+        specFeeCard.layer.cornerRadius = 18
+        specFeeCard.layer.shadowColor = UIColor.black.cgColor
+        specFeeCard.layer.shadowOpacity = 0.04
+        specFeeCard.layer.shadowRadius = 8
+        specFeeCard.layer.shadowOffset = CGSize(width: 0, height: 4)
+
+        specTitle.text = "Consultation Fee"
+        specTitle.font = .systemFont(ofSize: 16, weight: .bold)
+        specTitle.textColor = .black
+        specTitle.translatesAutoresizingMaskIntoConstraints = false
+
+        consultRow.translatesAutoresizingMaskIntoConstraints = false
+        consultRow.backgroundColor = UIColor(hex: "EEF5FF")
+        consultRow.layer.cornerRadius = 14
+
+        consultIconContainer.translatesAutoresizingMaskIntoConstraints = false
+        consultIconContainer.backgroundColor = UIColor(hex: "4A90E2")
+        consultIconContainer.layer.cornerRadius = 18
+
+        consultIcon.translatesAutoresizingMaskIntoConstraints = false
+        consultIcon.image = UIImage(systemName: "clock")
+        consultIcon.tintColor = .white
+
+        consultName.translatesAutoresizingMaskIntoConstraints = false
+        consultName.text = "Consultation"
+        consultName.font = .systemFont(ofSize: 14, weight: .semibold)
+        consultName.textColor = .black
+
+        consultSubtitle.translatesAutoresizingMaskIntoConstraints = false
+        consultSubtitle.text = "Per hour session"
+        consultSubtitle.font = .systemFont(ofSize: 12, weight: .medium)
+        consultSubtitle.textColor = UIColor.black.withAlphaComponent(0.55)
+
+        feeValue.font = .systemFont(ofSize: 16, weight: .bold)
+        feeValue.textColor = .black
+        feeValue.translatesAutoresizingMaskIntoConstraints = false
+
+        consultIconContainer.addSubview(consultIcon)
+        consultRow.addSubview(consultIconContainer)
+        consultRow.addSubview(consultName)
+        consultRow.addSubview(consultSubtitle)
+        consultRow.addSubview(feeValue)
+        specFeeCard.addSubview(specTitle)
+        specFeeCard.addSubview(consultRow)
+        contentView.addSubview(specFeeCard)
+
+        NSLayoutConstraint.activate([
+            specFeeCard.topAnchor.constraint(equalTo: aboutCard.bottomAnchor, constant: 16),
+            specFeeCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            specFeeCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+
+            specTitle.topAnchor.constraint(equalTo: specFeeCard.topAnchor, constant: 16),
+            specTitle.leadingAnchor.constraint(equalTo: specFeeCard.leadingAnchor, constant: 16),
+            specTitle.trailingAnchor.constraint(equalTo: specFeeCard.trailingAnchor, constant: -16),
+
+            consultRow.topAnchor.constraint(equalTo: specTitle.bottomAnchor, constant: 12),
+            consultRow.leadingAnchor.constraint(equalTo: specFeeCard.leadingAnchor, constant: 16),
+            consultRow.trailingAnchor.constraint(equalTo: specFeeCard.trailingAnchor, constant: -16),
+            consultRow.bottomAnchor.constraint(equalTo: specFeeCard.bottomAnchor, constant: -16),
+
+            consultIconContainer.leadingAnchor.constraint(equalTo: consultRow.leadingAnchor, constant: 12),
+            consultIconContainer.centerYAnchor.constraint(equalTo: consultRow.centerYAnchor),
+            consultIconContainer.widthAnchor.constraint(equalToConstant: 36),
+            consultIconContainer.heightAnchor.constraint(equalToConstant: 36),
+
+            consultIcon.centerXAnchor.constraint(equalTo: consultIconContainer.centerXAnchor),
+            consultIcon.centerYAnchor.constraint(equalTo: consultIconContainer.centerYAnchor),
+            consultIcon.widthAnchor.constraint(equalToConstant: 18),
+            consultIcon.heightAnchor.constraint(equalToConstant: 18),
+
+            consultName.leadingAnchor.constraint(equalTo: consultIconContainer.trailingAnchor, constant: 12),
+            consultName.topAnchor.constraint(equalTo: consultRow.topAnchor, constant: 10),
+            consultName.trailingAnchor.constraint(lessThanOrEqualTo: feeValue.leadingAnchor, constant: -12),
+
+            consultSubtitle.leadingAnchor.constraint(equalTo: consultName.leadingAnchor),
+            consultSubtitle.topAnchor.constraint(equalTo: consultName.bottomAnchor, constant: 2),
+            consultSubtitle.bottomAnchor.constraint(equalTo: consultRow.bottomAnchor, constant: -10),
+
+            feeValue.trailingAnchor.constraint(equalTo: consultRow.trailingAnchor, constant: -12),
+            feeValue.centerYAnchor.constraint(equalTo: consultRow.centerYAnchor)
+        ])
+
         // Book button (solid pill)
         bookButton.translatesAutoresizingMaskIntoConstraints = false
         bookButton.setTitle("Book Appointment", for: .normal)
@@ -391,7 +423,7 @@ final class PhysiotherapistProfileView: UIView {
         contentView.addSubview(bookButton)
 
         NSLayoutConstraint.activate([
-            bookButton.topAnchor.constraint(equalTo: aboutCard.bottomAnchor, constant: 16),
+            bookButton.topAnchor.constraint(equalTo: specFeeCard.bottomAnchor, constant: 18),
             bookButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             bookButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             bookButton.heightAnchor.constraint(equalToConstant: 56)
@@ -456,17 +488,15 @@ final class PhysiotherapistProfileView: UIView {
     // MARK: Configure UI
     func configure(with model: PhysiotherapistProfileModel) {
         nameLabel.text = model.name
-        ratingLabel.text = model.ratingText
+        specializationLabel.text = model.specializationText
         servicePlaceLabel.text = model.servicePlaceText
 
-
-        specValue.text = model.specializationText
+        consultSubtitle.text = "Per hour session"
         feeValue.text = model.consultationFeeText
 
+        ratingNumLabel.text = model.ratingNumberText
         patientsLabel.text = model.patientsText
         experienceLabel.text = model.experienceText
-        ratingNumLabel.text = model.ratingNumberText
-        reviewsCountLabel.text = model.reviewsCountText
 
         setAboutText(model.about)
     }

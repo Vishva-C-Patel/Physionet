@@ -175,7 +175,7 @@ final class BookHomeVisitView: UIView {
 
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = primaryBlue
+        backButton.tintColor = .black
         backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 6, bottom: 8, right: 6)
 
         headerTitle.translatesAutoresizingMaskIntoConstraints = false
