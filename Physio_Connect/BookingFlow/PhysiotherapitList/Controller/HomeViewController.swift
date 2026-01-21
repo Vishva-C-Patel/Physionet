@@ -24,6 +24,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
     private var articleImages: [UUID: UIImage] = [:]
     private var selectedArticlesSort: ArticleSort = .topRated
     private let itemsPerDay = 2
+    private let homeArticleLimit = 3
 
     override func loadView() { view = homeView }
 
@@ -90,7 +91,14 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         let isLoggedIn = (try? await SupabaseManager.shared.client.auth.session) != nil
 
         let videos = (try? await videosModel.fetchFreeExercises(search: nil)) ?? []
-        let fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: selectedArticlesSort)) ?? []
+        let resolvedSort: ArticleSort = (!isLoggedIn && selectedArticlesSort == .forYou) ? .topRated : selectedArticlesSort
+        var fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: resolvedSort)) ?? []
+        if fetchedArticles.isEmpty && resolvedSort != .topRated {
+            fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: .topRated)) ?? []
+        }
+        if fetchedArticles.isEmpty {
+            fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: .recent)) ?? []
+        }
 
         var upcoming: [HomeUpcomingAppointment] = []
         var programRows: [MyProgramExerciseRow] = []
@@ -126,7 +134,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             let hasProgram = !programRows.isEmpty
             self.homeView.setPainVisible(isLoggedIn && hasProgram)
             self.homeView.setUpNextVisible(isLoggedIn && hasProgram && nextExercise != nil)
-            self.articles = Array(fetchedArticles.prefix(4))
+            self.articles = Array(fetchedArticles.prefix(self.homeArticleLimit))
             self.articleImages = [:]
             self.homeView.articlesTableView.reloadData()
             self.homeView.updateArticlesHeight(rows: self.articles.count)
@@ -135,7 +143,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             }
         }
         loadThumbnails(for: Array(videos.prefix(4)))
-        loadArticleImages(for: Array(fetchedArticles.prefix(4)))
+        loadArticleImages(for: Array(fetchedArticles.prefix(homeArticleLimit)))
     }
 
     private func applyUpNext() {
