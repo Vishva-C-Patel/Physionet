@@ -9,17 +9,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                options connectionOptions: UIScene.ConnectionOptions) {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
+        let window = UIWindow(windowScene: windowScene)
+        self.window = window
 
-        // Start on role selection until auth check finishes.
+        window.rootViewController = SplashViewController { [weak self] in
+            self?.startAppFlow()
+        }
+        window.makeKeyAndVisible()
+    }
+
+    private func startAppFlow() {
         window?.rootViewController = RoleSelectionViewController()
-        window?.makeKeyAndVisible()
 
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             let session = try? await SupabaseManager.shared.client.auth.session
             guard session != nil else {
                 RoleStore.shared.clear()
-                window?.rootViewController = RoleSelectionViewController()
+                self.window?.rootViewController = RoleSelectionViewController()
                 return
             }
 
@@ -29,23 +36,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     try? await SupabaseManager.shared.client.auth.signOut()
                     switch role {
                     case .patient:
-                        window?.rootViewController = MainTabBarController()
+                        self.window?.rootViewController = MainTabBarController()
                     case .physiotherapist:
                         let nav = UINavigationController(rootViewController: PhysioAuthViewController())
-                        window?.rootViewController = nav
+                        self.window?.rootViewController = nav
                     }
                     return
                 }
 
                 switch role {
                 case .patient:
-                    window?.rootViewController = MainTabBarController()
+                    self.window?.rootViewController = MainTabBarController()
                 case .physiotherapist:
                     let tab = PhysioTabBarController()
-                    window?.rootViewController = tab
+                    self.window?.rootViewController = tab
                 }
             } else {
-                window?.rootViewController = RoleSelectionViewController()
+                self.window?.rootViewController = RoleSelectionViewController()
             }
         }
     }

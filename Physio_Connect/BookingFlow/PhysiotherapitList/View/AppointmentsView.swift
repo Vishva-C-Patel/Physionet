@@ -41,7 +41,7 @@ final class AppointmentsView: UIView {
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = UITheme.Colors.background
         build()
         wireActions()
         applyDefaultUI()
@@ -53,16 +53,16 @@ final class AppointmentsView: UIView {
         titleLabel.text = "Appointments"
 
         segmented.selectedSegmentIndex = 0
-        segmented.selectedSegmentTintColor = UIColor(hex: "1E6EF7")
-        segmented.backgroundColor = .white
-        segmented.layer.cornerRadius = 16
+        segmented.selectedSegmentTintColor = UITheme.Colors.accent
+        segmented.backgroundColor = UITheme.Colors.surface
+        segmented.layer.cornerRadius = 14
         segmented.layer.masksToBounds = true
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.white, .font: UITheme.Fonts.subtitle(14)],
             for: .selected
         )
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.black.withAlphaComponent(0.65), .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UITheme.Colors.textSecondary, .font: UITheme.Fonts.subtitle(14)],
             for: .normal
         )
 
@@ -92,8 +92,8 @@ final class AppointmentsView: UIView {
         addSubview(topBar)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .boldSystemFont(ofSize: 20)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Fonts.title(20)
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.textAlignment = .center
 
         profileButton.translatesAutoresizingMaskIntoConstraints = false
@@ -114,13 +114,13 @@ final class AppointmentsView: UIView {
         addSubview(scrollView)
 
         contentStack.axis = .vertical
-        contentStack.spacing = 16
+        contentStack.spacing = 12
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentStack)
 
         // Add views into stack
         upcomingListStack.axis = .vertical
-        upcomingListStack.spacing = 16
+        upcomingListStack.spacing = 12
         upcomingListStack.translatesAutoresizingMaskIntoConstraints = false
         upcomingListStack.isLayoutMarginsRelativeArrangement = true
         upcomingListStack.directionalLayoutMargins = .zero
@@ -190,6 +190,7 @@ final class AppointmentsView: UIView {
         hasUpcoming = !vms.isEmpty
         upcomingListStack.isHidden = vms.isEmpty
 
+        var cards: [UIView] = []
         for vm in vms {
             let card = UpcomingAppointmentTabCardView()
             card.apply(vm: vm)
@@ -201,6 +202,23 @@ final class AppointmentsView: UIView {
             }
             upcomingListStack.addArrangedSubview(card)
             upcomingCardMap[vm.appointmentID] = card
+            cards.append(card)
+        }
+
+        animateCards(cards)
+    }
+
+    private func animateCards(_ cards: [UIView]) {
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        for (index, card) in cards.enumerated() {
+            card.alpha = 0.0
+            card.transform = CGAffineTransform(translationX: 0, y: 12)
+            UIView.animate(withDuration: 0.45,
+                           delay: 0.04 * Double(index),
+                           options: [.curveEaseOut]) {
+                card.alpha = 1.0
+                card.transform = .identity
+            }
         }
     }
 
@@ -232,7 +250,9 @@ final class AppointmentsView: UIView {
 final class UpcomingAppointmentTabCardView: UIView {
 
     private let container = UIView()
-    private let dateLabel = UILabel()
+    private let chipsRow = UIStackView()
+    private let statusChip = PillLabel()
+    private let timeChip = PillLabel()
 
     private let cardRow = UIStackView()
     private let avatar = UIImageView()
@@ -261,12 +281,7 @@ final class UpcomingAppointmentTabCardView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .white
-        container.layer.cornerRadius = 18
-        container.layer.shadowColor = UIColor.black.cgColor
-        container.layer.shadowOpacity = 0.06
-        container.layer.shadowRadius = 10
-        container.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(container)
         addSubview(container)
 
         NSLayoutConstraint.activate([
@@ -276,13 +291,28 @@ final class UpcomingAppointmentTabCardView: UIView {
             container.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
 
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        dateLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+        chipsRow.axis = .horizontal
+        chipsRow.alignment = .center
+        chipsRow.spacing = 8
+        chipsRow.translatesAutoresizingMaskIntoConstraints = false
+
+        statusChip.font = UITheme.Fonts.subtitle(12)
+        statusChip.textColor = UITheme.Colors.accent
+        statusChip.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+        statusChip.text = "Upcoming"
+        statusChip.setContentHuggingPriority(.required, for: .horizontal)
+
+        timeChip.font = UITheme.Fonts.subtitle(12)
+        timeChip.textColor = UITheme.Colors.textSecondary
+        timeChip.backgroundColor = UITheme.Colors.neutralFill
+        timeChip.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        chipsRow.addArrangedSubview(statusChip)
+        chipsRow.addArrangedSubview(timeChip)
 
         cardRow.axis = .horizontal
         cardRow.alignment = .top
-        cardRow.spacing = 12
+        cardRow.spacing = 10
         cardRow.translatesAutoresizingMaskIntoConstraints = false
 
         avatar.translatesAutoresizingMaskIntoConstraints = false
@@ -296,20 +326,20 @@ final class UpcomingAppointmentTabCardView: UIView {
         ])
 
         infoStack.axis = .vertical
-        infoStack.spacing = 6
+        infoStack.spacing = 4
         infoStack.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        nameLabel.textColor = UIColor(hex: "1E2A44")
+        nameLabel.font = UITheme.Fonts.subtitle(16)
+        nameLabel.textColor = UITheme.Colors.textPrimary
 
         [ratingRow, distanceRow, specRow, feeRow].forEach {
-            $0.font = .systemFont(ofSize: 13, weight: .semibold)
-            $0.textColor = UIColor.black.withAlphaComponent(0.65)
+            $0.font = UITheme.Fonts.subtitle(12)
+            $0.textColor = UITheme.Colors.textSecondary
             $0.numberOfLines = 1
         }
 
-        specRow.textColor = UIColor(hex: "1E6EF7")
-        feeRow.textColor = UIColor(hex: "1E6EF7")
+        specRow.textColor = UITheme.Colors.accent
+        feeRow.textColor = UITheme.Colors.accent
 
         infoStack.addArrangedSubview(nameLabel)
         infoStack.addArrangedSubview(specRow)
@@ -321,51 +351,51 @@ final class UpcomingAppointmentTabCardView: UIView {
         cardRow.addArrangedSubview(infoStack)
 
         buttonsRow.axis = .horizontal
-        buttonsRow.spacing = 12
+        buttonsRow.spacing = 10
         buttonsRow.distribution = .fillEqually
         buttonsRow.translatesAutoresizingMaskIntoConstraints = false
 
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.backgroundColor = UIColor.systemRed
         cancelButton.setTitleColor(.white, for: .normal)
-        cancelButton.layer.cornerRadius = 14
-        cancelButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
-        cancelButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        cancelButton.layer.cornerRadius = 12
+        cancelButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        cancelButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
 
         rescheduleButton.setTitle("Reschedule", for: .normal)
-        rescheduleButton.backgroundColor = UIColor(hex: "1E6EF7")
+        rescheduleButton.backgroundColor = UITheme.Colors.accent
         rescheduleButton.setTitleColor(.white, for: .normal)
-        rescheduleButton.layer.cornerRadius = 14
-        rescheduleButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
-        rescheduleButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        rescheduleButton.layer.cornerRadius = 12
+        rescheduleButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        rescheduleButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         rescheduleButton.addTarget(self, action: #selector(rescheduleTapped), for: .touchUpInside)
 
         buttonsRow.addArrangedSubview(cancelButton)
         buttonsRow.addArrangedSubview(rescheduleButton)
 
-        container.addSubview(dateLabel)
+        container.addSubview(chipsRow)
         container.addSubview(cardRow)
         container.addSubview(buttonsRow)
 
         NSLayoutConstraint.activate([
-            dateLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 14),
-            dateLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 14),
-            dateLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -14),
+            chipsRow.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            chipsRow.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            chipsRow.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -12),
 
-            cardRow.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 12),
-            cardRow.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 14),
-            cardRow.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -14),
+            cardRow.topAnchor.constraint(equalTo: chipsRow.bottomAnchor, constant: 10),
+            cardRow.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            cardRow.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
 
-            buttonsRow.topAnchor.constraint(equalTo: cardRow.bottomAnchor, constant: 14),
-            buttonsRow.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 14),
-            buttonsRow.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -14),
-            buttonsRow.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -14),
+            buttonsRow.topAnchor.constraint(equalTo: cardRow.bottomAnchor, constant: 12),
+            buttonsRow.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            buttonsRow.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
+            buttonsRow.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
         ])
     }
 
     func apply(vm: AppointmentsView.UpcomingCardVM) {
-        dateLabel.text = vm.dateTimeText
+        timeChip.text = vm.dateTimeText
         nameLabel.text = vm.physioName
         ratingRow.text = vm.ratingText
         distanceRow.text = vm.distanceText
@@ -407,12 +437,7 @@ final class BookHomeVisitsCardView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .white
-        container.layer.cornerRadius = 18
-        container.layer.shadowColor = UIColor.black.cgColor
-        container.layer.shadowOpacity = 0.06
-        container.layer.shadowRadius = 10
-        container.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(container)
         addSubview(container)
 
         NSLayoutConstraint.activate([
@@ -424,22 +449,22 @@ final class BookHomeVisitsCardView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Book home visits"
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        titleLabel.textColor = UIColor(hex: "1E2A44")
+        titleLabel.font = UITheme.Fonts.title(18)
+        titleLabel.textColor = UITheme.Colors.textPrimary
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.text = "Get certified physiotherapy at your doorsteps"
-        subtitleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        subtitleLabel.font = UITheme.Fonts.body(12)
+        subtitleLabel.textColor = UITheme.Colors.textSecondary
         subtitleLabel.numberOfLines = 2
 
         bookButton.translatesAutoresizingMaskIntoConstraints = false
         bookButton.setTitle("Book appointment", for: .normal)
         bookButton.setTitleColor(.white, for: .normal)
-        bookButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
-        bookButton.backgroundColor = UIColor(hex: "1E6EF7")
-        bookButton.layer.cornerRadius = 14
-        bookButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        bookButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        bookButton.backgroundColor = UITheme.Colors.accent
+        bookButton.layer.cornerRadius = 12
+        bookButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
 
         container.addSubview(titleLabel)
         container.addSubview(subtitleLabel)
@@ -525,6 +550,7 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
     private let table = UITableView(frame: .zero, style: .plain)
     private var items: [CompletedAppointmentVM] = []
     private var heightConstraint: NSLayoutConstraint?
+    private var animatedRows = Set<Int>()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -558,8 +584,9 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
 
     func set(items: [CompletedAppointmentVM]) {
         self.items = items
+        animatedRows.removeAll()
         table.reloadData()
-        let rowHeight: CGFloat = 250
+        let rowHeight: CGFloat = 230
         heightConstraint?.constant = rowHeight * CGFloat(items.count)
     }
 
@@ -577,7 +604,19 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        250
+        230
+    }
+
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        guard animatedRows.insert(indexPath.row).inserted else { return }
+
+        cell.alpha = 0.0
+        cell.transform = CGAffineTransform(translationX: 0, y: 12)
+        UIView.animate(withDuration: 0.45, delay: 0.04 * Double(indexPath.row), options: [.curveEaseOut]) {
+            cell.alpha = 1.0
+            cell.transform = .identity
+        }
     }
 }
 
@@ -619,12 +658,7 @@ final class CompletedAppointmentCell: UITableViewCell {
 
     private func build() {
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 18
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.06
-        card.layer.shadowRadius = 10
-        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(card)
         contentView.addSubview(card)
 
         NSLayoutConstraint.activate([
@@ -635,7 +669,7 @@ final class CompletedAppointmentCell: UITableViewCell {
         ])
 
         statusPill.translatesAutoresizingMaskIntoConstraints = false
-        statusPill.layer.cornerRadius = 12
+        statusPill.layer.cornerRadius = UITheme.Metrics.chipCornerRadius
         statusPill.layer.borderWidth = 1
 
         statusRow.axis = .horizontal
@@ -652,7 +686,7 @@ final class CompletedAppointmentCell: UITableViewCell {
         ])
 
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        statusLabel.font = UITheme.Fonts.subtitle(12)
         statusLabel.textAlignment = .left
         statusLabel.numberOfLines = 1
 
@@ -683,21 +717,21 @@ final class CompletedAppointmentCell: UITableViewCell {
         ])
 
         infoStack.axis = .vertical
-        infoStack.spacing = 5
+        infoStack.spacing = 4
         infoStack.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.font = .systemFont(ofSize: 17, weight: .bold)
-        nameLabel.textColor = UIColor(hex: "1E2A44")
+        nameLabel.font = UITheme.Fonts.subtitle(16)
+        nameLabel.textColor = UITheme.Colors.textPrimary
 
         [ratingLabel, distanceLabel, specLabel].forEach {
-            $0.font = .systemFont(ofSize: 13, weight: .semibold)
-            $0.textColor = UIColor.black.withAlphaComponent(0.6)
+            $0.font = UITheme.Fonts.subtitle(12)
+            $0.textColor = UITheme.Colors.textSecondary
             $0.numberOfLines = 1
         }
 
-        specLabel.textColor = UIColor(hex: "1E6EF7")
-        feeLabel.font = .systemFont(ofSize: 13, weight: .bold)
-        feeLabel.textColor = UIColor(hex: "1E6EF7")
+        specLabel.textColor = UITheme.Colors.accent
+        feeLabel.font = UITheme.Fonts.subtitle(12)
+        feeLabel.textColor = UITheme.Colors.accent
         feeLabel.numberOfLines = 1
 
         infoStack.addArrangedSubview(nameLabel)
@@ -710,25 +744,25 @@ final class CompletedAppointmentCell: UITableViewCell {
         headerRow.addArrangedSubview(infoStack)
 
         buttonsRow.axis = .horizontal
-        buttonsRow.spacing = 12
+        buttonsRow.spacing = 10
         buttonsRow.distribution = .fillEqually
         buttonsRow.translatesAutoresizingMaskIntoConstraints = false
 
         rebookButton.setTitle("Re-book", for: .normal)
-        rebookButton.backgroundColor = UIColor(hex: "1E6EF7")
+        rebookButton.backgroundColor = UITheme.Colors.accent
         rebookButton.setTitleColor(.white, for: .normal)
-        rebookButton.layer.cornerRadius = 16
-        rebookButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
-        rebookButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        rebookButton.layer.cornerRadius = 12
+        rebookButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        rebookButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         rebookButton.addTarget(self, action: #selector(rebookTapped), for: .touchUpInside)
 
         reportButton.setTitle("View Report", for: .normal)
-        reportButton.backgroundColor = UIColor(hex: "EAF2FF")
-        reportButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-        reportButton.layer.cornerRadius = 16
+        reportButton.backgroundColor = UITheme.Colors.neutralFill
+        reportButton.setTitleColor(UITheme.Colors.accent, for: .normal)
+        reportButton.layer.cornerRadius = 12
         reportButton.layer.borderWidth = 0
-        reportButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
-        reportButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        reportButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        reportButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         reportButton.addTarget(self, action: #selector(reportTapped), for: .touchUpInside)
 
         buttonsRow.addArrangedSubview(rebookButton)
@@ -739,19 +773,19 @@ final class CompletedAppointmentCell: UITableViewCell {
         card.addSubview(buttonsRow)
 
         NSLayoutConstraint.activate([
-            statusPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            statusPill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            statusPill.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            statusPill.heightAnchor.constraint(equalToConstant: 28),
+            statusPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 10),
+            statusPill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
+            statusPill.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -10),
+            statusPill.heightAnchor.constraint(equalToConstant: 26),
 
-            headerRow.topAnchor.constraint(equalTo: statusPill.bottomAnchor, constant: 14),
-            headerRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            headerRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            headerRow.topAnchor.constraint(equalTo: statusPill.bottomAnchor, constant: 10),
+            headerRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
+            headerRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
 
-            buttonsRow.topAnchor.constraint(equalTo: headerRow.bottomAnchor, constant: 18),
-            buttonsRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            buttonsRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-            buttonsRow.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
+            buttonsRow.topAnchor.constraint(equalTo: headerRow.bottomAnchor, constant: 12),
+            buttonsRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
+            buttonsRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
+            buttonsRow.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
         ])
     }
 

@@ -181,7 +181,10 @@ final class PhysiotherapistListViewController: UIViewController {
             }
         }
 
-        list = list.filter { extractKm(from: $0.distanceText) <= activeFilters.maxDistance }
+        list = list.filter { model in
+            guard let km = extractKm(from: model.distanceText) else { return true }
+            return km <= activeFilters.maxDistance
+        }
 
         if activeFilters.minRating > 0 {
             list = list.filter { Int($0.rating) >= activeFilters.minRating }
@@ -278,7 +281,7 @@ final class PhysiotherapistListViewController: UIViewController {
         do {
             let ids = try await PhysioService.shared.fetchAvailablePhysioIDs(at: selectedDate)
             await MainActor.run {
-                self.availablePhysioIDs = ids
+                self.availablePhysioIDs = ids.isEmpty ? nil : ids
                 self.applyAvailabilityFilter()
                 self.applyFilters()
             }
@@ -287,9 +290,9 @@ final class PhysiotherapistListViewController: UIViewController {
         }
     }
 
-    private func extractKm(from text: String) -> Double {
+    private func extractKm(from text: String) -> Double? {
         let digits = text.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-        return Double(digits) ?? 999
+        return Double(digits)
     }
 }
 

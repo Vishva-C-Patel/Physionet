@@ -17,7 +17,8 @@ final class ProgramExerciseCell: UITableViewCell {
     private let statusBadge = UIImageView()
     private let titleLabel = UILabel()
     private let subLabel = UILabel()
-    private let durationLabel = UILabel()
+    private let statusPill = PillLabel()
+    private let durationPill = PillLabel()
     private let chevron = UIImageView()
 
     private var imageTask: URLSessionDataTask?
@@ -52,7 +53,7 @@ final class ProgramExerciseCell: UITableViewCell {
         titleLabel.text = title
         subLabel.text = subtitle
         let mins = max(1, (durationSeconds ?? 0) / 60)
-        durationLabel.text = "\(mins) min"
+        durationPill.text = "\(mins) min"
         self.thumbnailPath = thumbnailPath
 
         if locked {
@@ -63,7 +64,11 @@ final class ProgramExerciseCell: UITableViewCell {
             thumbImageView.alpha = 0.45
             titleLabel.textColor = UIColor.black.withAlphaComponent(0.4)
             subLabel.textColor = UIColor.black.withAlphaComponent(0.3)
-            durationLabel.textColor = UIColor.black.withAlphaComponent(0.3)
+            durationPill.textColor = UIColor.black.withAlphaComponent(0.4)
+            durationPill.backgroundColor = UITheme.Colors.neutralFill
+            statusPill.text = "Locked"
+            statusPill.textColor = UIColor.black.withAlphaComponent(0.5)
+            statusPill.backgroundColor = UITheme.Colors.neutralFill
             chevron.alpha = 0.3
         } else if completed {
             statusBadge.image = UIImage(systemName: "checkmark.circle.fill")
@@ -71,19 +76,27 @@ final class ProgramExerciseCell: UITableViewCell {
             playOverlay.image = UIImage(systemName: "checkmark")
             playOverlay.tintColor = UIColor(hex: "22C55E")
             thumbImageView.alpha = 1
-            titleLabel.textColor = .black
-            subLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-            durationLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+            titleLabel.textColor = UITheme.Colors.textPrimary
+            subLabel.textColor = UITheme.Colors.textSecondary
+            durationPill.textColor = UIColor(hex: "1C7B3B")
+            durationPill.backgroundColor = UIColor(hex: "E7F5ED")
+            statusPill.text = "Done"
+            statusPill.textColor = UIColor(hex: "1C7B3B")
+            statusPill.backgroundColor = UIColor(hex: "E7F5ED")
             chevron.alpha = 1
         } else {
             statusBadge.image = UIImage(systemName: "play.circle.fill")
-            statusBadge.tintColor = UIColor(hex: "1E6EF7")
+            statusBadge.tintColor = UITheme.Colors.accent
             playOverlay.image = UIImage(systemName: "play.fill")
-            playOverlay.tintColor = UIColor(hex: "1E6EF7")
+            playOverlay.tintColor = UITheme.Colors.accent
             thumbImageView.alpha = 1
-            titleLabel.textColor = .black
-            subLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-            durationLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+            titleLabel.textColor = UITheme.Colors.textPrimary
+            subLabel.textColor = UITheme.Colors.textSecondary
+            durationPill.textColor = UITheme.Colors.accent
+            durationPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+            statusPill.text = "Up next"
+            statusPill.textColor = UITheme.Colors.accent
+            statusPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
             chevron.alpha = 1
         }
 
@@ -103,23 +116,18 @@ final class ProgramExerciseCell: UITableViewCell {
         contentView.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 18
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.05
-        card.layer.shadowRadius = 10
-        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(card)
 
         thumbImageView.translatesAutoresizingMaskIntoConstraints = false
         thumbImageView.contentMode = .scaleAspectFill
-        thumbImageView.layer.cornerRadius = 14
+        thumbImageView.layer.cornerRadius = 12
         thumbImageView.layer.masksToBounds = true
-        thumbImageView.backgroundColor = UIColor(hex: "E3F0FF")
+        thumbImageView.backgroundColor = UITheme.Colors.neutralFill
         thumbImageView.image = UIImage(systemName: "photo")
 
         playOverlay.translatesAutoresizingMaskIntoConstraints = false
         playOverlay.image = UIImage(systemName: "play.fill")
-        playOverlay.tintColor = UIColor(hex: "1E6EF7")
+        playOverlay.tintColor = UITheme.Colors.accent
         playOverlay.backgroundColor = UIColor.white
         playOverlay.layer.cornerRadius = 16
         playOverlay.layer.masksToBounds = true
@@ -129,18 +137,25 @@ final class ProgramExerciseCell: UITableViewCell {
         statusBadge.contentMode = .scaleAspectFit
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Fonts.subtitle(16)
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 2
 
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.font = .systemFont(ofSize: 12, weight: .regular)
-        subLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        subLabel.font = UITheme.Fonts.body(12)
+        subLabel.textColor = UITheme.Colors.textSecondary
         subLabel.numberOfLines = 1
 
-        durationLabel.translatesAutoresizingMaskIntoConstraints = false
-        durationLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        durationLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        statusPill.translatesAutoresizingMaskIntoConstraints = false
+        statusPill.font = UITheme.Fonts.subtitle(11)
+        statusPill.textColor = UITheme.Colors.accent
+        statusPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+        statusPill.setContentHuggingPriority(.required, for: .horizontal)
+
+        durationPill.translatesAutoresizingMaskIntoConstraints = false
+        durationPill.font = UITheme.Fonts.subtitle(11)
+        durationPill.textColor = UITheme.Colors.accent
+        durationPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
 
         chevron.translatesAutoresizingMaskIntoConstraints = false
         let chevronConfig = UIImage.SymbolConfiguration(pointSize: 10, weight: .regular)
@@ -153,8 +168,9 @@ final class ProgramExerciseCell: UITableViewCell {
         thumbImageView.addSubview(playOverlay)
         card.addSubview(statusBadge)
         card.addSubview(titleLabel)
+        card.addSubview(statusPill)
         card.addSubview(subLabel)
-        card.addSubview(durationLabel)
+        card.addSubview(durationPill)
         card.addSubview(chevron)
 
         NSLayoutConstraint.activate([
@@ -174,21 +190,24 @@ final class ProgramExerciseCell: UITableViewCell {
             playOverlay.heightAnchor.constraint(equalToConstant: 32),
 
             statusBadge.leadingAnchor.constraint(equalTo: thumbImageView.trailingAnchor, constant: 12),
-            statusBadge.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            statusBadge.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
             statusBadge.widthAnchor.constraint(equalToConstant: 18),
             statusBadge.heightAnchor.constraint(equalToConstant: 18),
 
             titleLabel.centerYAnchor.constraint(equalTo: statusBadge.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: statusBadge.trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: chevron.leadingAnchor, constant: -8),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: statusPill.leadingAnchor, constant: -8),
+
+            statusPill.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            statusPill.trailingAnchor.constraint(equalTo: chevron.leadingAnchor, constant: -8),
 
             subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             subLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
 
-            durationLabel.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 6),
-            durationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            durationLabel.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
+            durationPill.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 6),
+            durationPill.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            durationPill.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12),
 
             chevron.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
             chevron.centerYAnchor.constraint(equalTo: card.centerYAnchor),

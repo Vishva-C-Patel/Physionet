@@ -32,6 +32,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     private var programStartDate: Date?
     private var programHeaderView: UIView?
     private var programFooterView: UIView?
+    private var animatedProgramRows = Set<IndexPath>()
 
     private var isProgramTab: Bool { videosView.segmented.selectedSegmentIndex == 1 }
     private var filteredFreeExercises: [ExerciseVideoRow] {
@@ -143,6 +144,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     )
                 }
             }
+            animatedProgramRows.removeAll()
             videosView.tableView.reloadData()
             if isProgramTab {
                 let completedDays = programSections.filter { isDayComplete($0) }.count
@@ -244,6 +246,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                         )
                         self.videosView.showEmptyState(rows.isEmpty)
                     }
+                    self.animatedProgramRows.removeAll()
                     self.videosView.tableView.reloadData()
                     self.updateHeaderLayout()
                 }
@@ -367,6 +370,19 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
             )
             loadThumbnail(for: row.thumbnail_path, in: cell)
             return cell
+        }
+    }
+
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard isProgramTab, cell is ProgramExerciseCell else { return }
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        guard animatedProgramRows.insert(indexPath).inserted else { return }
+
+        cell.alpha = 0.0
+        cell.transform = CGAffineTransform(translationX: 0, y: 10)
+        UIView.animate(withDuration: 0.4, delay: 0.03 * Double(indexPath.row), options: [.curveEaseOut]) {
+            cell.alpha = 1.0
+            cell.transform = .identity
         }
     }
 
