@@ -22,11 +22,16 @@ final class ArticlesView: UIView {
         UIButton(type: .system)
     ]
 
+    let featuredCard = FeaturedArticleCardView()
+    private let recentHeaderStack = UIStackView()
+    private let recentTitleLabel = UILabel()
     let resultsLabel = UILabel()
     let filterCollectionView: UICollectionView
     let tableView = UITableView(frame: .zero, style: .plain)
 
     private let refreshControl = UIRefreshControl()
+    private let headerContainer = UIView()
+    private var featuredHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
@@ -35,7 +40,7 @@ final class ArticlesView: UIView {
         layout.minimumLineSpacing = 10
         filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = UIColor(hex: "EAF2FF")
         build()
     }
 
@@ -54,7 +59,7 @@ final class ArticlesView: UIView {
     }
 
     func updateResults(count: Int) {
-        resultsLabel.text = "\(count) article\(count == 1 ? "" : "s") found"
+        resultsLabel.text = "\(count) article\(count == 1 ? "" : "s")"
     }
 
     func setRefreshing(_ refreshing: Bool) {
@@ -67,16 +72,25 @@ final class ArticlesView: UIView {
         }
     }
 
+    func setFeaturedVisible(_ visible: Bool) {
+        featuredCard.isHidden = !visible
+        featuredHeightConstraint?.constant = visible ? 200 : 0
+        setNeedsLayout()
+    }
+
     func setRefreshTarget(_ target: Any?, action: Selector) {
         refreshControl.addTarget(target, action: action, for: .valueChanged)
     }
 
     private func build() {
         topBar.translatesAutoresizingMaskIntoConstraints = false
+        headerContainer.translatesAutoresizingMaskIntoConstraints = true
+        headerContainer.backgroundColor = .clear
+        headerContainer.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 10, right: 16)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Articles"
-        titleLabel.font = .boldSystemFont(ofSize: 20)
+        titleLabel.text = "Discover"
+        titleLabel.font = .boldSystemFont(ofSize: 24)
         titleLabel.textColor = .black
 
         searchBar.placeholder = "Search articles, topics, conditions..."
@@ -84,7 +98,7 @@ final class ArticlesView: UIView {
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.backgroundImage = UIImage()
         searchBar.searchTextField.backgroundColor = .white
-        searchBar.searchTextField.layer.cornerRadius = 16
+        searchBar.searchTextField.layer.cornerRadius = 20
         searchBar.searchTextField.layer.masksToBounds = true
 
         segmentScrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -104,10 +118,28 @@ final class ArticlesView: UIView {
         setSegmentSelection(0)
         setBookmarksVisible(false)
 
+        recentHeaderStack.axis = .horizontal
+        recentHeaderStack.alignment = .center
+        recentHeaderStack.distribution = .fill
+        recentHeaderStack.translatesAutoresizingMaskIntoConstraints = false
+
+        recentTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        recentTitleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        recentTitleLabel.textColor = .black
+        recentTitleLabel.text = "Recent Articles"
+
         resultsLabel.translatesAutoresizingMaskIntoConstraints = false
-        resultsLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        resultsLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-        resultsLabel.text = "0 articles found"
+        resultsLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        resultsLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        resultsLabel.text = "0 articles"
+
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        spacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        recentHeaderStack.addArrangedSubview(recentTitleLabel)
+        recentHeaderStack.addArrangedSubview(spacer)
+        recentHeaderStack.addArrangedSubview(resultsLabel)
 
         filterCollectionView.translatesAutoresizingMaskIntoConstraints = false
         filterCollectionView.backgroundColor = .clear
@@ -118,20 +150,35 @@ final class ArticlesView: UIView {
         tableView.separatorStyle = .none
         tableView.refreshControl = refreshControl
 
-        addSubview(topBar)
+        featuredCard.isHidden = true
+
+        addSubview(tableView)
+        tableView.tableHeaderView = headerContainer
+        tableView.contentInset = .zero
+        tableView.contentInsetAdjustmentBehavior = .always
+
+        headerContainer.addSubview(topBar)
         topBar.addSubview(titleLabel)
 
-        addSubview(searchBar)
-        addSubview(segmentScrollView)
+        headerContainer.addSubview(searchBar)
+        headerContainer.addSubview(segmentScrollView)
         segmentScrollView.addSubview(segmentStack)
-        addSubview(resultsLabel)
-        addSubview(filterCollectionView)
-        addSubview(tableView)
+        headerContainer.addSubview(filterCollectionView)
+        headerContainer.addSubview(featuredCard)
+        headerContainer.addSubview(recentHeaderStack)
+
+        featuredHeightConstraint = featuredCard.heightAnchor.constraint(equalToConstant: 0)
+        featuredHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            topBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
-            topBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            tableView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            topBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 6),
+            topBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            topBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             topBar.heightAnchor.constraint(equalToConstant: 44),
 
             titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
@@ -140,12 +187,12 @@ final class ArticlesView: UIView {
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: topBar.trailingAnchor, constant: -16),
 
             searchBar.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
-            searchBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            searchBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 
             segmentScrollView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 12),
-            segmentScrollView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            segmentScrollView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            segmentScrollView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            segmentScrollView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             segmentScrollView.heightAnchor.constraint(equalToConstant: 44),
 
             segmentStack.topAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.topAnchor),
@@ -154,25 +201,25 @@ final class ArticlesView: UIView {
             segmentStack.trailingAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.trailingAnchor),
             segmentStack.heightAnchor.constraint(equalTo: segmentScrollView.frameLayoutGuide.heightAnchor),
 
-            resultsLabel.topAnchor.constraint(equalTo: segmentScrollView.bottomAnchor, constant: 12),
-            resultsLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            resultsLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-
-            filterCollectionView.topAnchor.constraint(equalTo: resultsLabel.bottomAnchor, constant: 8),
-            filterCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            filterCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            filterCollectionView.topAnchor.constraint(equalTo: segmentScrollView.bottomAnchor, constant: 12),
+            filterCollectionView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            filterCollectionView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             filterCollectionView.heightAnchor.constraint(equalToConstant: 40),
 
-            tableView.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 8),
-            tableView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            featuredCard.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 14),
+            featuredCard.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            featuredCard.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+
+            recentHeaderStack.topAnchor.constraint(equalTo: featuredCard.bottomAnchor, constant: 18),
+            recentHeaderStack.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            recentHeaderStack.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+            recentHeaderStack.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -10)
         ])
     }
 
     private func configureSegmentButton(_ button: UIButton, title: String, icon: String) {
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 18
+        button.layer.cornerRadius = 20
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.08
@@ -195,6 +242,29 @@ final class ArticlesView: UIView {
             button.backgroundColor = .white
             button.setTitleColor(UIColor.black.withAlphaComponent(0.7), for: .normal)
             button.tintColor = UIColor.black.withAlphaComponent(0.6)
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateHeaderLayout()
+    }
+
+    func updateHeaderLayout() {
+        guard let headerView = tableView.tableHeaderView else { return }
+        let headerWidth = tableView.bounds.width
+        if headerWidth <= 0 { return }
+        headerView.frame.size.width = headerWidth
+        headerView.layoutIfNeeded()
+        let targetSize = CGSize(width: headerWidth, height: UIView.layoutFittingCompressedSize.height)
+        let height = headerView.systemLayoutSizeFitting(
+            targetSize,
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        ).height
+        if headerView.frame.size.height != height || headerView.frame.size.width != headerWidth {
+            headerView.frame = CGRect(x: 0, y: 0, width: headerWidth, height: height)
+            tableView.tableHeaderView = headerView
         }
     }
 }

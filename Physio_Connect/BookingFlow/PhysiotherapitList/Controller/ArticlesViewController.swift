@@ -13,6 +13,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
     private let model = ArticlesModel()
 
     private var articles: [ArticleRow] = []
+    private var featuredArticle: ArticleRow?
     private var bookmarkedArticles: [UUID: ArticleRow] = [:]
     private var isRefreshing = false
     private var bookmarkedIDs: Set<UUID> = []
@@ -47,9 +48,24 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
             button.addTarget(self, action: #selector(segmentTapped(_:)), for: .touchUpInside)
         }
 
+        articlesView.featuredCard.onReadTapped = { [weak self] in
+            guard let self, let featuredArticle = self.featuredArticle else { return }
+            self.openDetail(for: featuredArticle)
+        }
+
         articlesView.filterCollectionView.selectItem(at: IndexPath(item: selectedFilterIndex, section: 0), animated: false, scrollPosition: [])
         updateBookmarksVisibility()
         Task { await reload() }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        articlesView.updateHeaderLayout()
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        articlesView.updateHeaderLayout()
     }
 
     @objc private func segmentTapped(_ sender: UIButton) {
@@ -92,6 +108,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
                     let rows = self.filteredBookmarks()
                     self.articles = rows
                     self.articlesView.updateResults(count: rows.count)
+                    self.updateFeaturedArticle(from: rows)
                     self.articlesView.tableView.reloadData()
                 }
             } else {
@@ -103,6 +120,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
                 await MainActor.run {
                     self.articles = rows
                     self.articlesView.updateResults(count: rows.count)
+                    self.updateFeaturedArticle(from: rows)
                     self.articlesView.tableView.reloadData()
                 }
             }
@@ -124,10 +142,6 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         let article = articles[indexPath.row]
         cell.configure(with: article)
         cell.setBookmarked(bookmarkedIDs.contains(article.id))
-        let path = article.image_url ?? article.image_path
-        cell.coverImagePath = path
-        cell.setCoverImage(nil)
-        loadCoverImage(for: path, in: cell)
         cell.onBookmarkTapped = { [weak self] in
             self?.toggleBookmark(for: article, at: indexPath)
         }
@@ -258,23 +272,11 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    private func loadCoverImage(for path: String?, in cell: ArticleCardCell) {
-        guard let path else { return }
-        Task { [weak self, weak cell] in
-            guard let self, let cell else { return }
-            do {
-                let url = try await self.model.signedImageURL(pathOrUrl: path)
-                let (data, _) = try await URLSession.shared.data(from: url)
-                let image = UIImage(data: data)
-                await MainActor.run {
-                    if cell.coverImagePath == path {
-                        cell.setCoverImage(image)
-                    }
-                }
-            } catch {
-                return
-            }
-        }
+    private func updateFeaturedArticle(from rows: [ArticleRow]) {
+        let featured = rows.first(where: { $0.is_trending ?? false })
+        featuredArticle = featured
+        articlesView.featuredCard.configure(with: featured)
+        articlesView.setFeaturedVisible(featured != nil)
     }
 
     private func showError(_ title: String, _ message: String) {

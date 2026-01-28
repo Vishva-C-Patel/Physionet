@@ -12,29 +12,20 @@ final class ArticleCardCell: UITableViewCell {
     static let reuseID = "ArticleCardCell"
 
     private let card = UIView()
-    private let coverImageView = UIImageView()
-    private let trendingPill = UILabel()
+    private let categoryPill = PaddedLabel(insets: UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12))
+    private let timeIcon = UIImageView()
+    private let timeLabel = UILabel()
     private let bookmarkButton = UIButton(type: .system)
-
-    private let sourcePill = UIView()
-    private let sourceIcon = UIImageView()
-    private let sourceLabel = UILabel()
-    private let dateLabel = UILabel()
-
     private let titleLabel = UILabel()
     private let summaryLabel = UILabel()
+    private let readMoreButton = UIButton(type: .system)
 
-    private let tagsStack = UIStackView()
-    private let metaStack = UIStackView()
-    private let ratingLabel = UILabel()
-    private let viewsLabel = UILabel()
-    private let timeLabel = UILabel()
-    private let readButton = UIButton(type: .system)
+    private let topMetaStack = UIStackView()
+    private let timeStack = UIStackView()
 
     var onBookmarkTapped: (() -> Void)?
     var onReadTapped: (() -> Void)?
     private var isBookmarked = false
-    var coverImagePath: String?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -47,15 +38,11 @@ final class ArticleCardCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        coverImageView.image = UIImage(systemName: "photo")
-        trendingPill.isHidden = true
-        sourceLabel.text = nil
-        dateLabel.text = nil
+        categoryPill.text = nil
+        timeLabel.text = nil
         titleLabel.text = nil
         summaryLabel.text = nil
-        setTags([])
         setBookmarked(false)
-        coverImagePath = nil
     }
 
     private func build() {
@@ -64,72 +51,66 @@ final class ArticleCardCell: UITableViewCell {
         contentView.backgroundColor = .clear
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = UIColor(hex: "FDFEFF")
+        card.backgroundColor = .white
         card.layer.cornerRadius = 22
         card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.06
-        card.layer.shadowRadius = 12
-        card.layer.shadowOffset = CGSize(width: 0, height: 8)
-        card.layer.borderWidth = 1
-        card.layer.borderColor = UIColor(hex: "DDE9FF").cgColor
+        card.layer.shadowOpacity = 0.08
+        card.layer.shadowRadius = 10
+        card.layer.shadowOffset = CGSize(width: 0, height: 6)
         contentView.addSubview(card)
 
-        coverImageView.translatesAutoresizingMaskIntoConstraints = false
-        coverImageView.contentMode = .scaleAspectFill
-        coverImageView.clipsToBounds = true
-        coverImageView.layer.cornerRadius = 22
-        coverImageView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        coverImageView.backgroundColor = UIColor(hex: "E9EEF7")
-        coverImageView.image = UIImage(systemName: "photo")
-        coverImageView.tintColor = UIColor.black.withAlphaComponent(0.15)
-        card.addSubview(coverImageView)
+        categoryPill.translatesAutoresizingMaskIntoConstraints = false
+        categoryPill.font = .systemFont(ofSize: 12, weight: .semibold)
+        categoryPill.textColor = UIColor(hex: "1E6EF7")
+        categoryPill.backgroundColor = UIColor(hex: "EDF4FF")
+        categoryPill.layer.cornerRadius = 14
+        categoryPill.layer.masksToBounds = true
+        categoryPill.textAlignment = .center
+        categoryPill.lineBreakMode = .byTruncatingTail
+        categoryPill.setContentHuggingPriority(.required, for: .horizontal)
+        categoryPill.setContentCompressionResistancePriority(.required, for: .horizontal)
 
-        trendingPill.translatesAutoresizingMaskIntoConstraints = false
-        trendingPill.text = "Trending"
-        trendingPill.font = .systemFont(ofSize: 12, weight: .semibold)
-        trendingPill.textColor = .white
-        trendingPill.backgroundColor = UIColor(hex: "FF4D4F")
-        trendingPill.layer.cornerRadius = 14
-        trendingPill.layer.masksToBounds = true
-        trendingPill.textAlignment = .center
-        trendingPill.isHidden = true
-        card.addSubview(trendingPill)
+        timeIcon.translatesAutoresizingMaskIntoConstraints = false
+        timeIcon.image = UIImage(systemName: "clock")
+        timeIcon.tintColor = UIColor.black.withAlphaComponent(0.4)
+
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        timeLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+
+        timeStack.axis = .horizontal
+        timeStack.spacing = 6
+        timeStack.alignment = .center
+        timeStack.translatesAutoresizingMaskIntoConstraints = false
+        timeStack.setContentHuggingPriority(.required, for: .horizontal)
+        timeStack.setContentCompressionResistancePriority(.required, for: .horizontal)
+        timeStack.addArrangedSubview(timeIcon)
+        timeStack.addArrangedSubview(timeLabel)
 
         bookmarkButton.translatesAutoresizingMaskIntoConstraints = false
-        bookmarkButton.backgroundColor = UIColor.white.withAlphaComponent(0.95)
-        bookmarkButton.layer.cornerRadius = 18
-        bookmarkButton.layer.shadowColor = UIColor.black.cgColor
-        bookmarkButton.layer.shadowOpacity = 0.08
-        bookmarkButton.layer.shadowRadius = 6
-        bookmarkButton.layer.shadowOffset = CGSize(width: 0, height: 3)
-        let bookmarkConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        bookmarkButton.backgroundColor = UIColor(hex: "F1F4FA")
+        bookmarkButton.layer.cornerRadius = 16
+        let bookmarkConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         bookmarkButton.setImage(UIImage(systemName: "bookmark", withConfiguration: bookmarkConfig), for: .normal)
         bookmarkButton.tintColor = UIColor.black.withAlphaComponent(0.6)
         bookmarkButton.addTarget(self, action: #selector(bookmarkTapped), for: .touchUpInside)
-        card.addSubview(bookmarkButton)
 
-        sourcePill.translatesAutoresizingMaskIntoConstraints = false
-        sourcePill.backgroundColor = UIColor(hex: "E8F3FF")
-        sourcePill.layer.cornerRadius = 14
-        card.addSubview(sourcePill)
+        topMetaStack.axis = .horizontal
+        topMetaStack.spacing = 10
+        topMetaStack.alignment = .center
+        topMetaStack.translatesAutoresizingMaskIntoConstraints = false
 
-        sourceIcon.translatesAutoresizingMaskIntoConstraints = false
-        sourceIcon.image = UIImage(systemName: "newspaper.fill")
-        sourceIcon.tintColor = UIColor(hex: "1E6EF7")
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        spacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        sourceLabel.translatesAutoresizingMaskIntoConstraints = false
-        sourceLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        sourceLabel.textColor = UIColor(hex: "1E6EF7")
-
-        sourcePill.addSubview(sourceIcon)
-        sourcePill.addSubview(sourceLabel)
-
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        dateLabel.textColor = UIColor.black.withAlphaComponent(0.45)
+        topMetaStack.addArrangedSubview(categoryPill)
+        topMetaStack.addArrangedSubview(timeStack)
+        topMetaStack.addArrangedSubview(spacer)
+        topMetaStack.addArrangedSubview(bookmarkButton)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 19, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         titleLabel.textColor = .black
         titleLabel.numberOfLines = 0
 
@@ -138,88 +119,40 @@ final class ArticleCardCell: UITableViewCell {
         summaryLabel.textColor = UIColor.black.withAlphaComponent(0.6)
         summaryLabel.numberOfLines = 2
 
-        tagsStack.translatesAutoresizingMaskIntoConstraints = false
-        tagsStack.axis = .horizontal
-        tagsStack.spacing = 8
-        tagsStack.alignment = .leading
+        readMoreButton.setTitle("Read more", for: .normal)
+        readMoreButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        readMoreButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        let chevronConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
+        readMoreButton.setImage(UIImage(systemName: "chevron.right", withConfiguration: chevronConfig), for: .normal)
+        readMoreButton.tintColor = UIColor(hex: "1E6EF7")
+        readMoreButton.semanticContentAttribute = .forceRightToLeft
+        readMoreButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 0, bottom: 6, right: 0)
+        readMoreButton.addTarget(self, action: #selector(readTapped), for: .touchUpInside)
 
-        metaStack.translatesAutoresizingMaskIntoConstraints = false
-        metaStack.axis = .horizontal
-        metaStack.spacing = 12
-        metaStack.alignment = .center
-
-        ratingLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        ratingLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-
-        viewsLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        viewsLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-
-        timeLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        timeLabel.textColor = UIColor.black.withAlphaComponent(0.6)
-
-        readButton.setTitle("Read", for: .normal)
-        readButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
-        readButton.setTitleColor(.white, for: .normal)
-        readButton.backgroundColor = UIColor(hex: "1E6EF7")
-        readButton.layer.cornerRadius = 14
-        readButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
-        readButton.addTarget(self, action: #selector(readTapped), for: .touchUpInside)
-
-        let spacer = UIView()
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-
-        metaStack.addArrangedSubview(ratingLabel)
-        metaStack.addArrangedSubview(viewsLabel)
-        metaStack.addArrangedSubview(timeLabel)
-        metaStack.addArrangedSubview(spacer)
-        metaStack.addArrangedSubview(readButton)
-
-        [sourcePill, dateLabel, titleLabel, summaryLabel, tagsStack, metaStack].forEach {
+        [topMetaStack, titleLabel, summaryLabel, readMoreButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             card.addSubview($0)
         }
 
         NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
-            coverImageView.topAnchor.constraint(equalTo: card.topAnchor),
-            coverImageView.leadingAnchor.constraint(equalTo: card.leadingAnchor),
-            coverImageView.trailingAnchor.constraint(equalTo: card.trailingAnchor),
-            coverImageView.heightAnchor.constraint(equalToConstant: 170),
+            categoryPill.heightAnchor.constraint(equalToConstant: 28),
 
-            trendingPill.topAnchor.constraint(equalTo: coverImageView.topAnchor, constant: 12),
-            trendingPill.leadingAnchor.constraint(equalTo: coverImageView.leadingAnchor, constant: 12),
-            trendingPill.heightAnchor.constraint(equalToConstant: 28),
-            trendingPill.widthAnchor.constraint(greaterThanOrEqualToConstant: 84),
+            bookmarkButton.widthAnchor.constraint(equalToConstant: 32),
+            bookmarkButton.heightAnchor.constraint(equalToConstant: 32),
 
-            bookmarkButton.topAnchor.constraint(equalTo: coverImageView.topAnchor, constant: 12),
-            bookmarkButton.trailingAnchor.constraint(equalTo: coverImageView.trailingAnchor, constant: -12),
-            bookmarkButton.widthAnchor.constraint(equalToConstant: 36),
-            bookmarkButton.heightAnchor.constraint(equalToConstant: 36),
+            timeIcon.widthAnchor.constraint(equalToConstant: 12),
+            timeIcon.heightAnchor.constraint(equalToConstant: 12),
 
-            sourcePill.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 12),
-            sourcePill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            topMetaStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            topMetaStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            topMetaStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
 
-            sourceIcon.leadingAnchor.constraint(equalTo: sourcePill.leadingAnchor, constant: 10),
-            sourceIcon.centerYAnchor.constraint(equalTo: sourcePill.centerYAnchor),
-            sourceIcon.widthAnchor.constraint(equalToConstant: 14),
-            sourceIcon.heightAnchor.constraint(equalToConstant: 14),
-
-            sourceLabel.leadingAnchor.constraint(equalTo: sourceIcon.trailingAnchor, constant: 6),
-            sourceLabel.trailingAnchor.constraint(equalTo: sourcePill.trailingAnchor, constant: -12),
-            sourceLabel.centerYAnchor.constraint(equalTo: sourcePill.centerYAnchor),
-
-            sourcePill.heightAnchor.constraint(equalToConstant: 28),
-
-            dateLabel.centerYAnchor.constraint(equalTo: sourcePill.centerYAnchor),
-            dateLabel.leadingAnchor.constraint(equalTo: sourcePill.trailingAnchor, constant: 12),
-            dateLabel.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -16),
-
-            titleLabel.topAnchor.constraint(equalTo: sourcePill.bottomAnchor, constant: 12),
+            titleLabel.topAnchor.constraint(equalTo: topMetaStack.bottomAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
 
@@ -227,65 +160,27 @@ final class ArticleCardCell: UITableViewCell {
             summaryLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
             summaryLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
 
-            tagsStack.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 10),
-            tagsStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            tagsStack.trailingAnchor.constraint(lessThanOrEqualTo: card.trailingAnchor, constant: -16),
-
-            metaStack.topAnchor.constraint(equalTo: tagsStack.bottomAnchor, constant: 12),
-            metaStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            metaStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            metaStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
+            readMoreButton.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 12),
+            readMoreButton.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
+            readMoreButton.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
         ])
     }
 
     func configure(with article: ArticleRow) {
+        let source = article.source_name ?? article.tags?.first ?? "Article"
+        categoryPill.text = source
         titleLabel.text = article.title
         summaryLabel.text = article.summary
-        sourceLabel.text = article.source_name ?? "Source"
-        dateLabel.text = article.published_at ?? ""
-        trendingPill.isHidden = !(article.is_trending ?? false)
-
-        let ratingText = String(format: "%.1f", article.rating ?? 0.0)
-        ratingLabel.text = "⭐️ \(ratingText)"
-        viewsLabel.text = "👁️ \(formatViews(article.views_count ?? 0))"
-        timeLabel.text = "⏱️ \(article.read_minutes ?? 0) min read"
-
-        setTags(article.tags ?? [])
+        let minutes = article.read_minutes ?? 0
+        timeLabel.text = "\(minutes) min"
     }
 
     func setBookmarked(_ bookmarked: Bool) {
         isBookmarked = bookmarked
         let imageName = bookmarked ? "bookmark.fill" : "bookmark"
-        let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         bookmarkButton.setImage(UIImage(systemName: imageName, withConfiguration: config), for: .normal)
         bookmarkButton.tintColor = bookmarked ? UIColor(hex: "1E6EF7") : UIColor.black.withAlphaComponent(0.6)
-    }
-
-    func setCoverImage(_ image: UIImage?) {
-        if let image {
-            coverImageView.image = image
-            coverImageView.tintColor = .clear
-        } else {
-            coverImageView.image = UIImage(systemName: "photo")
-            coverImageView.tintColor = UIColor.black.withAlphaComponent(0.15)
-        }
-    }
-
-    private func setTags(_ tags: [String]) {
-        tagsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        let displayTags = Array(tags.prefix(2))
-        for tag in displayTags {
-            let tagView = TagPillView(text: tag)
-            tagsStack.addArrangedSubview(tagView)
-        }
-        tagsStack.isHidden = displayTags.isEmpty
-    }
-
-    private func formatViews(_ count: Int) -> String {
-        if count >= 1000 {
-            return String(format: "%.1fK", Double(count) / 1000.0)
-        }
-        return "\(count)"
     }
 
     @objc private func bookmarkTapped() {
@@ -297,29 +192,25 @@ final class ArticleCardCell: UITableViewCell {
     }
 }
 
-private final class TagPillView: UIView {
-    private let label = UILabel()
+private final class PaddedLabel: UILabel {
+    private let insets: UIEdgeInsets
 
-    init(text: String) {
+    init(insets: UIEdgeInsets) {
+        self.insets = insets
         super.init(frame: .zero)
-        backgroundColor = UIColor(hex: "F3F7FF")
-        layer.cornerRadius = 14
-        layer.borderWidth = 1
-        layer.borderColor = UIColor(hex: "D9E6FF").cgColor
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = text
-        label.font = .systemFont(ofSize: 12, weight: .semibold)
-        label.textColor = UIColor(hex: "1E6EF7")
-        addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: topAnchor, constant: 6),
-            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6),
-            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12)
-        ])
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: insets))
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let size = super.intrinsicContentSize
+        return CGSize(width: size.width + insets.left + insets.right,
+                      height: size.height + insets.top + insets.bottom)
     }
 }
