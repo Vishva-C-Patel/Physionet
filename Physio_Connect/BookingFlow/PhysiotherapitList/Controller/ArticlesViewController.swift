@@ -80,7 +80,6 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
 
     private func currentSort() -> ArticleSort {
         switch selectedSegmentIndex {
-        case 2: return .topRated
         case 1: return .forYou
         default: return .recent
         }
@@ -103,7 +102,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         }
 
         do {
-            if selectedSegmentIndex == 3 {
+            if selectedSegmentIndex == 2 {
                 await MainActor.run {
                     let rows = self.filteredBookmarks()
                     self.articles = rows

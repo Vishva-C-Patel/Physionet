@@ -58,11 +58,11 @@ final class AppointmentsView: UIView {
         segmented.layer.cornerRadius = 14
         segmented.layer.masksToBounds = true
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UITheme.Fonts.subtitle(14)],
+            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
             for: .selected
         )
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UITheme.Colors.textSecondary, .font: UITheme.Fonts.subtitle(14)],
+            [.foregroundColor: UITheme.Colors.textSecondary, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
             for: .normal
         )
 
@@ -92,7 +92,7 @@ final class AppointmentsView: UIView {
         addSubview(topBar)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UITheme.Fonts.title(20)
+        titleLabel.font = .boldSystemFont(ofSize: 20)
         titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.textAlignment = .center
 
@@ -296,13 +296,13 @@ final class UpcomingAppointmentTabCardView: UIView {
         chipsRow.spacing = 8
         chipsRow.translatesAutoresizingMaskIntoConstraints = false
 
-        statusChip.font = UITheme.Fonts.subtitle(12)
+        statusChip.font = .systemFont(ofSize: 12, weight: .semibold)
         statusChip.textColor = UITheme.Colors.accent
         statusChip.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         statusChip.text = "Upcoming"
         statusChip.setContentHuggingPriority(.required, for: .horizontal)
 
-        timeChip.font = UITheme.Fonts.subtitle(12)
+        timeChip.font = .systemFont(ofSize: 12, weight: .semibold)
         timeChip.textColor = UITheme.Colors.textSecondary
         timeChip.backgroundColor = UITheme.Colors.neutralFill
         timeChip.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -329,11 +329,11 @@ final class UpcomingAppointmentTabCardView: UIView {
         infoStack.spacing = 4
         infoStack.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.font = UITheme.Fonts.subtitle(16)
+        nameLabel.font = .systemFont(ofSize: 16, weight: .bold)
         nameLabel.textColor = UITheme.Colors.textPrimary
 
         [ratingRow, distanceRow, specRow, feeRow].forEach {
-            $0.font = UITheme.Fonts.subtitle(12)
+            $0.font = .systemFont(ofSize: 13, weight: .semibold)
             $0.textColor = UITheme.Colors.textSecondary
             $0.numberOfLines = 1
         }
@@ -359,7 +359,7 @@ final class UpcomingAppointmentTabCardView: UIView {
         cancelButton.backgroundColor = UIColor.systemRed
         cancelButton.setTitleColor(.white, for: .normal)
         cancelButton.layer.cornerRadius = 12
-        cancelButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        cancelButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         cancelButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
 
@@ -367,7 +367,7 @@ final class UpcomingAppointmentTabCardView: UIView {
         rescheduleButton.backgroundColor = UITheme.Colors.accent
         rescheduleButton.setTitleColor(.white, for: .normal)
         rescheduleButton.layer.cornerRadius = 12
-        rescheduleButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        rescheduleButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         rescheduleButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         rescheduleButton.addTarget(self, action: #selector(rescheduleTapped), for: .touchUpInside)
 
@@ -449,19 +449,19 @@ final class BookHomeVisitsCardView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Book home visits"
-        titleLabel.font = UITheme.Fonts.title(18)
+        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
         titleLabel.textColor = UITheme.Colors.textPrimary
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.text = "Get certified physiotherapy at your doorsteps"
-        subtitleLabel.font = UITheme.Fonts.body(12)
+        subtitleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         subtitleLabel.textColor = UITheme.Colors.textSecondary
         subtitleLabel.numberOfLines = 2
 
         bookButton.translatesAutoresizingMaskIntoConstraints = false
         bookButton.setTitle("Book appointment", for: .normal)
         bookButton.setTitleColor(.white, for: .normal)
-        bookButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        bookButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
         bookButton.backgroundColor = UITheme.Colors.accent
         bookButton.layer.cornerRadius = 12
         bookButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
@@ -686,7 +686,7 @@ final class CompletedAppointmentCell: UITableViewCell {
         ])
 
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.font = UITheme.Fonts.subtitle(12)
+        statusLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         statusLabel.textAlignment = .left
         statusLabel.numberOfLines = 1
 
@@ -720,17 +720,17 @@ final class CompletedAppointmentCell: UITableViewCell {
         infoStack.spacing = 4
         infoStack.translatesAutoresizingMaskIntoConstraints = false
 
-        nameLabel.font = UITheme.Fonts.subtitle(16)
+        nameLabel.font = .systemFont(ofSize: 17, weight: .bold)
         nameLabel.textColor = UITheme.Colors.textPrimary
 
         [ratingLabel, distanceLabel, specLabel].forEach {
-            $0.font = UITheme.Fonts.subtitle(12)
+            $0.font = .systemFont(ofSize: 13, weight: .semibold)
             $0.textColor = UITheme.Colors.textSecondary
             $0.numberOfLines = 1
         }
 
         specLabel.textColor = UITheme.Colors.accent
-        feeLabel.font = UITheme.Fonts.subtitle(12)
+        feeLabel.font = .systemFont(ofSize: 13, weight: .bold)
         feeLabel.textColor = UITheme.Colors.accent
         feeLabel.numberOfLines = 1
 
@@ -752,7 +752,7 @@ final class CompletedAppointmentCell: UITableViewCell {
         rebookButton.backgroundColor = UITheme.Colors.accent
         rebookButton.setTitleColor(.white, for: .normal)
         rebookButton.layer.cornerRadius = 12
-        rebookButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        rebookButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         rebookButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         rebookButton.addTarget(self, action: #selector(rebookTapped), for: .touchUpInside)
 
@@ -761,7 +761,7 @@ final class CompletedAppointmentCell: UITableViewCell {
         reportButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         reportButton.layer.cornerRadius = 12
         reportButton.layer.borderWidth = 0
-        reportButton.titleLabel?.font = UITheme.Fonts.subtitle(14)
+        reportButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         reportButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
         reportButton.addTarget(self, action: #selector(reportTapped), for: .touchUpInside)
 

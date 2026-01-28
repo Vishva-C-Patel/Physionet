@@ -45,7 +45,7 @@ final class HomeView: UIView {
     private var isProgressVisible = true
     private var isUpNextVisible = true
     private let articlesTitle = UILabel()
-    let articlesSegmented = UISegmentedControl(items: ["Top Rated", "Most Relevant"])
+    let articlesSegmented = UISegmentedControl(items: ["Recent", "For You"])
     let articlesTableView = UITableView(frame: .zero, style: .plain)
     private var articlesHeightConstraint: NSLayoutConstraint?
 

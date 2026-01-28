@@ -18,7 +18,6 @@ final class ArticlesView: UIView {
     let segmentButtons: [UIButton] = [
         UIButton(type: .system),
         UIButton(type: .system),
-        UIButton(type: .system),
         UIButton(type: .system)
     ]
 
@@ -55,7 +54,7 @@ final class ArticlesView: UIView {
     }
 
     func setBookmarksVisible(_ visible: Bool) {
-        segmentButtons[3].isHidden = !visible
+        segmentButtons[2].isHidden = !visible
     }
 
     func updateResults(count: Int) {
@@ -90,7 +89,7 @@ final class ArticlesView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Discover"
-        titleLabel.font = .boldSystemFont(ofSize: 24)
+        titleLabel.font = .boldSystemFont(ofSize: 20)
         titleLabel.textColor = .black
 
         searchBar.placeholder = "Search articles, topics, conditions..."
@@ -109,8 +108,8 @@ final class ArticlesView: UIView {
         segmentStack.spacing = 10
         segmentStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let segmentTitles = ["All", "For You", "Top Rated", "Bookmarks"]
-        let segmentIcons = ["drop.fill", "sparkles", "star.fill", "bookmark.fill"]
+        let segmentTitles = ["All", "For You", "Bookmarks"]
+        let segmentIcons = ["drop.fill", "sparkles", "bookmark.fill"]
         for (index, button) in segmentButtons.enumerated() {
             configureSegmentButton(button, title: segmentTitles[index], icon: segmentIcons[index])
             segmentStack.addArrangedSubview(button)

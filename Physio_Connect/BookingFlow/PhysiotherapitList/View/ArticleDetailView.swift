@@ -34,13 +34,30 @@ final class ArticleDetailView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private func sourceHost(from urlString: String?) -> String? {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let host = url.host
+        else { return nil }
+        return host.replacingOccurrences(of: "www.", with: "")
+    }
+
     func configure(with article: ArticleRow) {
         titleLabel.text = "Read Article"
         articleTitleLabel.text = article.title
         summaryLabel.text = article.summary
         bodyLabel.text = preferredBodyText(for: article)
-        sourcePill.text = article.source_name ?? "Source"
-        dateLabel.text = article.published_at ?? ""
+        let sourceText = article.source_name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sourceSlug = article.source?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallback = article.tags?.first?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let urlFallback = sourceHost(from: article.source_url) ?? sourceHost(from: article.url)
+        sourcePill.text = (sourceText?.isEmpty == false ? sourceText :
+                           (sourceSlug?.isEmpty == false ? sourceSlug :
+                            (urlFallback?.isEmpty == false ? urlFallback :
+                             (fallback?.isEmpty == false ? fallback : "Source"))))
+        dateLabel.text = nil
+        dateLabel.isHidden = true
 
         setTags(article.tags ?? [])
     }

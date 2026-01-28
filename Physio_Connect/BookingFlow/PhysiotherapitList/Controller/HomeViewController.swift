@@ -22,7 +22,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
     private var programExercises: [MyProgramExerciseRow] = []
     private var articles: [ArticleRow] = []
     private var articleImages: [UUID: UIImage] = [:]
-    private var selectedArticlesSort: ArticleSort = .topRated
+    private var selectedArticlesSort: ArticleSort = .recent
     private let itemsPerDay = 2
     private let homeArticleLimit = 3
 
@@ -91,10 +91,10 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         let isLoggedIn = (try? await SupabaseManager.shared.client.auth.session) != nil
 
         let videos = (try? await videosModel.fetchFreeExercises(search: nil)) ?? []
-        let resolvedSort: ArticleSort = (!isLoggedIn && selectedArticlesSort == .forYou) ? .topRated : selectedArticlesSort
+        let resolvedSort: ArticleSort = (!isLoggedIn && selectedArticlesSort == .forYou) ? .recent : selectedArticlesSort
         var fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: resolvedSort)) ?? []
-        if fetchedArticles.isEmpty && resolvedSort != .topRated {
-            fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: .topRated)) ?? []
+        if fetchedArticles.isEmpty && resolvedSort != .recent {
+            fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: .recent)) ?? []
         }
         if fetchedArticles.isEmpty {
             fetchedArticles = (try? await articlesModel.fetchArticles(search: nil, category: nil, sort: .recent)) ?? []
@@ -273,7 +273,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
     }
 
     @objc private func articleSegmentChanged() {
-        selectedArticlesSort = homeView.articlesSegmented.selectedSegmentIndex == 0 ? .topRated : .forYou
+        selectedArticlesSort = homeView.articlesSegmented.selectedSegmentIndex == 0 ? .recent : .forYou
         Task { await refreshCards() }
     }
 

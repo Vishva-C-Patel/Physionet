@@ -141,12 +141,16 @@ final class ExerciseDetailViewController: UIViewController {
     }
 
     @objc private func playTapped() {
-        ArticleTriggerService.shared.triggerArticles(
-            keyword: titleText,
-            source: "video",
-            userID: nil,
-            context: ["video_id": exerciseID.uuidString]
-        )
+        Task.detached { [weak self] in
+            guard let self else { return }
+            let session = try? await SupabaseManager.shared.client.auth.session
+            ArticleTriggerService.shared.triggerArticles(
+                keyword: self.titleText,
+                source: "video",
+                userID: session?.user.id.uuidString,
+                context: ["video_id": self.exerciseID.uuidString]
+            )
+        }
         Task {
             do {
                 let url = try await videosModel.signedVideoURL(path: videoPath)

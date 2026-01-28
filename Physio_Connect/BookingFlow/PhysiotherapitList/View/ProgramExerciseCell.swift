@@ -137,23 +137,23 @@ final class ProgramExerciseCell: UITableViewCell {
         statusBadge.contentMode = .scaleAspectFit
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UITheme.Fonts.subtitle(16)
+        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
         titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 2
 
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.font = UITheme.Fonts.body(12)
+        subLabel.font = .systemFont(ofSize: 12, weight: .regular)
         subLabel.textColor = UITheme.Colors.textSecondary
         subLabel.numberOfLines = 1
 
         statusPill.translatesAutoresizingMaskIntoConstraints = false
-        statusPill.font = UITheme.Fonts.subtitle(11)
+        statusPill.font = .systemFont(ofSize: 11, weight: .semibold)
         statusPill.textColor = UITheme.Colors.accent
         statusPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         statusPill.setContentHuggingPriority(.required, for: .horizontal)
 
         durationPill.translatesAutoresizingMaskIntoConstraints = false
-        durationPill.font = UITheme.Fonts.subtitle(11)
+        durationPill.font = .systemFont(ofSize: 11, weight: .semibold)
         durationPill.textColor = UITheme.Colors.accent
         durationPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
 

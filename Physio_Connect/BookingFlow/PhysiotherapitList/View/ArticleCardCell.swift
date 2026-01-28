@@ -36,6 +36,15 @@ final class ArticleCardCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private func sourceHost(from urlString: String?) -> String? {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let host = url.host
+        else { return nil }
+        return host.replacingOccurrences(of: "www.", with: "")
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
         categoryPill.text = nil
@@ -167,8 +176,15 @@ final class ArticleCardCell: UITableViewCell {
     }
 
     func configure(with article: ArticleRow) {
-        let source = article.source_name ?? article.tags?.first ?? "Article"
-        categoryPill.text = source
+        let sourceName = article.source_name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sourceSlug = article.source?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tagFallback = article.tags?.first?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let urlFallback = sourceHost(from: article.source_url) ?? sourceHost(from: article.url)
+        let resolvedSource = (sourceName?.isEmpty == false ? sourceName :
+                              (sourceSlug?.isEmpty == false ? sourceSlug :
+                               (urlFallback?.isEmpty == false ? urlFallback :
+                                (tagFallback?.isEmpty == false ? tagFallback : "Article"))))
+        categoryPill.text = resolvedSource
         titleLabel.text = article.title
         summaryLabel.text = article.summary
         let minutes = article.read_minutes ?? 0
