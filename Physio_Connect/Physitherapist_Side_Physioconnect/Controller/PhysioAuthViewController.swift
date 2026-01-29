@@ -19,12 +19,27 @@ final class PhysioAuthViewController: UIViewController {
     private let signupView = PhysioSignupView()
     private let model = PhysioAuthModel()
     private var mode: Mode = .login
+    private let preferredMode: Mode?
     private let onboardingKey = "physioconnect.physio_onboarded"
     private var activeProof: ProofType?
 
     private enum ProofType {
         case idProof
         case licenseProof
+    }
+
+    init(startOnSignup: Bool) {
+        self.preferredMode = startOnSignup ? .signup : .login
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        self.preferredMode = nil
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func loadView() {
@@ -46,8 +61,12 @@ final class PhysioAuthViewController: UIViewController {
                     self.routeToHome()
                     return
                 }
-                let hasOnboarded = UserDefaults.standard.bool(forKey: self.onboardingKey)
-                self.show(mode: hasOnboarded ? .login : .signup, animated: false)
+                if let preferred = self.preferredMode {
+                    self.show(mode: preferred, animated: false)
+                } else {
+                    let hasOnboarded = UserDefaults.standard.bool(forKey: self.onboardingKey)
+                    self.show(mode: hasOnboarded ? .login : .signup, animated: false)
+                }
             }
         }
     }
@@ -134,6 +153,13 @@ final class PhysioAuthViewController: UIViewController {
     private func handleSignup(input: PhysioSignupInput) {
         let email = input.email.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = input.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let digits = input.phone.filter { $0.isNumber }
+        let normalizedDigits: String
+        if digits.count > 10, digits.hasPrefix("91") {
+            normalizedDigits = String(digits.suffix(10))
+        } else {
+            normalizedDigits = digits
+        }
         guard !name.isEmpty else {
             signupView.setLoading(false)
             showInlineError("Please enter your full name.")
@@ -142,6 +168,11 @@ final class PhysioAuthViewController: UIViewController {
         guard !email.isEmpty else {
             signupView.setLoading(false)
             showInlineError("Please enter your email.")
+            return
+        }
+        guard normalizedDigits.count == 10 else {
+            signupView.setLoading(false)
+            showInlineError("Phone number must be 10 digits (India).")
             return
         }
         guard !input.password.isEmpty, input.password.count >= 8 else {

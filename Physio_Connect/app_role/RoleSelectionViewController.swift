@@ -58,8 +58,8 @@ final class RoleSelectionViewController: UIViewController {
                     let tab = PhysioTabBarController()
                     RootRouter.setRoot(tab, window: window)
                 } else {
-                    let physioRoot = PhysioAuthViewController()
-                    let nav = UINavigationController(rootViewController: physioRoot)
+                    let choice = PhysioRoleChoiceViewController()
+                    let nav = UINavigationController(rootViewController: choice)
                     RootRouter.setRoot(nav, window: window)
                 }
             }

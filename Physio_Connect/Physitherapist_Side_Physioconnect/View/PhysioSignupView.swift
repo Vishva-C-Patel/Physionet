@@ -20,7 +20,7 @@ struct PhysioSignupInput {
     let licenseProofFilename: String?
 }
 
-final class PhysioSignupView: UIView {
+final class PhysioSignupView: UIView, UITextFieldDelegate {
 
     // MARK: - Callbacks
     var onBack: (() -> Void)?
@@ -99,6 +99,8 @@ final class PhysioSignupView: UIView {
 
     private var isPasswordVisible = false
     private var isConfirmVisible = false
+    private let phonePrefix = "+91 "
+    private let maxPhoneDigits = 10
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -199,12 +201,13 @@ final class PhysioSignupView: UIView {
         emailField.textField.autocapitalizationType = .none
 
         phoneField.titleText = "Phone Number *"
-        phoneField.placeholder = "+91"
+        phoneField.placeholder = "+91 XXXXX XXXXX"
         phoneField.textField.keyboardType = .numberPad
         phoneField.textField.autocorrectionType = .no
         phoneField.textField.autocapitalizationType = .none
+        phoneField.textField.delegate = self
         if phoneField.textField.text == nil || phoneField.textField.text?.isEmpty == true {
-            phoneField.textField.text = "+91 "
+            phoneField.textField.text = phonePrefix
         }
 
         passwordField.titleText = "Password *"
@@ -444,6 +447,7 @@ final class PhysioSignupView: UIView {
     @objc private func loginTapped() { onLoginLink?() }
 
     @objc private func createTapped() {
+        phoneField.textField.text = formatPhoneInput(phoneField.textField.text ?? "")
         let input = PhysioSignupInput(
             name: (fullNameField.textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
             email: (emailField.textField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
@@ -479,6 +483,53 @@ final class PhysioSignupView: UIView {
         licenseProofData = data
         licenseProofFilename = filename
         licenseProofRow.setSelected(filename: filename)
+    }
+
+    // MARK: - Phone formatting
+    private func formatPhoneInput(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rawDigits = trimmed.filter { $0.isNumber }
+        let hasCountryPrefix = trimmed.hasPrefix("+91")
+        let digitsAfterPrefix: String
+        if hasCountryPrefix, rawDigits.hasPrefix("91") {
+            digitsAfterPrefix = String(rawDigits.dropFirst(2))
+        } else {
+            digitsAfterPrefix = rawDigits
+        }
+        let digits: String
+        if digitsAfterPrefix.count > maxPhoneDigits {
+            digits = String(digitsAfterPrefix.prefix(maxPhoneDigits))
+        } else {
+            digits = digitsAfterPrefix
+        }
+
+        guard !digits.isEmpty else { return phonePrefix }
+
+        let first = digits.prefix(5)
+        let second = digits.dropFirst(5)
+        if second.isEmpty {
+            return "\(phonePrefix)\(first)"
+        }
+        return "\(phonePrefix)\(first) \(second)"
+    }
+
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard textField === phoneField.textField else { return true }
+        let current = textField.text ?? phonePrefix
+        guard let range = Range(range, in: current) else { return false }
+        let updated = current.replacingCharacters(in: range, with: string)
+        let formatted = formatPhoneInput(updated)
+        textField.text = formatted
+        let end = textField.endOfDocument
+        textField.selectedTextRange = textField.textRange(from: end, to: end)
+        return false
+    }
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        guard textField === phoneField.textField else { return }
+        if (textField.text ?? "").isEmpty {
+            textField.text = phonePrefix
+        }
     }
 }
 
