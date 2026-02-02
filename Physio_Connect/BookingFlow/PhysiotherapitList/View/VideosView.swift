@@ -16,9 +16,17 @@ final class VideosView: UIView {
     let searchBar = UISearchBar()
     let filterCollectionView: UICollectionView
     let tableView = UITableView(frame: .zero, style: .plain)
+    let programRedeemCard = UIView()
+    private let redeemIcon = UIImageView()
+    private let redeemTitleLabel = UILabel()
+    private let redeemSubtitleLabel = UILabel()
+    private let redeemInputContainer = UIView()
+    let redeemCodeField = UITextField()
+    let redeemInlineButton = UIButton(type: .system)
 
     private var searchHeightConstraint: NSLayoutConstraint?
     private var filterHeightConstraint: NSLayoutConstraint?
+    private var redeemCardHeightConstraint: NSLayoutConstraint?
 
     private let emptyCard = UIView()
     private let emptyTitle = UILabel()
@@ -58,7 +66,16 @@ final class VideosView: UIView {
         filterCollectionView.isHidden = enabled
         searchHeightConstraint?.constant = enabled ? 0 : 44
         filterHeightConstraint?.constant = enabled ? 0 : 40
+        if !enabled {
+            setProgramRedeemVisible(false)
+        }
         layoutIfNeeded()
+    }
+
+    func setProgramRedeemVisible(_ visible: Bool) {
+        programRedeemCard.isHidden = !visible
+        redeemCardHeightConstraint?.constant = visible ? 126 : 0
+        if !visible { redeemCodeField.text = "" }
     }
 
     func setRefreshing(_ refreshing: Bool) {
@@ -116,6 +133,55 @@ final class VideosView: UIView {
         filterCollectionView.backgroundColor = .clear
         filterCollectionView.showsHorizontalScrollIndicator = false
 
+        programRedeemCard.translatesAutoresizingMaskIntoConstraints = false
+        programRedeemCard.backgroundColor = UIColor(hex: "F7FAFF")
+        programRedeemCard.layer.cornerRadius = 18
+        programRedeemCard.layer.borderWidth = 1
+        programRedeemCard.layer.borderColor = UIColor(hex: "D7E6FF").cgColor
+        programRedeemCard.layer.shadowColor = UIColor.black.cgColor
+        programRedeemCard.layer.shadowOpacity = 0.05
+        programRedeemCard.layer.shadowRadius = 12
+        programRedeemCard.layer.shadowOffset = CGSize(width: 0, height: 6)
+        programRedeemCard.isHidden = true
+
+        redeemIcon.translatesAutoresizingMaskIntoConstraints = false
+        redeemIcon.image = UIImage(systemName: "ticket.fill")
+        redeemIcon.tintColor = UIColor(hex: "1E6EF7")
+        redeemIcon.contentMode = .scaleAspectFit
+
+        redeemTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        redeemTitleLabel.text = "Have a program code?"
+        redeemTitleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        redeemTitleLabel.textColor = UIColor(hex: "153E75")
+
+        redeemSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        redeemSubtitleLabel.text = "Paste it here to unlock your assigned plan."
+        redeemSubtitleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        redeemSubtitleLabel.textColor = UIColor(hex: "5E7394")
+
+        redeemInputContainer.translatesAutoresizingMaskIntoConstraints = false
+        redeemInputContainer.backgroundColor = .white
+        redeemInputContainer.layer.cornerRadius = 12
+        redeemInputContainer.layer.borderWidth = 1
+        redeemInputContainer.layer.borderColor = UIColor(hex: "D5E3FB").cgColor
+
+        redeemCodeField.translatesAutoresizingMaskIntoConstraints = false
+        redeemCodeField.placeholder = "Enter code (e.g. PROG-AB12CD)"
+        redeemCodeField.font = .systemFont(ofSize: 14, weight: .semibold)
+        redeemCodeField.autocapitalizationType = .allCharacters
+        redeemCodeField.autocorrectionType = .no
+        redeemCodeField.spellCheckingType = .no
+        redeemCodeField.borderStyle = .none
+        redeemCodeField.textColor = UIColor(hex: "1A3256")
+
+        redeemInlineButton.translatesAutoresizingMaskIntoConstraints = false
+        redeemInlineButton.setTitle("Redeem", for: .normal)
+        redeemInlineButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        redeemInlineButton.backgroundColor = UIColor(hex: "1E6EF7")
+        redeemInlineButton.setTitleColor(.white, for: .normal)
+        redeemInlineButton.layer.cornerRadius = 10
+        redeemInlineButton.contentEdgeInsets = UIEdgeInsets(top: 9, left: 14, bottom: 9, right: 14)
+
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
@@ -155,8 +221,15 @@ final class VideosView: UIView {
         addSubview(segmented)
         addSubview(searchBar)
         addSubview(filterCollectionView)
+        addSubview(programRedeemCard)
         addSubview(tableView)
         addSubview(emptyCard)
+        programRedeemCard.addSubview(redeemIcon)
+        programRedeemCard.addSubview(redeemTitleLabel)
+        programRedeemCard.addSubview(redeemSubtitleLabel)
+        programRedeemCard.addSubview(redeemInputContainer)
+        redeemInputContainer.addSubview(redeemCodeField)
+        redeemInputContainer.addSubview(redeemInlineButton)
 
         emptyCard.addSubview(emptyTitle)
         emptyCard.addSubview(emptySub)
@@ -164,6 +237,7 @@ final class VideosView: UIView {
 
         searchHeightConstraint = searchBar.heightAnchor.constraint(equalToConstant: 44)
         filterHeightConstraint = filterCollectionView.heightAnchor.constraint(equalToConstant: 40)
+        redeemCardHeightConstraint = programRedeemCard.heightAnchor.constraint(equalToConstant: 0)
 
         NSLayoutConstraint.activate([
             topBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
@@ -192,7 +266,38 @@ final class VideosView: UIView {
             filterCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             filterCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            tableView.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 8),
+            programRedeemCard.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 8),
+            programRedeemCard.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            programRedeemCard.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+
+            redeemIcon.leadingAnchor.constraint(equalTo: programRedeemCard.leadingAnchor, constant: 14),
+            redeemIcon.topAnchor.constraint(equalTo: programRedeemCard.topAnchor, constant: 12),
+            redeemIcon.widthAnchor.constraint(equalToConstant: 18),
+            redeemIcon.heightAnchor.constraint(equalToConstant: 18),
+
+            redeemTitleLabel.centerYAnchor.constraint(equalTo: redeemIcon.centerYAnchor),
+            redeemTitleLabel.leadingAnchor.constraint(equalTo: redeemIcon.trailingAnchor, constant: 8),
+            redeemTitleLabel.trailingAnchor.constraint(equalTo: programRedeemCard.trailingAnchor, constant: -12),
+
+            redeemSubtitleLabel.topAnchor.constraint(equalTo: redeemTitleLabel.bottomAnchor, constant: 4),
+            redeemSubtitleLabel.leadingAnchor.constraint(equalTo: redeemTitleLabel.leadingAnchor),
+            redeemSubtitleLabel.trailingAnchor.constraint(equalTo: programRedeemCard.trailingAnchor, constant: -12),
+
+            redeemInputContainer.topAnchor.constraint(equalTo: redeemSubtitleLabel.bottomAnchor, constant: 10),
+            redeemInputContainer.leadingAnchor.constraint(equalTo: programRedeemCard.leadingAnchor, constant: 12),
+            redeemInputContainer.trailingAnchor.constraint(equalTo: programRedeemCard.trailingAnchor, constant: -12),
+            redeemInputContainer.bottomAnchor.constraint(equalTo: programRedeemCard.bottomAnchor, constant: -12),
+            redeemInputContainer.heightAnchor.constraint(equalToConstant: 42),
+
+            redeemCodeField.leadingAnchor.constraint(equalTo: redeemInputContainer.leadingAnchor, constant: 12),
+            redeemCodeField.centerYAnchor.constraint(equalTo: redeemInputContainer.centerYAnchor),
+
+            redeemInlineButton.leadingAnchor.constraint(equalTo: redeemCodeField.trailingAnchor, constant: 10),
+            redeemInlineButton.trailingAnchor.constraint(equalTo: redeemInputContainer.trailingAnchor, constant: -8),
+            redeemInlineButton.centerYAnchor.constraint(equalTo: redeemInputContainer.centerYAnchor),
+            redeemInlineButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 86),
+
+            tableView.topAnchor.constraint(equalTo: programRedeemCard.bottomAnchor, constant: 8),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -217,5 +322,6 @@ final class VideosView: UIView {
 
         searchHeightConstraint?.isActive = true
         filterHeightConstraint?.isActive = true
+        redeemCardHeightConstraint?.isActive = true
     }
 }

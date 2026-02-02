@@ -11,6 +11,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     private let videosView = VideosView()
     private let model = VideosModel()
+    private let profileModel = ProfileModel()
 
     private var freeExercises: [ExerciseVideoRow] = []
     private var programExercises: [MyProgramExerciseRow] = []
@@ -30,6 +31,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     private var completedRowKeys: Set<String> = []
     private var programTitle: String?
     private var programStartDate: Date?
+    private var preferredProgramID: UUID?
+    private var shouldPreferProgramOnce = false
     private var programHeaderView: UIView?
     private var programFooterView: UIView?
     private var animatedProgramRows = Set<IndexPath>()
@@ -67,6 +70,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
         videosView.segmented.addTarget(self, action: #selector(tabChanged), for: .valueChanged)
         videosView.redeemButton.addTarget(self, action: #selector(redeemTapped), for: .touchUpInside)
+        videosView.redeemInlineButton.addTarget(self, action: #selector(redeemInlineTapped), for: .touchUpInside)
         videosView.setRefreshTarget(self, action: #selector(refreshPulled))
         videosView.profileButton.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
         NotificationCenter.default.addObserver(
@@ -77,11 +81,13 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         )
 
         Task { await reload() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         Task { await reload() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewDidLayoutSubviews() {
@@ -120,9 +126,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         let rowKeyValue = notification.userInfo?["rowKey"] as? String
         Task { @MainActor in
             let today = dateString(from: Date())
-            if let rowKeyValue,
-               let row = programExercises.first(where: { rowKey(for: $0) == rowKeyValue }),
-               scheduledDateString(for: row) == today {
+            if let rowKeyValue {
                 completedRowKeys.insert(rowKeyValue)
                 if let programID {
                     ProgramRowCompletionStore.add(
@@ -132,8 +136,9 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     )
                 }
             } else if let exerciseID,
-                      let first = programSections.flatMap({ $0.items }).first(where: { $0.exercise_id == exerciseID }),
-                      scheduledDateString(for: first) == today {
+                      let first = programSections
+                        .flatMap({ $0.items })
+                        .first(where: { $0.exercise_id == exerciseID && !completedRowKeys.contains(rowKey(for: $0)) }) {
                 let key = rowKey(for: first)
                 completedRowKeys.insert(key)
                 if let programID {
@@ -169,7 +174,12 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
             if isProgramTab {
                 videosView.setProgramMode(true)
                 var programCompleted = false
-                let rows = try await model.fetchMyProgramExercises()
+                let forcedProgramID = shouldPreferProgramOnce ? preferredProgramID : nil
+                let rows = try await model.fetchMyProgramExercises(preferredProgramID: forcedProgramID)
+                shouldPreferProgramOnce = false
+                if let loadedProgramID = rows.first?.program_id {
+                    preferredProgramID = loadedProgramID
+                }
                 programExercises = rows
                 programTitle = rows.first?.program_title
                 programStartDate = nil
@@ -191,16 +201,17 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     completedRowKeys = buildCompletedRowKeys(
                         rows: rows,
                         progressRows: progressRows,
-                        programID: programID,
-                        programStartDate: resolvedStartDate
+                        programID: programID
                     )
                     let totalCount = rows.count
                     let completedCount = rows.filter { completedRowKeys.contains(rowKey(for: $0)) }.count
                     let weeklyMinutes = computeWeeklyMinutes(from: progressRows)
                     let adherencePercent = totalCount == 0 ? 0 : Int(Double(completedCount) / Double(totalCount) * 100.0)
+                    let expectedByDay = Dictionary(uniqueKeysWithValues: self.programSections.map { ($0.day - 1, $0.items.count) })
                     let series = buildSeries(from: progressRows,
                                              totalDays: programSections.count,
-                                             programStartDate: resolvedStartDate)
+                                             programStartDate: resolvedStartDate,
+                                             expectedByDay: expectedByDay)
                     let completedDays = programSections.filter { isDayComplete($0) }.count
                     programCompleted = programSections.count > 0 && completedDays == programSections.count
                     await MainActor.run {
@@ -231,6 +242,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     }
                 }
                 await MainActor.run {
+                    self.videosView.setProgramRedeemVisible(rows.isEmpty)
                     if programCompleted {
                         self.videosView.configureEmptyState(
                             title: "Program Completed",
@@ -253,6 +265,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
             } else {
                 videosView.setProgramMode(false)
                 await MainActor.run {
+                    self.videosView.setProgramRedeemVisible(false)
                     self.programHeaderView = nil
                     self.programFooterView = nil
                     self.videosView.tableView.tableHeaderView = nil
@@ -295,19 +308,39 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         ac.addAction(UIAlertAction(title: "Redeem", style: .default) { [weak self] _ in
             guard let self else { return }
             let code = ac.textFields?.first?.text ?? ""
-            Task {
-                do {
-                    _ = try await self.model.redeemProgram(code: code.trimmingCharacters(in: .whitespacesAndNewlines))
-                    await self.reload()
-                } catch {
-                    await MainActor.run {
-                        self.showError("Redeem failed", error.localizedDescription)
-                    }
-                }
-            }
+            Task { await self.redeem(code: code) }
         })
 
         present(ac, animated: true)
+    }
+
+    @objc private func redeemInlineTapped() {
+        let code = videosView.redeemCodeField.text ?? ""
+        Task { await redeem(code: code, clearFieldOnSuccess: true) }
+    }
+
+    private func redeem(code: String, clearFieldOnSuccess: Bool = false) async {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            await MainActor.run {
+                self.showError("Redeem failed", "Please enter a valid program code.")
+            }
+            return
+        }
+
+        do {
+            let redeemedProgramID = try await self.model.redeemProgram(code: trimmed)
+            preferredProgramID = redeemedProgramID
+            shouldPreferProgramOnce = true
+            if clearFieldOnSuccess {
+                await MainActor.run { self.videosView.redeemCodeField.text = "" }
+            }
+            await self.reload()
+        } catch {
+            await MainActor.run {
+                self.showError("Redeem failed", error.localizedDescription)
+            }
+        }
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -581,8 +614,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     private func rowKey(for row: MyProgramExerciseRow) -> String {
-        let order = row.sort_order ?? 0
-        return "\(row.program_id.uuidString)-\(row.exercise_id.uuidString)-\(order)"
+        "\(row.program_id.uuidString)-\(row.program_exercise_id.uuidString)"
     }
 
     private func availableDayCount() -> Int {
@@ -626,28 +658,43 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     private func buildCompletedRowKeys(rows: [MyProgramExerciseRow],
                                        progressRows: [ExerciseProgressRow],
-                                       programID: UUID,
-                                       programStartDate: Date) -> Set<String> {
+                                       programID: UUID) -> Set<String> {
         let storedMap = ProgramRowCompletionStore.completionMap(programID: programID)
-        let completedPairs = Set(progressRows.compactMap { row -> String? in
-            guard row.is_completed == true, let date = row.progress_date else { return nil }
-            return "\(row.exercise_id.uuidString)-\(date)"
-        })
+        var completedExerciseCounts: [UUID: Int] = [:]
+        for row in progressRows {
+            guard row.is_completed == true else { continue }
+            completedExerciseCounts[row.exercise_id, default: 0] += 1
+        }
 
         var keys: Set<String> = []
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: programStartDate)
 
-        for (index, row) in rows.enumerated() {
-            let dayOffset = index / itemsPerDay
-            let scheduledDate = calendar.date(byAdding: .day, value: dayOffset, to: start) ?? start
-            let scheduledString = dateString(from: scheduledDate)
+        // 1) Keep rows that are known completed locally (instant UI feedback).
+        for row in rows {
             let key = rowKey(for: row)
-            let pairKey = "\(row.exercise_id.uuidString)-\(scheduledString)"
-            if completedPairs.contains(pairKey) || storedMap[key] == scheduledString {
+            if storedMap[key] != nil {
                 keys.insert(key)
             }
         }
+
+        // 2) Deduct backend counts for rows already completed locally.
+        for row in rows {
+            let key = rowKey(for: row)
+            guard keys.contains(key) else { continue }
+            if let count = completedExerciseCounts[row.exercise_id], count > 0 {
+                completedExerciseCounts[row.exercise_id] = count - 1
+            }
+        }
+
+        // 3) Fill remaining completed cards strictly from backend counts.
+        for row in rows {
+            let key = rowKey(for: row)
+            guard !keys.contains(key) else { continue }
+            if let count = completedExerciseCounts[row.exercise_id], count > 0 {
+                keys.insert(key)
+                completedExerciseCounts[row.exercise_id] = count - 1
+            }
+        }
+
         return keys
     }
 
@@ -769,13 +816,12 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     private func computeWeeklyMinutes(from rows: [ExerciseProgressRow]) -> Int {
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd"
         let now = Date()
         let calendar = Calendar.current
         let weekAgo = calendar.date(byAdding: .day, value: -6, to: now) ?? now
         let totalSeconds = rows.compactMap { row -> Int? in
-            guard let dateString = row.progress_date, let date = df.date(from: dateString) else { return nil }
+            guard let dateString = row.progress_date,
+                  let date = parseProgressDate(dateString) else { return nil }
             guard date >= weekAgo else { return nil }
             return row.watched_seconds
         }.reduce(0, +)
@@ -784,30 +830,63 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     private func buildSeries(from rows: [ExerciseProgressRow],
                              totalDays: Int,
-                             programStartDate: Date) -> (pain: [Int], adherence: [Int]) {
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd"
+                             programStartDate: Date,
+                             expectedByDay: [Int: Int]) -> (pain: [Int], adherence: [Int]) {
         let calendar = Calendar.current
+        let programDayCount = max(totalDays, 1)
         let start = calendar.startOfDay(for: programStartDate)
-        let total = max(totalDays, 1)
+        let maxRecordedOffset = rows.compactMap { row -> Int? in
+            guard let raw = row.progress_date,
+                  let date = parseProgressDate(raw) else { return nil }
+            let day = calendar.startOfDay(for: date)
+            let offset = calendar.dateComponents([.day], from: start, to: day).day ?? 0
+            return max(0, offset)
+        }.max() ?? (programDayCount - 1)
+        let seriesCount = max(programDayCount, maxRecordedOffset + 1)
         var painSeries: [Int] = []
         var adherenceSeries: [Int] = []
+        let expectedFallback = max(
+            Int(round(Double(expectedByDay.values.reduce(0, +)) / Double(max(expectedByDay.count, 1)))),
+            1
+        )
 
-        for dayIndex in 0..<total {
+        for dayIndex in 0..<seriesCount {
             let day = calendar.date(byAdding: .day, value: dayIndex, to: start) ?? start
-            let dayString = df.string(from: day)
-            let dayRows = rows.filter { $0.progress_date == dayString }
+            let dayString = dateString(from: day)
+            let dayRows = rows.filter { row in
+                guard let raw = row.progress_date else { return false }
+                return normalizedDateString(raw) == dayString
+            }
             let painAvg: Int = {
-                let pains = dayRows.compactMap { $0.pain_level }
+                let pains = dayRows.filter { $0.is_completed == true }.compactMap { $0.pain_level }
                 guard !pains.isEmpty else { return 0 }
                 return Int(Double(pains.reduce(0, +)) / Double(pains.count))
             }()
             let completed = dayRows.filter { $0.is_completed == true }.count
-            let adherence = min(100, Int((Double(completed) / Double(max(itemsPerDay, 1))) * 100.0))
+            let expected = max(expectedByDay[dayIndex] ?? expectedFallback, 1)
+            let adherence = min(100, Int((Double(completed) / Double(expected)) * 100.0))
             painSeries.append(painAvg)
             adherenceSeries.append(adherence)
         }
         return (painSeries, adherenceSeries)
+    }
+
+    private func parseProgressDate(_ raw: String) -> Date? {
+        let normalized = normalizedDateString(raw)
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: normalized)
+    }
+
+    private func normalizedDateString(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count >= 10 {
+            return String(trimmed.prefix(10))
+        }
+        return trimmed
     }
 
     private struct ProgramDaySection {
@@ -821,5 +900,18 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "OK", style: .default))
         present(ac, animated: true)
+    }
+
+    private func refreshProfileAvatar() async {
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(
+                self.videosView.profileButton,
+                urlString: ProfileModel.cachedAvatarURL()
+            )
+        }
+        guard let profile = try? await profileModel.fetchCurrentProfile() else { return }
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(self.videosView.profileButton, urlString: profile.avatarURL)
+        }
     }
 }

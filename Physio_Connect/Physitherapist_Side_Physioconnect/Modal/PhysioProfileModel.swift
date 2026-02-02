@@ -10,6 +10,7 @@ import Supabase
 
 struct PhysioProfileModel {
     private let client = SupabaseManager.shared.client
+    private let avatarBuckets = ["physiotherapists", "physio_proofs"]
 
     struct EditProfileData {
         let name: String
@@ -191,6 +192,44 @@ struct PhysioProfileModel {
         _ = try await client
             .from("physiotherapists")
             .upsert(payload, onConflict: "id")
+            .execute()
+    }
+
+    func uploadAvatarImage(_ imageData: Data) async throws {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+        let filename = "avatar_\(UUID().uuidString).jpg"
+        let candidatePaths = [
+            "physios/\(userID)/\(filename)",
+            "customers/\(userID)/\(filename)"
+        ]
+
+        var resolved: (bucket: String, path: String)?
+        var lastError: Error?
+        for bucket in avatarBuckets {
+            for path in candidatePaths {
+                do {
+                    _ = try await client.storage
+                        .from(bucket)
+                        .upload(path, data: imageData, options: FileOptions(contentType: "image/jpeg", upsert: false))
+                    resolved = (bucket, path)
+                    break
+                } catch {
+                    lastError = error
+                }
+            }
+            if resolved != nil { break }
+        }
+
+        guard let resolved else {
+            throw lastError ?? NSError(domain: "avatar_upload", code: 1)
+        }
+
+        let publicURL = "\(SupabaseConfig.url)/storage/v1/object/public/\(resolved.bucket)/\(resolved.path)"
+        _ = try await client
+            .from("physiotherapists")
+            .update(["profile_image_path": publicURL])
+            .eq("id", value: userID)
             .execute()
     }
 }

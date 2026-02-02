@@ -11,6 +11,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
 
     private let homeView = HomeView()
     private let model = HomeModel()
+    private let profileModel = ProfileModel()
     private let videosModel = VideosModel()
     private let articlesModel = ArticlesModel()
     private let locationService = LocationService.shared
@@ -21,7 +22,6 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
     private var nextProgramExercise: MyProgramExerciseRow?
     private var programExercises: [MyProgramExerciseRow] = []
     private var articles: [ArticleRow] = []
-    private var articleImages: [UUID: UIImage] = [:]
     private var selectedArticlesSort: ArticleSort = .recent
     private let itemsPerDay = 2
     private let homeArticleLimit = 3
@@ -65,12 +65,14 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         locationService.requestLocation()
 
         Task { await refreshCards() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         locationService.requestLocation()
         Task { await refreshCards() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -135,7 +137,6 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             self.homeView.setPainVisible(isLoggedIn && hasProgram)
             self.homeView.setUpNextVisible(isLoggedIn && hasProgram && nextExercise != nil)
             self.articles = Array(fetchedArticles.prefix(self.homeArticleLimit))
-            self.articleImages = [:]
             self.homeView.articlesTableView.reloadData()
             self.homeView.updateArticlesHeight(rows: self.articles.count)
             DispatchQueue.main.async {
@@ -143,7 +144,6 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             }
         }
         loadThumbnails(for: Array(videos.prefix(4)))
-        loadArticleImages(for: Array(fetchedArticles.prefix(homeArticleLimit)))
     }
 
     private func applyUpNext() {
@@ -263,6 +263,19 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         navigationController?.pushViewController(vc, animated: true)
     }
 
+    private func refreshProfileAvatar() async {
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(
+                self.homeView.profileButton,
+                urlString: ProfileModel.cachedAvatarURL()
+            )
+        }
+        guard let profile = try? await profileModel.fetchCurrentProfile() else { return }
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(self.homeView.profileButton, urlString: profile.avatarURL)
+        }
+    }
+
     @objc private func viewAllVideos() {
         guard let tabs = tabBarController else { return }
         let targetIndex = 2
@@ -289,7 +302,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             thumbnailPath: exercise.thumbnail_path,
             programID: exercise.program_id,
             exerciseID: exercise.exercise_id,
-            rowKey: "\(exercise.program_id.uuidString)-\(exercise.exercise_id.uuidString)-\(exercise.sort_order ?? 0)",
+            rowKey: rowKey(for: exercise),
             sets: exercise.sets,
             reps: exercise.reps,
             hold: exercise.hold_seconds,
@@ -353,8 +366,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             return UITableViewCell()
         }
         let article = articles[indexPath.row]
-        let image = articleImages[article.id]
-        cell.configure(with: article, thumbnail: image)
+        cell.configure(with: article)
         return cell
     }
 
@@ -384,24 +396,8 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         }
     }
 
-    private func loadArticleImages(for articles: [ArticleRow]) {
-        for article in articles {
-            let pathOrUrl = article.image_url ?? article.image_path
-            guard let pathOrUrl, !pathOrUrl.isEmpty else { continue }
-            Task {
-                do {
-                    let url = try await articlesModel.signedImageURL(pathOrUrl: pathOrUrl)
-                    ImageLoader.shared.load(url) { [weak self] image in
-                        guard let self, let image else { return }
-                        self.articleImages[article.id] = image
-                        if let index = self.articles.firstIndex(where: { $0.id == article.id }) {
-                            self.homeView.articlesTableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .none)
-                        }
-                    }
-                } catch {
-                    print("❌ Article image error:", error)
-                }
-            }
-        }
+    private func rowKey(for row: MyProgramExerciseRow) -> String {
+        "\(row.program_id.uuidString)-\(row.program_exercise_id.uuidString)"
     }
+
 }

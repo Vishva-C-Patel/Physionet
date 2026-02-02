@@ -11,6 +11,7 @@ final class AppointmentsViewController: UIViewController {
 
     private let apptView = AppointmentsView()
     private let model = AppointmentsModel()
+    private let profileModel = ProfileModel()
 
     private var lastUpcoming: [UpcomingAppointment] = []
     private var lastPast: [PastAppointment] = []
@@ -28,11 +29,13 @@ final class AppointmentsViewController: UIViewController {
 
         bind()
         Task { await refreshAll() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         Task { await refreshAll() }
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -126,6 +129,19 @@ final class AppointmentsViewController: UIViewController {
                 self.apptView.setUpcoming([])
                 self.apptView.setCompleted([])
             }
+        }
+    }
+
+    private func refreshProfileAvatar() async {
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(
+                self.apptView.profileButton,
+                urlString: ProfileModel.cachedAvatarURL()
+            )
+        }
+        guard let profile = try? await profileModel.fetchCurrentProfile() else { return }
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(self.apptView.profileButton, urlString: profile.avatarURL)
         }
     }
 

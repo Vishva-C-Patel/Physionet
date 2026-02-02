@@ -125,8 +125,15 @@ final class PhysioProgramsViewController: UIViewController, UITableViewDataSourc
             let listItems = programs.map { program in
                 let meta = model.parseDescription(program.description)
                 let exerciseCount = exerciseCountByProgram[program.id] ?? 0
-                let assigned = redemptionByProgram[program.id, default: []]
-                    .compactMap { customerByID[$0.customer_id] }
+                let assigned = Array(
+                    Dictionary(
+                        grouping: redemptionByProgram[program.id, default: []]
+                            .compactMap { customerByID[$0.customer_id] },
+                        by: \.id
+                    )
+                    .compactMap(\.value.first)
+                )
+                .sorted { $0.full_name.localizedCaseInsensitiveCompare($1.full_name) == .orderedAscending }
                 let duration = meta.durationDays ?? max(1, exerciseCount)
                 let perDay = meta.exercisesPerDay ?? 1
                 return ProgramListItem(

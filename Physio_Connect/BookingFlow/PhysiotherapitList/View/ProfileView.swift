@@ -21,6 +21,7 @@ final class ProfileView: UIView {
     var onSwitchRole: (() -> Void)?
     var onChangePassword: (() -> Void)?
     var onAvailabilitySave: ((Date, Date, Date) -> Void)?
+    var onAvatarTapped: (() -> Void)?
     private let switchRoleButton = UIButton(type: .system)
 
 
@@ -37,6 +38,7 @@ final class ProfileView: UIView {
     private var isLoggedInState = true
 
     private let avatarImageView = UIImageView()
+    private let avatarEditButton = UIButton(type: .system)
     private let nameLabel = UILabel()
 
     private let emailRow = ProfileRowView(title: "Email")
@@ -68,6 +70,7 @@ final class ProfileView: UIView {
     private let signUpButton = UIButton(type: .system)
 
     private var currentAvatarURL: String?
+    private static let avatarImageCache = NSCache<NSString, UIImage>()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -103,6 +106,16 @@ final class ProfileView: UIView {
         locationRow.setValue("—")
         notificationRow.setOn(false)
         setAvatar(with: nil)
+        avatarEditButton.isHidden = true
+    }
+
+    func setAvatarPreview(_ image: UIImage) {
+        avatarImageView.image = image
+        avatarImageView.tintColor = .clear
+    }
+
+    func preloadAvatar(urlString: String?) {
+        setAvatar(with: urlString)
     }
 
     func setRefreshing(_ isRefreshing: Bool) {
@@ -173,6 +186,19 @@ final class ProfileView: UIView {
         avatarImageView.layer.borderWidth = 4
         avatarImageView.layer.borderColor = UIColor(hex: "D1D9E5").cgColor
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
+        avatarImageView.isUserInteractionEnabled = true
+
+        avatarEditButton.translatesAutoresizingMaskIntoConstraints = false
+        avatarEditButton.setImage(UIImage(systemName: "plus"), for: .normal)
+        avatarEditButton.tintColor = .white
+        avatarEditButton.backgroundColor = UIColor(hex: "1E6EF7")
+        avatarEditButton.layer.cornerRadius = 14
+        avatarEditButton.layer.borderWidth = 2
+        avatarEditButton.layer.borderColor = UIColor.white.cgColor
+        avatarEditButton.addTarget(self, action: #selector(avatarTapped), for: .touchUpInside)
+
+        let avatarTap = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        avatarImageView.addGestureRecognizer(avatarTap)
 
         nameLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         nameLabel.textColor = UIColor.black
@@ -180,6 +206,7 @@ final class ProfileView: UIView {
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
 
         container.addSubview(avatarImageView)
+        container.addSubview(avatarEditButton)
         container.addSubview(nameLabel)
 
         NSLayoutConstraint.activate([
@@ -187,6 +214,11 @@ final class ProfileView: UIView {
             avatarImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             avatarImageView.widthAnchor.constraint(equalToConstant: 92),
             avatarImageView.heightAnchor.constraint(equalToConstant: 92),
+
+            avatarEditButton.widthAnchor.constraint(equalToConstant: 28),
+            avatarEditButton.heightAnchor.constraint(equalToConstant: 28),
+            avatarEditButton.trailingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 2),
+            avatarEditButton.bottomAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 2),
 
             nameLabel.topAnchor.constraint(equalTo: avatarImageView.bottomAnchor, constant: 8),
             nameLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
@@ -201,12 +233,23 @@ final class ProfileView: UIView {
     private func setAvatar(with urlString: String?) {
         currentAvatarURL = urlString
         let placeholder = UIImage(systemName: "person.crop.circle.fill")?.withRenderingMode(.alwaysTemplate)
-        avatarImageView.image = placeholder
-        avatarImageView.tintColor = UIColor(hex: "96A7BD")
 
         guard let trimmed = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
               !trimmed.isEmpty else {
+            avatarImageView.image = placeholder
+            avatarImageView.tintColor = UIColor(hex: "96A7BD")
             return
+        }
+
+        if let cached = Self.avatarImageCache.object(forKey: trimmed as NSString) {
+            avatarImageView.image = cached
+            avatarImageView.tintColor = .clear
+            return
+        }
+
+        if avatarImageView.image == nil {
+            avatarImageView.image = placeholder
+            avatarImageView.tintColor = UIColor(hex: "96A7BD")
         }
 
         let url: URL?
@@ -226,9 +269,59 @@ final class ProfileView: UIView {
         ImageLoader.shared.load(finalURL) { [weak self] image in
             guard let self else { return }
             guard self.currentAvatarURL == urlString else { return }
-            self.avatarImageView.image = image ?? placeholder
-            self.avatarImageView.tintColor = image == nil ? UIColor(hex: "96A7BD") : .clear
+            if let image {
+                Self.avatarImageCache.setObject(image, forKey: trimmed as NSString)
+                self.avatarImageView.image = image
+                self.avatarImageView.tintColor = .clear
+            } else {
+                self.avatarImageView.image = placeholder
+                self.avatarImageView.tintColor = UIColor(hex: "96A7BD")
+                self.loadSignedAvatarIfNeeded(raw: trimmed, expectedKey: urlString, placeholder: placeholder)
+            }
         }
+    }
+
+    private func loadSignedAvatarIfNeeded(raw: String, expectedKey: String?, placeholder: UIImage?) {
+        guard let ref = storageReference(from: raw) else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            guard self.currentAvatarURL == expectedKey else { return }
+            guard let signed = try? await SupabaseManager.shared.client.storage
+                .from(ref.bucket)
+                .createSignedURL(path: ref.path, expiresIn: 3600)
+            else { return }
+
+            ImageLoader.shared.load(signed) { [weak self] image in
+                guard let self else { return }
+                guard self.currentAvatarURL == expectedKey else { return }
+                DispatchQueue.main.async {
+                    if let image {
+                        Self.avatarImageCache.setObject(image, forKey: raw as NSString)
+                    }
+                    self.avatarImageView.image = image ?? placeholder
+                    self.avatarImageView.tintColor = image == nil ? UIColor(hex: "96A7BD") : .clear
+                }
+            }
+        }
+    }
+
+    private func storageReference(from raw: String) -> (bucket: String, path: String)? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if let url = URL(string: trimmed), let host = url.host, host.contains("supabase"),
+           let range = trimmed.range(of: "/storage/v1/object/public/") {
+            let tail = String(trimmed[range.upperBound...])
+            let parts = tail.split(separator: "/", maxSplits: 1).map(String.init)
+            guard parts.count == 2 else { return nil }
+            return (bucket: parts[0], path: parts[1])
+        }
+
+        let parts = trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            .split(separator: "/", maxSplits: 1)
+            .map(String.init)
+        guard parts.count == 2 else { return nil }
+        return (bucket: parts[0], path: parts[1])
     }
 
     private func buildPersonalInfo() {
@@ -450,6 +543,7 @@ final class ProfileView: UIView {
 
         notificationRow.isUserInteractionEnabled = loggedIn
         notificationRow.alpha = loggedIn ? 1.0 : 0.5
+        avatarEditButton.isHidden = !loggedIn
 
         if !loggedIn {
             setAvailabilityVisible(false)
@@ -626,6 +720,10 @@ final class ProfileView: UIView {
 
     @objc private func saveAvailabilityTapped() {
         onAvailabilitySave?(availabilityDatePicker.date, availabilityStartPicker.date, availabilityEndPicker.date)
+    }
+
+    @objc private func avatarTapped() {
+        onAvatarTapped?()
     }
 
     

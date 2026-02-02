@@ -86,7 +86,7 @@ final class RoleSelectionView: UIView {
         // Text
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 2
-        titleLabel.text = "Welcome to\nPhysioConnect"
+        titleLabel.text = "Welcome to\nPhysioNet"
         titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
         titleLabel.textColor = .black
 

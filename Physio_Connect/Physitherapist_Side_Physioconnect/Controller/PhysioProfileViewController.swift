@@ -6,13 +6,15 @@
 //
 
 import UIKit
+import PhotosUI
 
-final class PhysioProfileViewController: UIViewController {
+final class PhysioProfileViewController: UIViewController, PHPickerViewControllerDelegate {
 
     private let profileView = ProfileView()
     private let model = PhysioProfileModel()
     private let availabilityModel = PhysioAvailabilityModel()
     private var isLoading = false
+    private var isUploadingAvatar = false
 
     override func loadView() { view = profileView }
 
@@ -26,6 +28,7 @@ final class PhysioProfileViewController: UIViewController {
         profileView.onSignOut = { [weak self] in self?.signOut() }
         profileView.onSwitchRole = { [weak self] in self?.confirmSwitchRole() }
         profileView.onRefresh = { [weak self] in Task { await self?.loadProfile() } }
+        profileView.onAvatarTapped = { [weak self] in self?.presentAvatarPicker() }
         profileView.setShowsEditButton(true)
         profileView.setAvailabilityVisible(true)
         profileView.onAvailabilitySave = { [weak self] day, start, end in
@@ -153,6 +156,53 @@ final class PhysioProfileViewController: UIViewController {
                     ac.addAction(UIAlertAction(title: "OK", style: .default))
                     self.present(ac, animated: true)
                 }
+            }
+        }
+    }
+
+    private func presentAvatarPicker() {
+        guard !isUploadingAvatar else { return }
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider else { return }
+        guard provider.canLoadObject(ofClass: UIImage.self) else { return }
+
+        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let self, let image = object as? UIImage else { return }
+            guard let data = image.jpegData(compressionQuality: 0.85) else { return }
+            Task { await self.uploadAvatar(image: image, data: data) }
+        }
+    }
+
+    @MainActor
+    private func setAvatarUploadState(_ uploading: Bool) {
+        isUploadingAvatar = uploading
+        profileView.setRefreshing(uploading)
+    }
+
+    private func uploadAvatar(image: UIImage, data: Data) async {
+        await MainActor.run {
+            self.profileView.setAvatarPreview(image)
+            self.setAvatarUploadState(true)
+        }
+        defer { Task { @MainActor in self.setAvatarUploadState(false) } }
+
+        do {
+            try await model.uploadAvatarImage(data)
+            await loadProfile()
+        } catch {
+            await MainActor.run {
+                let ac = UIAlertController(title: "Upload Failed", message: error.localizedDescription, preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(ac, animated: true)
             }
         }
     }

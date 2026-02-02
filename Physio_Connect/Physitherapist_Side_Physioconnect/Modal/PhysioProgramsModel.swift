@@ -286,6 +286,7 @@ final class PhysioProgramsModel {
 
     func createRedemptions(programID: UUID, codeID: UUID, customerIDs: [UUID]) async throws {
         guard !customerIDs.isEmpty else { return }
+        let redeemedAt = ISO8601DateFormatter().string(from: Date())
         struct Payload: Encodable {
             let customer_id: UUID
             let program_id: UUID
@@ -293,7 +294,7 @@ final class PhysioProgramsModel {
             let redeemed_at: String?
         }
         let rows = customerIDs.map { id in
-            Payload(customer_id: id, program_id: programID, code_id: codeID, redeemed_at: nil)
+            Payload(customer_id: id, program_id: programID, code_id: codeID, redeemed_at: redeemedAt)
         }
         _ = try await client
             .from("program_redemptions")

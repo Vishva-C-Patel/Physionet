@@ -187,23 +187,29 @@ final class ExerciseDetailViewController: UIViewController {
             do {
                 let progress = try await videosModel.fetchProgressForExercise(exerciseID: exerciseID, programID: programID)
                 await MainActor.run {
+                    let rowWasCompleted = isCurrentRowCompleted()
                     if let progress {
                         let savedPain = progress.pain_level
                         if requiresPainFeedback {
-                            hasSavedFeedback = savedPain != nil
-                            isCompleted = hasSavedFeedback || (progress.is_completed ?? false)
-                            if let pain = savedPain {
-                                detailView.painSlider.value = Float(pain)
-                                detailView.updatePainUI(value: pain)
-                            }
-                            if let notes = progress.notes, !notes.isEmpty {
-                                detailView.notesTextView.text = notes
-                                textViewDidChange(detailView.notesTextView)
+                            hasSavedFeedback = rowWasCompleted
+                            isCompleted = rowWasCompleted
+                            if rowWasCompleted {
+                                if let pain = savedPain {
+                                    detailView.painSlider.value = Float(pain)
+                                    detailView.updatePainUI(value: pain)
+                                }
+                                if let notes = progress.notes, !notes.isEmpty {
+                                    detailView.notesTextView.text = notes
+                                    textViewDidChange(detailView.notesTextView)
+                                }
                             }
                         } else {
                             isCompleted = progress.is_completed ?? false
                             hasSavedFeedback = isCompleted
                         }
+                    } else if requiresPainFeedback {
+                        hasSavedFeedback = rowWasCompleted
+                        isCompleted = rowWasCompleted
                     }
                     detailView.setCompletedState(isCompleted, locked: hasSavedFeedback)
                     detailView.setFeedbackVisible(requiresPainFeedback && isCompleted && !hasSavedFeedback)
@@ -350,6 +356,11 @@ final class ExerciseDetailViewController: UIViewController {
             object: nil,
             userInfo: ["exerciseID": exerciseID, "programID": programID as Any, "rowKey": rowKey as Any]
         )
+    }
+
+    private func isCurrentRowCompleted() -> Bool {
+        guard requiresPainFeedback, let programID, let rowKey else { return false }
+        return ProgramRowCompletionStore.completionMap(programID: programID)[rowKey] != nil
     }
 }
 

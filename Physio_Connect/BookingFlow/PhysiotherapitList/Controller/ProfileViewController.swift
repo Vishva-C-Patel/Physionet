@@ -6,12 +6,14 @@
 //
 
 import UIKit
+import PhotosUI
 
-final class ProfileViewController: UIViewController {
+final class ProfileViewController: UIViewController, PHPickerViewControllerDelegate {
 
     private let profileView = ProfileView()
     private let model = ProfileModel()
     private var isRefreshing = false
+    private var isUploadingAvatar = false
     private var currentProfile: ProfileViewData?
 
     override func loadView() { view = profileView }
@@ -20,6 +22,7 @@ final class ProfileViewController: UIViewController {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
         bind()
+        profileView.preloadAvatar(urlString: ProfileModel.cachedAvatarURL())
         Task { await refreshProfile() }
 
         NotificationCenter.default.addObserver(
@@ -74,6 +77,10 @@ final class ProfileViewController: UIViewController {
 
         profileView.onRefresh = { [weak self] in
             Task { await self?.refreshProfile() }
+        }
+
+        profileView.onAvatarTapped = { [weak self] in
+            self?.presentAvatarPicker()
         }
         
         profileView.onSwitchRole = { [weak self] in
@@ -137,6 +144,7 @@ final class ProfileViewController: UIViewController {
         Task {
             do {
                 try await model.signOut()
+                ProfileModel.clearCachedAvatarURL()
                 await MainActor.run {
                     self.profileView.applyLoggedOut()
                 }
@@ -198,5 +206,50 @@ final class ProfileViewController: UIViewController {
         }
         vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func presentAvatarPicker() {
+        guard !isUploadingAvatar else { return }
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider else { return }
+        guard provider.canLoadObject(ofClass: UIImage.self) else { return }
+
+        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let self, let image = object as? UIImage else { return }
+            guard let data = image.jpegData(compressionQuality: 0.85) else { return }
+            Task { await self.uploadAvatar(image: image, data: data) }
+        }
+    }
+
+    @MainActor
+    private func setAvatarUploadState(_ uploading: Bool) {
+        isUploadingAvatar = uploading
+        profileView.setRefreshing(uploading)
+    }
+
+    private func uploadAvatar(image: UIImage, data: Data) async {
+        await MainActor.run {
+            self.profileView.setAvatarPreview(image)
+            self.setAvatarUploadState(true)
+        }
+        defer { Task { @MainActor in self.setAvatarUploadState(false) } }
+
+        do {
+            try await model.uploadAvatarImage(data)
+            await refreshProfile()
+        } catch {
+            await MainActor.run {
+                self.showAlert(title: "Upload Failed", message: error.localizedDescription)
+            }
+        }
     }
 }

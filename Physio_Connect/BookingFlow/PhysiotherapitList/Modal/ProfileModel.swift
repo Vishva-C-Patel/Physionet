@@ -7,6 +7,7 @@
 
 import Foundation
 import Supabase
+import UIKit
 
 struct CustomerProfileRow: Decodable {
     let id: UUID
@@ -37,7 +38,7 @@ struct ProfileViewData {
     let notificationsEnabled: Bool
     let avatarURL: String?
 
-    static func from(row: CustomerProfileRow?, emailFallback: String) -> ProfileViewData {
+    static func from(row: CustomerProfileRow?, emailFallback: String, metadataAvatarURL: String?) -> ProfileViewData {
         let rawName = row?.full_name?.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = (rawName?.isEmpty == false) ? rawName! : "User"
 
@@ -65,13 +66,32 @@ struct ProfileViewData {
             about: "—",
             yearsExperience: "—",
             notificationsEnabled: row?.notifications_enabled ?? true,
-            avatarURL: row?.avatar_url
+            avatarURL: row?.avatar_url ?? metadataAvatarURL
         )
     }
 }
 
 final class ProfileModel {
     private let client = SupabaseManager.shared.client
+    private let avatarBuckets = ["physiotherapists", "physio_proofs"]
+    private static let avatarURLDefaultsKey = "patient_avatar_url"
+
+    static func cachedAvatarURL() -> String? {
+        UserDefaults.standard.string(forKey: avatarURLDefaultsKey)
+    }
+
+    static func clearCachedAvatarURL() {
+        UserDefaults.standard.removeObject(forKey: avatarURLDefaultsKey)
+    }
+
+    private static func cacheAvatarURL(_ url: String?) {
+        let trimmed = url?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed, !trimmed.isEmpty {
+            UserDefaults.standard.set(trimmed, forKey: avatarURLDefaultsKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: avatarURLDefaultsKey)
+        }
+    }
 
     func hasActiveSession() async -> Bool {
         (try? await client.auth.session) != nil
@@ -81,6 +101,7 @@ final class ProfileModel {
         let session = try await client.auth.session
         let userID = session.user.id.uuidString
         let emailFallback = session.user.email ?? "—"
+        let metadataAvatarURL = session.user.userMetadata["avatar_url"]?.stringValue
 
         var row: CustomerProfileRow?
         do {
@@ -96,7 +117,9 @@ final class ProfileModel {
             print("❌ Profile fetch error:", error)
         }
 
-        return ProfileViewData.from(row: row, emailFallback: emailFallback)
+        let data = ProfileViewData.from(row: row, emailFallback: emailFallback, metadataAvatarURL: metadataAvatarURL)
+        Self.cacheAvatarURL(data.avatarURL)
+        return data
     }
 
     func updateNotifications(enabled: Bool) async {
@@ -150,6 +173,53 @@ final class ProfileModel {
 
     func signOut() async throws {
         try await client.auth.signOut()
+    }
+
+    func uploadAvatarImage(_ imageData: Data) async throws {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+        let filename = "avatar_\(UUID().uuidString).jpg"
+        let candidatePaths = [
+            "customers/\(userID)/\(filename)",
+            "physios/\(userID)/\(filename)"
+        ]
+
+        var resolved: (bucket: String, path: String)?
+        var lastError: Error?
+        for bucket in avatarBuckets {
+            for path in candidatePaths {
+                do {
+                    _ = try await client.storage
+                        .from(bucket)
+                        .upload(path, data: imageData, options: FileOptions(contentType: "image/jpeg", upsert: false))
+                    resolved = (bucket, path)
+                    break
+                } catch {
+                    lastError = error
+                }
+            }
+            if resolved != nil { break }
+        }
+
+        guard let resolved else {
+            throw lastError ?? NSError(domain: "avatar_upload", code: 1)
+        }
+
+        let publicURL = "\(SupabaseConfig.url)/storage/v1/object/public/\(resolved.bucket)/\(resolved.path)"
+
+        do {
+            _ = try await client
+                .from("customers")
+                .update(["avatar_url": publicURL])
+                .eq("id", value: userID)
+                .execute()
+        } catch {
+            // Fallback for schemas where customers.avatar_url does not exist.
+            var metadata = session.user.userMetadata
+            metadata["avatar_url"] = .string(publicURL)
+            _ = try await client.auth.update(user: UserAttributes(data: metadata))
+        }
+        Self.cacheAvatarURL(publicURL)
     }
 }
 

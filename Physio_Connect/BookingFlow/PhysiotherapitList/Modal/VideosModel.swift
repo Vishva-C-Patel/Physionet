@@ -25,6 +25,7 @@ struct ExerciseVideoRow: Decodable {
 }
 
 struct MyProgramExerciseRow: Decodable {
+    let program_exercise_id: UUID
     let exercise_id: UUID
     let title: String
     let target_area: String?
@@ -70,6 +71,11 @@ private struct VideoProgramRedemptionRow: Decodable {
     let redeemed_at: String?
 }
 
+private struct ProgramProgressLookupRow: Decodable {
+    let program_id: UUID?
+    let progress_date: String?
+}
+
 private struct ProgramAccessCodeLookupRow: Decodable {
     let id: UUID
     let program_id: UUID
@@ -81,6 +87,7 @@ private struct ProgramTitleRow: Decodable {
 }
 
 private struct ProgramExerciseJoinedRow: Decodable {
+    let program_exercise_id: UUID
     let program_id: UUID
     let sort_order: Int?
     let sets: Int?
@@ -115,7 +122,7 @@ final class VideosModel {
         return rows
     }
 
-    func fetchMyProgramExercises() async throws -> [MyProgramExerciseRow] {
+    func fetchMyProgramExercises(preferredProgramID: UUID? = nil) async throws -> [MyProgramExerciseRow] {
         let session = try await client.auth.session
         let customerID = session.user.id.uuidString
 
@@ -126,15 +133,24 @@ final class VideosModel {
             .execute()
             .value
 
-        let redeemedProgramIDs = redemptionRows
-            .filter { $0.redeemed_at != nil }
-            .map(\.program_id)
+        let redeemedProgramIDs = redemptionRows.map(\.program_id)
 
         guard !redeemedProgramIDs.isEmpty else { return [] }
+
+        let progressRows: [ProgramProgressLookupRow] = try await client
+            .from("exercise_progress")
+            .select("program_id, progress_date")
+            .eq("customer_id", value: customerID)
+            .in("program_id", values: redeemedProgramIDs.map { $0.uuidString })
+            .order("progress_date", ascending: false)
+            .limit(200)
+            .execute()
+            .value
 
         let rows: [ProgramExerciseJoinedRow] = try await client
             .from("program_exercises")
             .select("""
+                program_exercise_id:id,
                 program_id,
                 sort_order,
                 sets,
@@ -165,8 +181,37 @@ final class VideosModel {
             .execute()
             .value
 
-        return rows.map { row in
+        let grouped = Dictionary(grouping: rows, by: \.program_id)
+        guard !grouped.isEmpty else { return [] }
+
+        let activeFromProgress = progressRows
+            .compactMap { row -> (UUID, String)? in
+                guard let pid = row.program_id, let date = row.progress_date else { return nil }
+                return (pid, date)
+            }
+            .sorted { $0.1 > $1.1 }
+            .map(\.0)
+            .first { grouped[$0] != nil }
+
+        let activeFromRedemption: UUID? = redemptionRows
+            .max { lhs, rhs in
+                let lhsDate = parseBackendTimestamp(lhs.redeemed_at) ?? .distantPast
+                let rhsDate = parseBackendTimestamp(rhs.redeemed_at) ?? .distantPast
+                return lhsDate < rhsDate
+            }?
+            .program_id
+
+        let selectedProgramID =
+            (preferredProgramID.flatMap { grouped[$0] != nil ? $0 : nil }) ??
+            activeFromRedemption ??
+            activeFromProgress ??
+            grouped.max { lhs, rhs in lhs.value.count < rhs.value.count }?.key
+
+        let selectedRows = selectedProgramID.flatMap { grouped[$0] } ?? []
+
+        return selectedRows.map { row in
             MyProgramExerciseRow(
+                program_exercise_id: row.program_exercise_id,
                 exercise_id: row.physio_videos.id,
                 title: row.physio_videos.title,
                 target_area: row.physio_videos.target_area,
@@ -431,5 +476,29 @@ final class VideosModel {
             .execute()
             .value
         return rows.first
+    }
+
+    private func parseBackendTimestamp(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let isoWithFraction = ISO8601DateFormatter()
+        isoWithFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let isoPlain = ISO8601DateFormatter()
+        isoPlain.formatOptions = [.withInternetDateTime]
+        if let date = isoWithFraction.date(from: trimmed) ?? isoPlain.date(from: trimmed) {
+            return date
+        }
+
+        let sqlFormatter = DateFormatter()
+        sqlFormatter.locale = Locale(identifier: "en_US_POSIX")
+        sqlFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        sqlFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSSXXXXX"
+        if let date = sqlFormatter.date(from: trimmed) {
+            return date
+        }
+        sqlFormatter.dateFormat = "yyyy-MM-dd HH:mm:ssXXXXX"
+        return sqlFormatter.date(from: trimmed)
     }
 }

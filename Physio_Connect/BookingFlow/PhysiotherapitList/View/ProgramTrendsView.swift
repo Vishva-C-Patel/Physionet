@@ -28,6 +28,7 @@ final class ProgramTrendsView: UIView {
     private let axisItemWidth: CGFloat = 36
     private var chartWidthConstraint: NSLayoutConstraint?
     private var dataCount: Int = 0
+    private var shouldScrollToLatest = false
     override init(frame: CGRect) {
         super.init(frame: frame)
         build()
@@ -42,6 +43,7 @@ final class ProgramTrendsView: UIView {
         let count = max(painSeries.count, adherenceSeries.count)
         dataCount = count
         updateXAxisLabels(count: count)
+        shouldScrollToLatest = true
         setNeedsLayout()
     }
 
@@ -187,6 +189,11 @@ final class ProgramTrendsView: UIView {
         let desiredWidth = CGFloat(total) * axisItemWidth
         let visibleWidth = max(scrollView.bounds.width, 1)
         chartWidthConstraint?.constant = max(desiredWidth, visibleWidth)
+        if shouldScrollToLatest {
+            let maxOffsetX = max(scrollView.contentSize.width - scrollView.bounds.width, 0)
+            scrollView.setContentOffset(CGPoint(x: maxOffsetX, y: 0), animated: false)
+            shouldScrollToLatest = false
+        }
     }
 }
 

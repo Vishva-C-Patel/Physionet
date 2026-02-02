@@ -11,7 +11,6 @@ final class HomeArticleCell: UITableViewCell {
     static let reuseID = "HomeArticleCell"
 
     private let card = UIView()
-    private let thumbView = UIImageView()
     private let tagPill = UILabel()
     private let ratingLabel = UILabel()
     private let titleLabel = UILabel()
@@ -28,14 +27,13 @@ final class HomeArticleCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        thumbView.image = UIImage(systemName: "photo")
         tagPill.text = nil
         ratingLabel.text = nil
         titleLabel.text = nil
         metaLabel.text = nil
     }
 
-    func configure(with article: ArticleRow, thumbnail: UIImage?) {
+    func configure(with article: ArticleRow) {
         titleLabel.text = article.title
         metaLabel.text = "\(article.read_minutes ?? 0) min read"
         if let tag = article.tags?.first {
@@ -45,13 +43,6 @@ final class HomeArticleCell: UITableViewCell {
         }
         let ratingText = String(format: "%.1f", article.rating ?? 0.0)
         ratingLabel.text = "⭐️ \(ratingText)"
-        if let thumbnail {
-            thumbView.image = thumbnail
-            thumbView.tintColor = nil
-        } else {
-            thumbView.image = UIImage(systemName: "photo")
-            thumbView.tintColor = UIColor.black.withAlphaComponent(0.2)
-        }
     }
 
     private func build() {
@@ -67,14 +58,6 @@ final class HomeArticleCell: UITableViewCell {
         card.layer.shadowRadius = 8
         card.layer.shadowOffset = CGSize(width: 0, height: 4)
         contentView.addSubview(card)
-
-        thumbView.translatesAutoresizingMaskIntoConstraints = false
-        thumbView.backgroundColor = UIColor(hex: "E9EEF7")
-        thumbView.layer.cornerRadius = 12
-        thumbView.clipsToBounds = true
-        thumbView.contentMode = .scaleAspectFill
-        thumbView.image = UIImage(systemName: "photo")
-        thumbView.tintColor = UIColor.black.withAlphaComponent(0.2)
 
         tagPill.translatesAutoresizingMaskIntoConstraints = false
         tagPill.backgroundColor = UIColor(hex: "E8F3FF")
@@ -96,7 +79,6 @@ final class HomeArticleCell: UITableViewCell {
         metaLabel.font = .systemFont(ofSize: 12, weight: .medium)
         metaLabel.textColor = UIColor.black.withAlphaComponent(0.55)
 
-        card.addSubview(thumbView)
         card.addSubview(tagPill)
         card.addSubview(ratingLabel)
         card.addSubview(titleLabel)
@@ -108,13 +90,8 @@ final class HomeArticleCell: UITableViewCell {
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
 
-            thumbView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
-            thumbView.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-            thumbView.widthAnchor.constraint(equalToConstant: 64),
-            thumbView.heightAnchor.constraint(equalToConstant: 64),
-
             tagPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            tagPill.leadingAnchor.constraint(equalTo: thumbView.trailingAnchor, constant: 12),
+            tagPill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
 
             ratingLabel.centerYAnchor.constraint(equalTo: tagPill.centerYAnchor),
             ratingLabel.leadingAnchor.constraint(equalTo: tagPill.trailingAnchor, constant: 8),
