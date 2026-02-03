@@ -835,6 +835,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         let calendar = Calendar.current
         let programDayCount = max(totalDays, 1)
         let start = calendar.startOfDay(for: programStartDate)
+        let today = calendar.startOfDay(for: Date())
+        let elapsedDays = max((calendar.dateComponents([.day], from: start, to: today).day ?? 0) + 1, 1)
         let maxRecordedOffset = rows.compactMap { row -> Int? in
             guard let raw = row.progress_date,
                   let date = parseProgressDate(raw) else { return nil }
@@ -842,7 +844,9 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
             let offset = calendar.dateComponents([.day], from: start, to: day).day ?? 0
             return max(0, offset)
         }.max() ?? (programDayCount - 1)
-        let seriesCount = max(programDayCount, maxRecordedOffset + 1)
+        // Keep chart dynamic: planned days + elapsed real days + recorded days.
+        // This lets users who finish late still see D3, D4... with their saved values.
+        let seriesCount = max(programDayCount, elapsedDays, maxRecordedOffset + 1)
         var painSeries: [Int] = []
         var adherenceSeries: [Int] = []
         let expectedFallback = max(

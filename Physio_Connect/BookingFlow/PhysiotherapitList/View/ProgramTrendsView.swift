@@ -105,7 +105,8 @@ final class ProgramTrendsView: UIView {
 
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
         xAxisStack.axis = .horizontal
-        xAxisStack.distribution = .fillEqually
+        xAxisStack.distribution = .equalSpacing
+        xAxisStack.alignment = .center
 
         addSubview(titleLabel)
         addSubview(subtitleLabel)
@@ -168,8 +169,10 @@ final class ProgramTrendsView: UIView {
     private func updateXAxisLabels(count: Int) {
         xAxisStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         let total = max(count, 1)
+        xAxisStack.distribution = total <= 1 ? .fillEqually : .equalSpacing
         for i in 1...total {
             let label = axisLabel("D\(i)")
+            label.textAlignment = .center
             label.font = .systemFont(ofSize: 11, weight: .medium)
             xAxisStack.addArrangedSubview(label)
         }
@@ -381,7 +384,7 @@ private final class TrendChartView: UIView {
         let painPoints = pointsFor(series: pain, maxValue: 10, rect: chartRect, stepX: stepX)
         let adherencePoints = pointsFor(series: adherence, maxValue: 100, rect: chartRect, stepX: stepX)
 
-        let painPath = makeMonotonePath(points: painPoints)
+        let painPath = makeWavePath(points: painPoints, tension: 1.0)
         painLine.path = painPath.cgPath
 
         let painFillPath = UIBezierPath(cgPath: painPath.cgPath)
@@ -391,7 +394,7 @@ private final class TrendChartView: UIView {
         painFill.path = painFillPath.cgPath
         painGradient.frame = bounds
 
-        let adherencePath = makeMonotonePath(points: adherencePoints)
+        let adherencePath = makeWavePath(points: adherencePoints, tension: 1.0)
         adherenceLine.path = adherencePath.cgPath
 
         let adherenceFillPath = UIBezierPath(cgPath: adherencePath.cgPath)
@@ -464,40 +467,43 @@ private final class TrendChartView: UIView {
         }
     }
 
-    private func makeMonotonePath(points: [CGPoint]) -> UIBezierPath {
+    // Catmull-Rom to Bezier conversion gives a smooth, sine-like curve.
+    private func makeWavePath(points: [CGPoint], tension: CGFloat) -> UIBezierPath {
         let path = UIBezierPath()
-        guard points.count > 1 else { return path }
+        guard !points.isEmpty else { return path }
         path.move(to: points[0])
+        guard points.count > 1 else { return path }
 
-        let count = points.count
-        var slopes = [CGFloat](repeating: 0, count: count - 1)
-        var tangents = [CGFloat](repeating: 0, count: count)
-
-        for i in 0..<(count - 1) {
-            let dx = points[i + 1].x - points[i].x
-            let dy = points[i + 1].y - points[i].y
-            slopes[i] = dx == 0 ? 0 : dy / dx
+        // With only 2 points, default curves collapse to a straight segment.
+        // Force a smooth wave-like bend so the trend chart still looks organic.
+        if points.count == 2 {
+            let p1 = points[0]
+            let p2 = points[1]
+            let dx = p2.x - p1.x
+            let dy = p2.y - p1.y
+            let amplitude = max(8, min(24, abs(dy) * 0.6 + 8))
+            let bend: CGFloat = dy >= 0 ? -amplitude : amplitude
+            let c1 = CGPoint(x: p1.x + (dx * 0.33), y: p1.y + (dy * 0.15) + bend)
+            let c2 = CGPoint(x: p1.x + (dx * 0.66), y: p1.y + (dy * 0.85) - bend)
+            path.addCurve(to: p2, controlPoint1: c1, controlPoint2: c2)
+            return path
         }
 
-        tangents[0] = slopes[0]
-        tangents[count - 1] = slopes[count - 2]
-        if count > 2 {
-            for i in 1..<(count - 1) {
-                if slopes[i - 1] * slopes[i] <= 0 {
-                    tangents[i] = 0
-                } else {
-                    tangents[i] = (slopes[i - 1] + slopes[i]) / 2
-                }
-            }
-        }
+        for i in 0..<(points.count - 1) {
+            let p0 = i > 0 ? points[i - 1] : points[i]
+            let p1 = points[i]
+            let p2 = points[i + 1]
+            let p3 = (i + 2 < points.count) ? points[i + 2] : p2
 
-        for i in 0..<(count - 1) {
-            let p0 = points[i]
-            let p1 = points[i + 1]
-            let dx = p1.x - p0.x
-            let c1 = CGPoint(x: p0.x + dx / 3, y: p0.y + tangents[i] * dx / 3)
-            let c2 = CGPoint(x: p1.x - dx / 3, y: p1.y - tangents[i + 1] * dx / 3)
-            path.addCurve(to: p1, controlPoint1: c1, controlPoint2: c2)
+            let c1 = CGPoint(
+                x: p1.x + (p2.x - p0.x) * (tension / 6.0),
+                y: p1.y + (p2.y - p0.y) * (tension / 6.0)
+            )
+            let c2 = CGPoint(
+                x: p2.x - (p3.x - p1.x) * (tension / 6.0),
+                y: p2.y - (p3.y - p1.y) * (tension / 6.0)
+            )
+            path.addCurve(to: p2, controlPoint1: c1, controlPoint2: c2)
         }
         return path
     }

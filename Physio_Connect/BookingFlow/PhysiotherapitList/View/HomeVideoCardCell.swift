@@ -78,7 +78,7 @@ final class HomeVideoCardCell: UICollectionViewCell {
         playIcon.tintColor = UIColor(hex: "1E6EF7")
 
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
-        durationLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        durationLabel.font = UITheme.Typography.caption
         durationLabel.textColor = UIColor.white
 
         let durationBg = UIView()
@@ -87,13 +87,13 @@ final class HomeVideoCardCell: UICollectionViewCell {
         durationBg.layer.cornerRadius = 10
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Typography.cardTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 2
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        subtitleLabel.font = UITheme.Typography.caption
+        subtitleLabel.textColor = UITheme.Colors.textSecondary
 
         card.addSubview(thumbnailView)
         card.addSubview(titleLabel)

@@ -98,7 +98,7 @@ final class HomeView: UIView {
         topBar.addSubview(profileButton)
 
         titleLabel.text = "Home"
-        titleLabel.font = .boldSystemFont(ofSize: 20)
+        titleLabel.font = UITheme.Typography.screenTitle
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         topBar.addSubview(titleLabel)
@@ -289,9 +289,7 @@ final class HomeView: UIView {
         videosHeader.actionButton
     }
 
-    private var sectionTitleFont: UIFont {
-        .systemFont(ofSize: 20, weight: .bold)
-    }
+    private var sectionTitleFont: UIFont { UITheme.Typography.sectionTitle }
 
     func setUpNextVisible(_ visible: Bool) {
         isUpNextVisible = visible
@@ -353,12 +351,12 @@ private final class SectionHeaderView: UIView {
 
     private func build() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        titleLabel.font = UITheme.Typography.sectionTitle
         titleLabel.textColor = .black
 
         actionButton.translatesAutoresizingMaskIntoConstraints = false
         actionButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-        actionButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
+        actionButton.titleLabel?.font = UITheme.Typography.buttonSmall
 
         addSubview(titleLabel)
         addSubview(actionButton)

@@ -12,7 +12,6 @@ final class HomeArticleCell: UITableViewCell {
 
     private let card = UIView()
     private let tagPill = UILabel()
-    private let ratingLabel = UILabel()
     private let titleLabel = UILabel()
     private let metaLabel = UILabel()
 
@@ -28,7 +27,6 @@ final class HomeArticleCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         tagPill.text = nil
-        ratingLabel.text = nil
         titleLabel.text = nil
         metaLabel.text = nil
     }
@@ -36,13 +34,15 @@ final class HomeArticleCell: UITableViewCell {
     func configure(with article: ArticleRow) {
         titleLabel.text = article.title
         metaLabel.text = "\(article.read_minutes ?? 0) min read"
-        if let tag = article.tags?.first {
-            tagPill.text = "  \(tag)  "
-        } else {
-            tagPill.text = "  Tips  "
-        }
-        let ratingText = String(format: "%.1f", article.rating ?? 0.0)
-        ratingLabel.text = "⭐️ \(ratingText)"
+        let sourceName = article.source_name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sourceSlug = article.source?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let urlSource = sourceHost(from: article.source_url) ?? sourceHost(from: article.url)
+        let fallbackTag = article.tags?.first?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedSource = (sourceName?.isEmpty == false ? sourceName :
+                              (sourceSlug?.isEmpty == false ? sourceSlug :
+                               (urlSource?.isEmpty == false ? urlSource :
+                                (fallbackTag?.isEmpty == false ? fallbackTag : "Source"))))
+        tagPill.text = "  \(resolvedSource ?? "Source")  "
     }
 
     private func build() {
@@ -63,24 +63,19 @@ final class HomeArticleCell: UITableViewCell {
         tagPill.backgroundColor = UIColor(hex: "E8F3FF")
         tagPill.layer.cornerRadius = 12
         tagPill.layer.masksToBounds = true
-        tagPill.font = .systemFont(ofSize: 12, weight: .semibold)
+        tagPill.font = UITheme.Typography.caption
         tagPill.textColor = UIColor(hex: "1E6EF7")
 
-        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
-        ratingLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        ratingLabel.textColor = UIColor(hex: "F59E0B")
-
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 15, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Typography.cardTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 2
 
         metaLabel.translatesAutoresizingMaskIntoConstraints = false
-        metaLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        metaLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        metaLabel.font = UITheme.Typography.caption
+        metaLabel.textColor = UITheme.Colors.textSecondary
 
         card.addSubview(tagPill)
-        card.addSubview(ratingLabel)
         card.addSubview(titleLabel)
         card.addSubview(metaLabel)
 
@@ -93,9 +88,6 @@ final class HomeArticleCell: UITableViewCell {
             tagPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
             tagPill.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
 
-            ratingLabel.centerYAnchor.constraint(equalTo: tagPill.centerYAnchor),
-            ratingLabel.leadingAnchor.constraint(equalTo: tagPill.trailingAnchor, constant: 8),
-
             titleLabel.topAnchor.constraint(equalTo: tagPill.bottomAnchor, constant: 8),
             titleLabel.leadingAnchor.constraint(equalTo: tagPill.leadingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
@@ -104,5 +96,14 @@ final class HomeArticleCell: UITableViewCell {
             metaLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             metaLabel.bottomAnchor.constraint(lessThanOrEqualTo: card.bottomAnchor, constant: -12)
         ])
+    }
+
+    private func sourceHost(from urlString: String?) -> String? {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let host = url.host
+        else { return nil }
+        return host.replacingOccurrences(of: "www.", with: "")
     }
 }

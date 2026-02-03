@@ -87,8 +87,8 @@ final class ArticleDetailView: UIView {
         backButton.tintColor = UIColor.black.withAlphaComponent(0.7)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .boldSystemFont(ofSize: 18)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Typography.screenTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.textAlignment = .center
 
         shareButton.translatesAutoresizingMaskIntoConstraints = false
@@ -112,12 +112,12 @@ final class ArticleDetailView: UIView {
         sourcePill.translatesAutoresizingMaskIntoConstraints = false
         sourcePill.backgroundColor = UIColor(hex: "EDF4FF")
         sourcePill.textColor = UIColor(hex: "1E6EF7")
-        sourcePill.font = .systemFont(ofSize: 12, weight: .semibold)
+        sourcePill.font = UITheme.Typography.caption
         sourcePill.layer.cornerRadius = 14
         sourcePill.layer.masksToBounds = true
 
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        dateLabel.font = UITheme.Typography.meta
         dateLabel.textColor = UIColor.black.withAlphaComponent(0.45)
 
         tagsStack.translatesAutoresizingMaskIntoConstraints = false
@@ -126,18 +126,18 @@ final class ArticleDetailView: UIView {
         tagsStack.alignment = .leading
 
         articleTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        articleTitleLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        articleTitleLabel.textColor = .black
+        articleTitleLabel.font = UITheme.Typography.sectionTitle
+        articleTitleLabel.textColor = UITheme.Colors.textPrimary
         articleTitleLabel.numberOfLines = 0
 
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
-        summaryLabel.font = .systemFont(ofSize: 15, weight: .medium)
-        summaryLabel.textColor = UIColor.black.withAlphaComponent(0.65)
+        summaryLabel.font = UITheme.Typography.body
+        summaryLabel.textColor = UITheme.Colors.textSecondary
         summaryLabel.numberOfLines = 0
 
         bodyLabel.translatesAutoresizingMaskIntoConstraints = false
-        bodyLabel.font = .systemFont(ofSize: 15, weight: .regular)
-        bodyLabel.textColor = UIColor.black.withAlphaComponent(0.75)
+        bodyLabel.font = UITheme.Typography.body
+        bodyLabel.textColor = UITheme.Colors.textPrimary
         bodyLabel.numberOfLines = 0
 
         addSubview(topBar)

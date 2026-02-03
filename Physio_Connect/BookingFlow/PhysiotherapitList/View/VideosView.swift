@@ -97,7 +97,7 @@ final class VideosView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Exercises"
-        titleLabel.font = .boldSystemFont(ofSize: 20)
+        titleLabel.font = UITheme.Typography.screenTitle
         titleLabel.textColor = UIColor.black
         titleLabel.textAlignment = .center
 
@@ -113,11 +113,11 @@ final class VideosView: UIView {
         segmented.layer.cornerRadius = 16
         segmented.layer.masksToBounds = true
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.white, .font: UITheme.Typography.buttonSmall],
             for: .selected
         )
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.black.withAlphaComponent(0.65), .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.black.withAlphaComponent(0.65), .font: UITheme.Typography.buttonSmall],
             for: .normal
         )
 
@@ -151,12 +151,12 @@ final class VideosView: UIView {
 
         redeemTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         redeemTitleLabel.text = "Have a program code?"
-        redeemTitleLabel.font = .systemFont(ofSize: 15, weight: .bold)
+        redeemTitleLabel.font = UITheme.Typography.cardTitle
         redeemTitleLabel.textColor = UIColor(hex: "153E75")
 
         redeemSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         redeemSubtitleLabel.text = "Paste it here to unlock your assigned plan."
-        redeemSubtitleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        redeemSubtitleLabel.font = UITheme.Typography.caption
         redeemSubtitleLabel.textColor = UIColor(hex: "5E7394")
 
         redeemInputContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -167,7 +167,7 @@ final class VideosView: UIView {
 
         redeemCodeField.translatesAutoresizingMaskIntoConstraints = false
         redeemCodeField.placeholder = "Enter code (e.g. PROG-AB12CD)"
-        redeemCodeField.font = .systemFont(ofSize: 14, weight: .semibold)
+        redeemCodeField.font = UITheme.Typography.buttonSmall
         redeemCodeField.autocapitalizationType = .allCharacters
         redeemCodeField.autocorrectionType = .no
         redeemCodeField.spellCheckingType = .no
@@ -176,7 +176,7 @@ final class VideosView: UIView {
 
         redeemInlineButton.translatesAutoresizingMaskIntoConstraints = false
         redeemInlineButton.setTitle("Redeem", for: .normal)
-        redeemInlineButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        redeemInlineButton.titleLabel?.font = UITheme.Typography.buttonSmall
         redeemInlineButton.backgroundColor = UIColor(hex: "1E6EF7")
         redeemInlineButton.setTitleColor(.white, for: .normal)
         redeemInlineButton.layer.cornerRadius = 10
@@ -198,18 +198,18 @@ final class VideosView: UIView {
 
         emptyTitle.translatesAutoresizingMaskIntoConstraints = false
         emptyTitle.text = "No Program Yet"
-        emptyTitle.font = .systemFont(ofSize: 20, weight: .bold)
+        emptyTitle.font = UITheme.Typography.sectionTitle
         emptyTitle.textColor = .black
 
         emptySub.translatesAutoresizingMaskIntoConstraints = false
         emptySub.text = "Redeem your physiotherapist's code to unlock your personalized program."
-        emptySub.font = .systemFont(ofSize: 14, weight: .regular)
+        emptySub.font = UITheme.Typography.bodySmall
         emptySub.textColor = .darkGray
         emptySub.numberOfLines = 0
 
         redeemButton.translatesAutoresizingMaskIntoConstraints = false
         redeemButton.setTitle("Redeem Code", for: .normal)
-        redeemButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        redeemButton.titleLabel?.font = UITheme.Typography.button
         redeemButton.backgroundColor = UIColor(hex: "1E6EF7")
         redeemButton.setTitleColor(.white, for: .normal)
         redeemButton.layer.cornerRadius = 14

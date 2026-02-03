@@ -88,9 +88,10 @@ final class ArticlesView: UIView {
         headerContainer.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 10, right: 16)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Discover"
-        titleLabel.font = .boldSystemFont(ofSize: 20)
-        titleLabel.textColor = .black
+        titleLabel.text = "Articles"
+        titleLabel.font = UITheme.Typography.screenTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
+        titleLabel.textAlignment = .center
 
         searchBar.placeholder = "Search articles, topics, conditions..."
         searchBar.searchBarStyle = .minimal
@@ -123,12 +124,12 @@ final class ArticlesView: UIView {
         recentHeaderStack.translatesAutoresizingMaskIntoConstraints = false
 
         recentTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        recentTitleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        recentTitleLabel.font = UITheme.Typography.sectionTitle
         recentTitleLabel.textColor = .black
         recentTitleLabel.text = "Recent Articles"
 
         resultsLabel.translatesAutoresizingMaskIntoConstraints = false
-        resultsLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        resultsLabel.font = UITheme.Typography.bodySmallMedium
         resultsLabel.textColor = UIColor.black.withAlphaComponent(0.5)
         resultsLabel.text = "0 articles"
 

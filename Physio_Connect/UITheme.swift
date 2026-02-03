@@ -26,6 +26,21 @@ enum UITheme {
         }
     }
 
+    // Standardized typography scale used across patient + physio flows.
+    enum Typography {
+        static let screenTitle = UIFont.systemFont(ofSize: 20, weight: .bold)
+        static let sectionTitle = UIFont.systemFont(ofSize: 18, weight: .bold)
+        static let cardTitle = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        static let cardTitleRegular = UIFont.systemFont(ofSize: 15, weight: .regular)
+        static let body = UIFont.systemFont(ofSize: 15, weight: .regular)
+        static let bodySmall = UIFont.systemFont(ofSize: 14, weight: .regular)
+        static let bodySmallMedium = UIFont.systemFont(ofSize: 14, weight: .medium)
+        static let meta = UIFont.systemFont(ofSize: 13, weight: .medium)
+        static let caption = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        static let button = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        static let buttonSmall = UIFont.systemFont(ofSize: 14, weight: .semibold)
+    }
+
     enum Metrics {
         static let cardCornerRadius: CGFloat = 16
         static let chipCornerRadius: CGFloat = 12

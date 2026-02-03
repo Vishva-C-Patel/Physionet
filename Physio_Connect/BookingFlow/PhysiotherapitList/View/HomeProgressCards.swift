@@ -28,7 +28,9 @@ final class HomePainTrendCardView: UIView {
     }
 
     func configure(painSeries: [Int], averagePain: Double, percentChange: Int) {
-        chartView.configure(series: painSeries, maxValue: 10, lineColor: UIColor(hex: "EF4444"), labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+        let labels = rollingWeekdayLabels(count: painSeries.count)
+        chartView.configure(series: painSeries, maxValue: 10, lineColor: UIColor(hex: "EF4444"), labels: labels)
+        updateXAxisLabels(labels)
         trendLabel.text = String(format: "%.1f", averagePain)
         trendLabel.textColor = UIColor(hex: "16A34A")
     }
@@ -88,14 +90,7 @@ final class HomePainTrendCardView: UIView {
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
         xAxisStack.axis = .horizontal
         xAxisStack.distribution = .equalSpacing
-        let xLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        xLabels.forEach {
-            let label = UILabel()
-            label.text = $0
-            label.font = .systemFont(ofSize: 11, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
-            xAxisStack.addArrangedSubview(label)
-        }
+        updateXAxisLabels(rollingWeekdayLabels(count: 7))
 
         container.addSubview(iconWrap)
         container.addSubview(titleLabel)
@@ -143,6 +138,32 @@ final class HomePainTrendCardView: UIView {
             xAxisStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
     }
+
+    private func updateXAxisLabels(_ labels: [String]) {
+        xAxisStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        labels.forEach { text in
+            let label = UILabel()
+            label.text = text
+            label.font = .systemFont(ofSize: 11, weight: .medium)
+            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            xAxisStack.addArrangedSubview(label)
+        }
+    }
+
+    private func rollingWeekdayLabels(count: Int) -> [String] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = Locale.current
+        formatter.dateFormat = "EEE"
+        let today = calendar.startOfDay(for: Date())
+        let safeCount = max(count, 1)
+        return (0..<safeCount).map { offset in
+            let shift = offset - (safeCount - 1)
+            let date = calendar.date(byAdding: .day, value: shift, to: today) ?? today
+            return formatter.string(from: date)
+        }
+    }
 }
 
 final class HomeAdherenceCardView: UIView {
@@ -165,7 +186,9 @@ final class HomeAdherenceCardView: UIView {
 
     func configure(adherenceSeries: [Int], weeklyPercent: Int) {
         percentLabel.text = "\(weeklyPercent)%"
-        chartView.configure(series: adherenceSeries, maxValue: 100, lineColor: UIColor(hex: "0EA5E9"), labels: ["W1", "W2", "W3", "W4", "W5", "W6"])
+        let labels = rollingWeekLabels(count: adherenceSeries.count)
+        chartView.configure(series: adherenceSeries, maxValue: 100, lineColor: UIColor(hex: "0EA5E9"), labels: labels)
+        updateXAxisLabels(labels)
     }
 
     private func build() {
@@ -214,14 +237,7 @@ final class HomeAdherenceCardView: UIView {
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
         xAxisStack.axis = .horizontal
         xAxisStack.distribution = .equalSpacing
-        let xLabels = ["W1", "W2", "W3", "W4", "W5", "W6"]
-        xLabels.forEach {
-            let label = UILabel()
-            label.text = $0
-            label.font = .systemFont(ofSize: 11, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
-            xAxisStack.addArrangedSubview(label)
-        }
+        updateXAxisLabels(rollingWeekLabels(count: 6))
 
         container.addSubview(titleLabel)
         container.addSubview(percentLabel)
@@ -259,6 +275,29 @@ final class HomeAdherenceCardView: UIView {
             xAxisStack.trailingAnchor.constraint(equalTo: chartView.trailingAnchor),
             xAxisStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
+    }
+
+    private func updateXAxisLabels(_ labels: [String]) {
+        xAxisStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        labels.forEach { text in
+            let label = UILabel()
+            label.text = text
+            label.font = .systemFont(ofSize: 11, weight: .medium)
+            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            xAxisStack.addArrangedSubview(label)
+        }
+    }
+
+    private func rollingWeekLabels(count: Int) -> [String] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let safeCount = max(count, 1)
+        return (0..<safeCount).map { offset in
+            let shift = offset - (safeCount - 1)
+            let date = calendar.date(byAdding: .weekOfYear, value: shift, to: today) ?? today
+            let week = calendar.component(.weekOfYear, from: date)
+            return "W\(week)"
+        }
     }
 }
 

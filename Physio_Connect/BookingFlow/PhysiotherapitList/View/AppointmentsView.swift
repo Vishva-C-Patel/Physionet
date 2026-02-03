@@ -58,11 +58,11 @@ final class AppointmentsView: UIView {
         segmented.layer.cornerRadius = 14
         segmented.layer.masksToBounds = true
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.white, .font: UITheme.Typography.buttonSmall],
             for: .selected
         )
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UITheme.Colors.textSecondary, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UITheme.Colors.textSecondary, .font: UITheme.Typography.buttonSmall],
             for: .normal
         )
 
@@ -92,7 +92,7 @@ final class AppointmentsView: UIView {
         addSubview(topBar)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .boldSystemFont(ofSize: 20)
+        titleLabel.font = UITheme.Typography.screenTitle
         titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.textAlignment = .center
 

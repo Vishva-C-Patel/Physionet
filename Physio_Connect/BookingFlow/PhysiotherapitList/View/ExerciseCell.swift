@@ -14,8 +14,8 @@ final class ExerciseCell: UITableViewCell {
     private let card = UIView()
     private let heroImageView = UIImageView()
     private let playButton = UIButton(type: .system)
-    private let levelBadge = UILabel()
-    private let durationPill = UILabel()
+    private let levelBadge = PillLabel()
+    private let durationPill = PillLabel()
     private let titleLabel = UILabel()
     private let subLabel = UILabel()
     private let descLabel = UILabel()
@@ -51,11 +51,11 @@ final class ExerciseCell: UITableViewCell {
         titleLabel.text = title
         subLabel.text = subtitle
         descLabel.text = description ?? "Follow the guided video and maintain controlled movement."
-        levelBadge.text = "  \(badgeText)  "
+        levelBadge.text = badgeText
         self.thumbnailPath = thumbnailPath
 
         let mins = max(1, (durationSeconds ?? 0) / 60)
-        durationPill.text = "  \(mins) min  "
+        durationPill.text = "\(mins) min"
 
         heroImageView.image = UIImage(systemName: "video")
     }
@@ -89,41 +89,43 @@ final class ExerciseCell: UITableViewCell {
         heroImageView.image = UIImage(systemName: "video")
 
         playButton.translatesAutoresizingMaskIntoConstraints = false
-        playButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
-        playButton.tintColor = UIColor(hex: "1E6EF7")
-        playButton.backgroundColor = .white
-        playButton.layer.cornerRadius = 24
+        var playConfig = UIButton.Configuration.filled()
+        playConfig.baseBackgroundColor = .white
+        playConfig.baseForegroundColor = UIColor(hex: "1E6EF7")
+        playConfig.cornerStyle = .capsule
+        playConfig.image = UIImage(systemName: "play.fill")
+        playButton.configuration = playConfig
         playButton.isUserInteractionEnabled = false
 
         levelBadge.translatesAutoresizingMaskIntoConstraints = false
-        levelBadge.font = .systemFont(ofSize: 12, weight: .semibold)
+        levelBadge.font = UITheme.Typography.caption
         levelBadge.textColor = UIColor(hex: "1E6EF7")
         levelBadge.backgroundColor = UIColor(hex: "DFF7E8")
-        levelBadge.layer.cornerRadius = 12
-        levelBadge.clipsToBounds = true
         levelBadge.textAlignment = .center
+        levelBadge.contentInsets = UIEdgeInsets(top: 4, left: 12, bottom: 4, right: 12)
+        levelBadge.setContentHuggingPriority(.required, for: .horizontal)
 
         durationPill.translatesAutoresizingMaskIntoConstraints = false
-        durationPill.font = .systemFont(ofSize: 12, weight: .semibold)
+        durationPill.font = UITheme.Typography.caption
         durationPill.textColor = .white
         durationPill.backgroundColor = UIColor.black.withAlphaComponent(0.55)
-        durationPill.layer.cornerRadius = 12
-        durationPill.clipsToBounds = true
         durationPill.textAlignment = .center
+        durationPill.contentInsets = UIEdgeInsets(top: 4, left: 12, bottom: 4, right: 12)
+        durationPill.setContentHuggingPriority(.required, for: .horizontal)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Typography.cardTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 2
 
         subLabel.translatesAutoresizingMaskIntoConstraints = false
-        subLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        subLabel.font = UITheme.Typography.meta
         subLabel.textColor = UIColor(hex: "1E6EF7")
         subLabel.numberOfLines = 1
 
         descLabel.translatesAutoresizingMaskIntoConstraints = false
-        descLabel.font = .systemFont(ofSize: 13, weight: .regular)
-        descLabel.textColor = UIColor.black.withAlphaComponent(0.65)
+        descLabel.font = UITheme.Typography.meta
+        descLabel.textColor = UITheme.Colors.textSecondary
         descLabel.numberOfLines = 2
 
         contentView.addSubview(card)
@@ -153,11 +155,11 @@ final class ExerciseCell: UITableViewCell {
 
             levelBadge.topAnchor.constraint(equalTo: heroImageView.topAnchor, constant: 12),
             levelBadge.leadingAnchor.constraint(equalTo: heroImageView.leadingAnchor, constant: 12),
-            levelBadge.heightAnchor.constraint(equalToConstant: 24),
+            levelBadge.heightAnchor.constraint(greaterThanOrEqualToConstant: 24),
 
             durationPill.topAnchor.constraint(equalTo: heroImageView.topAnchor, constant: 12),
             durationPill.trailingAnchor.constraint(equalTo: heroImageView.trailingAnchor, constant: -12),
-            durationPill.heightAnchor.constraint(equalToConstant: 24),
+            durationPill.heightAnchor.constraint(greaterThanOrEqualToConstant: 24),
 
             titleLabel.topAnchor.constraint(equalTo: heroImageView.bottomAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),

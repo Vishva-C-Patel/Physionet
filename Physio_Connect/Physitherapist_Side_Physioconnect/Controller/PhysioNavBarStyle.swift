@@ -17,7 +17,7 @@ enum PhysioNavBarStyle {
 
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 22, weight: .regular)
+        titleLabel.font = UITheme.Typography.screenTitle
         titleLabel.textColor = UIColor(hex: "0F172A")
         titleLabel.textAlignment = .center
         viewController.navigationItem.titleView = titleLabel

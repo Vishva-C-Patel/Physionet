@@ -69,7 +69,7 @@ final class ArticleCardCell: UITableViewCell {
         contentView.addSubview(card)
 
         categoryPill.translatesAutoresizingMaskIntoConstraints = false
-        categoryPill.font = .systemFont(ofSize: 12, weight: .semibold)
+        categoryPill.font = UITheme.Typography.caption
         categoryPill.textColor = UIColor(hex: "1E6EF7")
         categoryPill.backgroundColor = UIColor(hex: "EDF4FF")
         categoryPill.layer.cornerRadius = 14
@@ -84,7 +84,7 @@ final class ArticleCardCell: UITableViewCell {
         timeIcon.tintColor = UIColor.black.withAlphaComponent(0.4)
 
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        timeLabel.font = UITheme.Typography.caption
         timeLabel.textColor = UIColor.black.withAlphaComponent(0.55)
 
         timeStack.axis = .horizontal
@@ -119,17 +119,17 @@ final class ArticleCardCell: UITableViewCell {
         topMetaStack.addArrangedSubview(bookmarkButton)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.font = UITheme.Typography.cardTitle
+        titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.numberOfLines = 0
 
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
-        summaryLabel.font = .systemFont(ofSize: 14, weight: .regular)
-        summaryLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        summaryLabel.font = UITheme.Typography.bodySmall
+        summaryLabel.textColor = UITheme.Colors.textSecondary
         summaryLabel.numberOfLines = 2
 
         readMoreButton.setTitle("Read more", for: .normal)
-        readMoreButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
+        readMoreButton.titleLabel?.font = UITheme.Typography.buttonSmall
         readMoreButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
         let chevronConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
         readMoreButton.setImage(UIImage(systemName: "chevron.right", withConfiguration: chevronConfig), for: .normal)
