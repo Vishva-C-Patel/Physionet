@@ -84,6 +84,47 @@ final class AppointmentsModel {
             .execute()
     }
 
+    func submitReview(
+        appointmentID: UUID,
+        physioID: UUID,
+        rating: Int,
+        reviewText: String?
+    ) async throws {
+        let clamped = max(1, min(5, rating))
+        let session = try await client.auth.session
+        let userID = session.user.id
+        let reviewerName = try await resolveReviewerName(userID: userID, fallbackEmail: session.user.email)
+
+        struct ReviewInsertPayload: Encodable {
+            let physio_id: UUID
+            let reviewer_name: String
+            let rating: Int
+            let review_text: String?
+        }
+
+        let trimmedReview = reviewText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let payload = ReviewInsertPayload(
+            physio_id: physioID,
+            reviewer_name: reviewerName,
+            rating: clamped,
+            review_text: (trimmedReview?.isEmpty == false) ? trimmedReview : nil
+        )
+
+        _ = try await client
+            .from("physio_reviews")
+            .insert(payload)
+            .execute()
+
+        try await refreshPhysioRatingStats(physioID: physioID)
+
+        // Keep appointment status completed after review write.
+        _ = try await client
+            .from("appointments")
+            .update(["status": "completed"])
+            .eq("id", value: appointmentID.uuidString)
+            .execute()
+    }
+
     /// Returns past appointments for current user: completed + cancelled
     func fetchPastAppointments() async throws -> [PastAppointment] {
         let session = try await client.auth.session
@@ -164,6 +205,55 @@ final class AppointmentsModel {
             )
         )
         """
+    }
+
+    private func resolveReviewerName(userID: UUID, fallbackEmail: String?) async throws -> String {
+        struct CustomerNameRow: Decodable {
+            let full_name: String?
+        }
+        let rows: [CustomerNameRow] = try await client
+            .from("customers")
+            .select("full_name")
+            .eq("id", value: userID.uuidString)
+            .limit(1)
+            .execute()
+            .value
+
+        if let fullName = rows.first?.full_name?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !fullName.isEmpty {
+            return fullName
+        }
+        if let email = fallbackEmail?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !email.isEmpty {
+            return email.components(separatedBy: "@").first ?? "User"
+        }
+        return "User"
+    }
+
+    private func refreshPhysioRatingStats(physioID: UUID) async throws {
+        struct RatingOnlyRow: Decodable {
+            let rating: Double
+        }
+        struct PhysioRatingUpdatePayload: Encodable {
+            let avg_rating: Double
+            let reviews_count: Int
+        }
+        let rows: [RatingOnlyRow] = try await client
+            .from("physio_reviews")
+            .select("rating")
+            .eq("physio_id", value: physioID.uuidString)
+            .execute()
+            .value
+
+        let count = rows.count
+        let avg = count > 0 ? (rows.reduce(0.0) { $0 + $1.rating } / Double(count)) : 0
+
+        let payload = PhysioRatingUpdatePayload(avg_rating: avg, reviews_count: count)
+        _ = try await client
+            .from("physiotherapists")
+            .update(payload)
+            .eq("id", value: physioID.uuidString)
+            .execute()
     }
 }
 

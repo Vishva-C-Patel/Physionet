@@ -99,6 +99,10 @@ final class AppointmentsViewController: UIViewController {
         apptView.onCompletedReportTapped = { vm in
             print("View report tapped for:", vm.physioName)
         }
+
+        apptView.onCompletedReviewTapped = { [weak self] vm in
+            self?.presentReviewPrompt(for: vm)
+        }
     }
 
     private func refreshAll() async {
@@ -281,5 +285,64 @@ final class AppointmentsViewController: UIViewController {
 
     private func physioImageKey(id: UUID, version: String?) -> String {
         "\(id.uuidString)|\(version ?? "")"
+    }
+
+    private func presentReviewPrompt(for vm: CompletedAppointmentVM) {
+        guard vm.status == .completed else { return }
+
+        let alert = UIAlertController(
+            title: "Rate \(vm.physioName)",
+            message: "Add a rating (1-5) and an optional review.",
+            preferredStyle: .alert
+        )
+        alert.addTextField { field in
+            field.placeholder = "Rating (1-5)"
+            field.keyboardType = .numberPad
+        }
+        alert.addTextField { field in
+            field.placeholder = "Write your review (optional)"
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            guard let self else { return }
+            let ratingRaw = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let reviewText = alert.textFields?.dropFirst().first?.text
+
+            guard let rating = Int(ratingRaw), (1...5).contains(rating) else {
+                self.presentSimpleAlert(title: "Invalid Rating", message: "Please enter a number between 1 and 5.")
+                return
+            }
+            self.saveReview(for: vm, rating: rating, reviewText: reviewText)
+        }))
+
+        present(alert, animated: true)
+    }
+
+    private func saveReview(for vm: CompletedAppointmentVM, rating: Int, reviewText: String?) {
+        Task {
+            do {
+                try await model.submitReview(
+                    appointmentID: vm.appointmentID,
+                    physioID: vm.physioID,
+                    rating: rating,
+                    reviewText: reviewText
+                )
+                await refreshAll()
+                await MainActor.run {
+                    self.presentSimpleAlert(title: "Thanks!", message: "Your rating and review were saved.")
+                }
+            } catch {
+                await MainActor.run {
+                    self.presentSimpleAlert(title: "Review Failed", message: error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    private func presentSimpleAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }

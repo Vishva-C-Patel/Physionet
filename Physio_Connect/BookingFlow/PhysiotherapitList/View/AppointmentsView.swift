@@ -18,6 +18,7 @@ final class AppointmentsView: UIView {
     // Completed actions (per row)
     var onCompletedRebookTapped: ((CompletedAppointmentVM) -> Void)?
     var onCompletedReportTapped: ((CompletedAppointmentVM) -> Void)?
+    var onCompletedReviewTapped: ((CompletedAppointmentVM) -> Void)?
 
     // MARK: - UI
     private let topBar = UIView()
@@ -83,6 +84,9 @@ final class AppointmentsView: UIView {
         }
         completedList.onReportTapped = { [weak self] vm in
             self?.onCompletedReportTapped?(vm)
+        }
+        completedList.onReviewTapped = { [weak self] vm in
+            self?.onCompletedReviewTapped?(vm)
         }
     }
 
@@ -546,6 +550,7 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
 
     var onRebookTapped: ((CompletedAppointmentVM) -> Void)?
     var onReportTapped: ((CompletedAppointmentVM) -> Void)?
+    var onReviewTapped: ((CompletedAppointmentVM) -> Void)?
 
     private let table = UITableView(frame: .zero, style: .plain)
     private var items: [CompletedAppointmentVM] = []
@@ -586,8 +591,10 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
         self.items = items
         animatedRows.removeAll()
         table.reloadData()
-        let rowHeight: CGFloat = 230
-        heightConstraint?.constant = rowHeight * CGFloat(items.count)
+        let totalHeight = items.reduce(CGFloat(0)) { partial, vm in
+            partial + (vm.status == .completed ? 280 : 230)
+        }
+        heightConstraint?.constant = totalHeight
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { items.count }
@@ -599,12 +606,13 @@ final class CompletedAppointmentsListView: UIView, UITableViewDataSource, UITabl
 
         cell.onRebook = { [weak self] in self?.onRebookTapped?(vm) }
         cell.onReport = { [weak self] in self?.onReportTapped?(vm) }
+        cell.onReview = { [weak self] in self?.onReviewTapped?(vm) }
 
         return cell
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        230
+        items[indexPath.row].status == .completed ? 280 : 230
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -624,6 +632,7 @@ final class CompletedAppointmentCell: UITableViewCell {
 
     var onRebook: (() -> Void)?
     var onReport: (() -> Void)?
+    var onReview: (() -> Void)?
 
     private let card = UIView()
 
@@ -645,6 +654,9 @@ final class CompletedAppointmentCell: UITableViewCell {
     private let buttonsRow = UIStackView()
     private let rebookButton = UIButton(type: .system)
     private let reportButton = UIButton(type: .system)
+    private let reviewButton = UIButton(type: .system)
+    private var reviewButtonHeightConstraint: NSLayoutConstraint?
+    private var reviewButtonTopConstraint: NSLayoutConstraint?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -768,9 +780,25 @@ final class CompletedAppointmentCell: UITableViewCell {
         buttonsRow.addArrangedSubview(rebookButton)
         buttonsRow.addArrangedSubview(reportButton)
 
+        reviewButton.setTitle("Rate & Review", for: .normal)
+        reviewButton.backgroundColor = UIColor(hex: "FFF7E6")
+        reviewButton.setTitleColor(UIColor(hex: "D97706"), for: .normal)
+        reviewButton.layer.cornerRadius = 12
+        reviewButton.layer.borderWidth = 1
+        reviewButton.layer.borderColor = UIColor(hex: "FCD34D").cgColor
+        reviewButton.titleLabel?.font = UITheme.Typography.buttonSmall
+        reviewButton.translatesAutoresizingMaskIntoConstraints = false
+        reviewButton.addTarget(self, action: #selector(reviewTapped), for: .touchUpInside)
+
         card.addSubview(statusPill)
         card.addSubview(headerRow)
         card.addSubview(buttonsRow)
+        card.addSubview(reviewButton)
+
+        reviewButtonHeightConstraint = reviewButton.heightAnchor.constraint(equalToConstant: 40)
+        reviewButtonTopConstraint = reviewButton.topAnchor.constraint(equalTo: buttonsRow.bottomAnchor, constant: 10)
+        reviewButtonHeightConstraint?.isActive = true
+        reviewButtonTopConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
             statusPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 10),
@@ -785,7 +813,10 @@ final class CompletedAppointmentCell: UITableViewCell {
             buttonsRow.topAnchor.constraint(equalTo: headerRow.bottomAnchor, constant: 12),
             buttonsRow.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
             buttonsRow.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
-            buttonsRow.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+
+            reviewButton.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 10),
+            reviewButton.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -10),
+            reviewButton.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
         ])
     }
 
@@ -810,8 +841,14 @@ final class CompletedAppointmentCell: UITableViewCell {
         distanceLabel.text = vm.distanceText
         specLabel.text = vm.specializationText
         feeLabel.text = vm.feeText
+
+        let showReview = vm.status == .completed
+        reviewButton.isHidden = !showReview
+        reviewButtonHeightConstraint?.constant = showReview ? 40 : 0
+        reviewButtonTopConstraint?.constant = showReview ? 10 : 0
     }
 
     @objc private func rebookTapped() { onRebook?() }
     @objc private func reportTapped() { onReport?() }
+    @objc private func reviewTapped() { onReview?() }
 }
