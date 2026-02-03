@@ -327,8 +327,8 @@ extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewD
     }
 
     private func loadAvatar(path: String?, version: String?, into cell: PhysiotherapistCardCell) {
-        guard let path, let url = PhysioService.shared.profileImageURL(pathOrUrl: path, version: version) else { return }
-        ImageLoader.shared.load(url) { [weak cell] image in
+        guard let path else { return }
+        PhysioService.shared.loadProfileImage(pathOrUrl: path, version: version) { [weak cell] image in
             guard let cell else { return }
             if cell.avatarPath == path {
                 cell.setAvatarImage(image)

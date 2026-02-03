@@ -99,7 +99,10 @@ final class PhysioHomeViewController: UIViewController {
                     PhysioNavBarStyle.updateProfileButton(self.profileButton, urlString: data.avatarURL)
                 }
             } catch {
-                // ignore avatar load errors
+                let fallback = PhysioProfileModel.cachedAvatarURL()
+                await MainActor.run {
+                    PhysioNavBarStyle.updateProfileButton(self.profileButton, urlString: fallback)
+                }
             }
         }
     }

@@ -24,10 +24,6 @@ final class PhysioHomeView: UIView {
     private let patientsTitle = UILabel()
     private let patientsStack = UIStackView()
     private let patientsEmptyLabel = UILabel()
-#if DEBUG
-    private let debugAuthButton = UIButton(type: .system)
-#endif
-
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -90,17 +86,6 @@ final class PhysioHomeView: UIView {
         patientsEmptyLabel.textColor = UIColor.black.withAlphaComponent(0.45)
         patientsStack.addArrangedSubview(patientsEmptyLabel)
 
-#if DEBUG
-        debugAuthButton.translatesAutoresizingMaskIntoConstraints = false
-        debugAuthButton.setTitle("Reset Auth", for: .normal)
-        debugAuthButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
-        debugAuthButton.backgroundColor = UIColor(hex: "1E6EF7").withAlphaComponent(0.12)
-        debugAuthButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-        debugAuthButton.layer.cornerRadius = 12
-        debugAuthButton.addTarget(self, action: #selector(debugResetAuth), for: .touchUpInside)
-        addSubview(debugAuthButton)
-#endif
-
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -113,14 +98,6 @@ final class PhysioHomeView: UIView {
             contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -24),
             contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32)
         ])
-#if DEBUG
-        NSLayoutConstraint.activate([
-            debugAuthButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            debugAuthButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12),
-            debugAuthButton.heightAnchor.constraint(equalToConstant: 32),
-            debugAuthButton.widthAnchor.constraint(equalToConstant: 100)
-        ])
-#endif
     }
 
     func setSummary(todaySessions: Int, upcomingAppointments: Int, activePrograms: Int) {
@@ -183,14 +160,6 @@ final class PhysioHomeView: UIView {
         statsStack.distribution = isCompact ? .fill : .fillEqually
     }
 
-#if DEBUG
-    @objc private func debugResetAuth() {
-        Task {
-            await SupabaseManager.shared.forceFreshAuthSession()
-            await SupabaseManager.shared.debugPrintSession()
-        }
-    }
-#endif
 }
 
 private final class StatCardView: UIView {

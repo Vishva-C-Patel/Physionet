@@ -200,9 +200,8 @@ final class AppointmentsViewController: UIViewController {
         for appt in appts {
             let cacheKey = physioImageKey(id: appt.physioID, version: appt.profileImageVersion)
             if physioImages[cacheKey] != nil { continue }
-            guard let path = appt.profileImagePath,
-                  let url = PhysioService.shared.profileImageURL(pathOrUrl: path, version: appt.profileImageVersion) else { continue }
-            ImageLoader.shared.load(url) { [weak self] image in
+            guard let path = appt.profileImagePath else { continue }
+            PhysioService.shared.loadProfileImage(pathOrUrl: path, version: appt.profileImageVersion) { [weak self] image in
                 guard let self, let image else { return }
                 self.physioImages[cacheKey] = image
                 self.applyUpcoming(self.lastUpcoming)
@@ -273,9 +272,8 @@ final class AppointmentsViewController: UIViewController {
         for item in past {
             let cacheKey = physioImageKey(id: item.physioID, version: item.profileImageVersion)
             if physioImages[cacheKey] != nil { continue }
-            guard let path = item.profileImagePath,
-                  let url = PhysioService.shared.profileImageURL(pathOrUrl: path, version: item.profileImageVersion) else { continue }
-            ImageLoader.shared.load(url) { [weak self] image in
+            guard let path = item.profileImagePath else { continue }
+            PhysioService.shared.loadProfileImage(pathOrUrl: path, version: item.profileImageVersion) { [weak self] image in
                 guard let self, let image else { return }
                 self.physioImages[cacheKey] = image
                 self.applyPast(self.lastPast)

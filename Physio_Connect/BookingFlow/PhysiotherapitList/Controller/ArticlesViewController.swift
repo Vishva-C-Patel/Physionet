@@ -11,6 +11,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
 
     private let articlesView = ArticlesView()
     private let model = ArticlesModel()
+    private let profileModel = ProfileModel()
 
     private var articles: [ArticleRow] = []
     private var featuredArticle: ArticleRow?
@@ -27,6 +28,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
+        articlesView.profileButton.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
 
         articlesView.tableView.dataSource = self
         articlesView.tableView.delegate = self
@@ -56,6 +58,12 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         articlesView.filterCollectionView.selectItem(at: IndexPath(item: selectedFilterIndex, section: 0), animated: false, scrollPosition: [])
         updateBookmarksVisibility()
         Task { await reload() }
+        Task { await refreshProfileAvatar() }
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        Task { await refreshProfileAvatar() }
     }
 
     override func viewDidLayoutSubviews() {
@@ -269,6 +277,24 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         }
         vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
+    }
+
+    @objc private func profileTapped() {
+        let vc = ProfileViewController()
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    private func refreshProfileAvatar() async {
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(
+                self.articlesView.profileButton,
+                urlString: ProfileModel.cachedAvatarURL()
+            )
+        }
+        guard let profile = try? await profileModel.fetchCurrentProfile() else { return }
+        await MainActor.run {
+            PatientNavAvatarStyle.updateProfileButton(self.articlesView.profileButton, urlString: profile.avatarURL)
+        }
     }
 
     private func updateFeaturedArticle(from rows: [ArticleRow]) {

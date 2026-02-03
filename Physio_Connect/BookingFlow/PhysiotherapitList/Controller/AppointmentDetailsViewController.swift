@@ -46,11 +46,11 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
     }
 
     private func loadAvatarImage(path: String?, version: String?) {
-        guard let path, let url = PhysioService.shared.profileImageURL(pathOrUrl: path, version: version) else {
+        guard let path else {
             detailsView.setAvatarImage(nil)
             return
         }
-        ImageLoader.shared.load(url) { [weak self] image in
+        PhysioService.shared.loadProfileImage(pathOrUrl: path, version: version) { [weak self] image in
             self?.detailsView.setAvatarImage(image)
         }
     }

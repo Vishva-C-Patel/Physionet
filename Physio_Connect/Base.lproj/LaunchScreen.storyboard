@@ -14,14 +14,22 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="eAx-1M-Yik">
-                                <rect key="frame" x="67.5" y="213.5" width="240.0" height="240.0"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchMark" translatesAutoresizingMaskIntoConstraints="NO" id="eAx-1M-Yik">
+                                <rect key="frame" x="67.5" y="179.5" width="240.0" height="240.0"/>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="PHYSIONET" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mQp-3H-oNB">
+                                <rect key="frame" x="67.5" y="443.5" width="240" height="42"/>
+                                <fontDescription key="fontDescription" name="TimesNewRomanPSMT" family="Times New Roman" pointSize="28"/>
+                                <color key="textColor" red="0.25098039215686274" green="0.63137254901960782" blue="0.90196078431372551" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
                             <constraint firstItem="eAx-1M-Yik" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="G4S-xW-w2g"/>
-                            <constraint firstItem="eAx-1M-Yik" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="NIV-Ft-9tT"/>
+                            <constraint firstItem="mQp-3H-oNB" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="I2f-1n-2ab"/>
+                            <constraint firstItem="eAx-1M-Yik" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-34" id="NIV-Ft-9tT"/>
+                            <constraint firstItem="mQp-3H-oNB" firstAttribute="top" secondItem="eAx-1M-Yik" secondAttribute="bottom" constant="24" id="b1r-uP-5kB"/>
                             <constraint firstItem="eAx-1M-Yik" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="0.64" id="rgh-iN-7JI"/>
                             <constraint firstItem="eAx-1M-Yik" firstAttribute="height" secondItem="eAx-1M-Yik" secondAttribute="width" id="u5C-77-9e3"/>
                         </constraints>
@@ -34,6 +42,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="LaunchLogo" width="877" height="685"/>
+        <image name="LaunchMark" width="877" height="493"/>
     </resources>
 </document>

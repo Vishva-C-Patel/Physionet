@@ -11,6 +11,7 @@ import Supabase
 struct PhysioProfileModel {
     private let client = SupabaseManager.shared.client
     private let avatarBuckets = ["physiotherapists", "physio_proofs"]
+    private static let avatarURLDefaultsKey = "physio_avatar_url"
 
     struct EditProfileData {
         let name: String
@@ -42,6 +43,19 @@ struct PhysioProfileModel {
         let profileImagePath: String
     }
 
+    static func cachedAvatarURL() -> String? {
+        UserDefaults.standard.string(forKey: avatarURLDefaultsKey)
+    }
+
+    private static func cacheAvatarURL(_ url: String?) {
+        let trimmed = url?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed, !trimmed.isEmpty {
+            UserDefaults.standard.set(trimmed, forKey: avatarURLDefaultsKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: avatarURLDefaultsKey)
+        }
+    }
+
     func fetchProfile() async throws -> ProfileViewData {
         let session = try await client.auth.session
         let userID = session.user.id.uuidString
@@ -69,12 +83,13 @@ struct PhysioProfileModel {
             .value
 
         let row = rows.first
+        let metadataAvatarURL = session.user.userMetadata["avatar_url"]?.stringValue
         let yearsText: String = {
             guard let value = row?.years_experience else { return "—" }
             return "\(value)"
         }()
         let aboutText = row?.about?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return ProfileViewData(
+        let data = ProfileViewData(
             name: row?.name ?? "Physiotherapist",
             email: row?.email ?? (session.user.email ?? "—"),
             phone: row?.phone ?? row?.place_of_work ?? "—",
@@ -86,8 +101,10 @@ struct PhysioProfileModel {
             about: aboutText?.isEmpty == false ? aboutText! : "—",
             yearsExperience: yearsText,
             notificationsEnabled: true,
-            avatarURL: row?.profile_image_path
+            avatarURL: row?.profile_image_path ?? metadataAvatarURL ?? Self.cachedAvatarURL()
         )
+        Self.cacheAvatarURL(data.avatarURL)
+        return data
     }
 
     func fetchEditProfile() async throws -> EditProfileData {
@@ -231,6 +248,13 @@ struct PhysioProfileModel {
             .update(["profile_image_path": publicURL])
             .eq("id", value: userID)
             .execute()
+
+        if let session = try? await client.auth.session {
+            var metadata = session.user.userMetadata
+            metadata["avatar_url"] = .string(publicURL)
+            _ = try? await client.auth.update(user: UserAttributes(data: metadata))
+        }
+        Self.cacheAvatarURL(publicURL)
     }
 }
 

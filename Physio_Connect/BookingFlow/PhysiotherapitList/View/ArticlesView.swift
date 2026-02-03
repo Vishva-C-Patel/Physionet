@@ -11,6 +11,7 @@ final class ArticlesView: UIView {
 
     private let topBar = UIView()
     let titleLabel = UILabel()
+    let profileButton = UIButton(type: .system)
 
     let searchBar = UISearchBar()
     private let segmentScrollView = UIScrollView()
@@ -93,6 +94,11 @@ final class ArticlesView: UIView {
         titleLabel.textColor = UITheme.Colors.textPrimary
         titleLabel.textAlignment = .center
 
+        profileButton.translatesAutoresizingMaskIntoConstraints = false
+        let profileConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+        profileButton.setImage(UIImage(systemName: "person.circle", withConfiguration: profileConfig), for: .normal)
+        profileButton.tintColor = UIColor.black.withAlphaComponent(0.65)
+
         searchBar.placeholder = "Search articles, topics, conditions..."
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
@@ -159,6 +165,7 @@ final class ArticlesView: UIView {
 
         headerContainer.addSubview(topBar)
         topBar.addSubview(titleLabel)
+        topBar.addSubview(profileButton)
 
         headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segmentScrollView)
@@ -185,6 +192,11 @@ final class ArticlesView: UIView {
             titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
             titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: topBar.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: topBar.trailingAnchor, constant: -16),
+
+            profileButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
+            profileButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            profileButton.widthAnchor.constraint(equalToConstant: 40),
+            profileButton.heightAnchor.constraint(equalToConstant: 40),
 
             searchBar.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
             searchBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),

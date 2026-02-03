@@ -3,6 +3,7 @@ import UIKit
 final class SplashViewController: UIViewController {
     private let onFinish: () -> Void
     private let logoView = UIImageView()
+    private let brandLabel = UILabel()
     private let ringLayer = CAShapeLayer()
     private var didAnimate = false
 
@@ -21,17 +22,31 @@ final class SplashViewController: UIViewController {
         view.backgroundColor = .systemBackground
 
         logoView.translatesAutoresizingMaskIntoConstraints = false
-        logoView.image = UIImage(named: "LaunchLogo")
+        logoView.image = UIImage(named: "LaunchMark")
         logoView.contentMode = .scaleAspectFit
         logoView.alpha = 0.0
         logoView.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         view.addSubview(logoView)
 
+        brandLabel.translatesAutoresizingMaskIntoConstraints = false
+        brandLabel.text = "PHYSIONET"
+        brandLabel.textAlignment = .center
+        brandLabel.textColor = UIColor(red: 0.25098, green: 0.63137, blue: 0.90196, alpha: 1)
+        brandLabel.font = UIFont(name: "TimesNewRomanPSMT", size: 34) ?? UIFont.systemFont(ofSize: 34, weight: .medium)
+        brandLabel.alpha = 0.0
+        brandLabel.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        view.addSubview(brandLabel)
+
         NSLayoutConstraint.activate([
             logoView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            logoView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -28),
             logoView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.64),
-            logoView.heightAnchor.constraint(equalTo: logoView.widthAnchor)
+            logoView.heightAnchor.constraint(equalTo: logoView.widthAnchor),
+
+            brandLabel.topAnchor.constraint(equalTo: logoView.bottomAnchor, constant: 16),
+            brandLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            brandLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 20),
+            brandLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
         ])
 
         ringLayer.strokeColor = UIColor.systemBlue.withAlphaComponent(0.35).cgColor
@@ -75,6 +90,8 @@ final class SplashViewController: UIViewController {
             animations: { [weak self] in
                 self?.logoView.alpha = 1.0
                 self?.logoView.transform = .identity
+                self?.brandLabel.alpha = 1.0
+                self?.brandLabel.transform = .identity
             }
         )
 

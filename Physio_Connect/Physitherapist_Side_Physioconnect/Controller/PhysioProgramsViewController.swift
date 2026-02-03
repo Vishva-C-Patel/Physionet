@@ -39,6 +39,11 @@ final class PhysioProgramsViewController: UIViewController, UITableViewDataSourc
         Task { await reload() }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadProfileAvatar()
+    }
+
     private func loadProfileAvatar() {
         Task {
             do {
@@ -47,7 +52,10 @@ final class PhysioProgramsViewController: UIViewController, UITableViewDataSourc
                     PhysioNavBarStyle.updateProfileButton(self.profileButton, urlString: data.avatarURL)
                 }
             } catch {
-                // ignore avatar load errors
+                let fallback = PhysioProfileModel.cachedAvatarURL()
+                await MainActor.run {
+                    PhysioNavBarStyle.updateProfileButton(self.profileButton, urlString: fallback)
+                }
             }
         }
     }

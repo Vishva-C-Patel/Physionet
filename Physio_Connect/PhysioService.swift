@@ -6,12 +6,16 @@
 
 import Foundation
 import Supabase
+import UIKit
 
 final class PhysioService {
     static let shared = PhysioService()
     private init() {}
 
     private let client = SupabaseManager.shared.client
+    private let avatarBuckets = ["physiotherapists", "physio_proofs"]
+    private let avatarLock = NSLock()
+    private var signedAvatarURLCache: [String: (url: URL, expiry: Date)] = [:]
 
     func fetchPhysiotherapists() async throws -> [Physiotherapist] {
         try await client
@@ -183,6 +187,26 @@ extension PhysioService {
         return nil
     }
 
+    func loadProfileImage(pathOrUrl: String?, version: String?, completion: @escaping (UIImage?) -> Void) {
+        guard let raw = pathOrUrl?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            completion(nil)
+            return
+        }
+
+        if let url = profileImageURL(pathOrUrl: raw, version: version) {
+            ImageLoader.shared.load(url) { [weak self] image in
+                if image != nil {
+                    completion(image)
+                    return
+                }
+                self?.loadSignedProfileImage(raw: raw, completion: completion)
+            }
+            return
+        }
+
+        loadSignedProfileImage(raw: raw, completion: completion)
+    }
+
     private func normalizeImagePath(_ raw: String, bucket: String) -> String {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -203,6 +227,73 @@ extension PhysioService {
         items.append(URLQueryItem(name: "v", value: version))
         components?.queryItems = items
         return components?.url ?? url
+    }
+
+    private func loadSignedProfileImage(raw: String, completion: @escaping (UIImage?) -> Void) {
+        if let cached = cachedSignedURL(for: raw) {
+            ImageLoader.shared.load(cached, completion: completion)
+            return
+        }
+
+        let refs = candidateStorageRefs(from: raw)
+        guard !refs.isEmpty else {
+            completion(nil)
+            return
+        }
+
+        Task {
+            for ref in refs {
+                if let signed = try? await client.storage
+                    .from(ref.bucket)
+                    .createSignedURL(path: ref.path, expiresIn: 3600) {
+                    cacheSignedURL(signed, for: raw)
+                    ImageLoader.shared.load(signed, completion: completion)
+                    return
+                }
+            }
+            await MainActor.run { completion(nil) }
+        }
+    }
+
+    private func candidateStorageRefs(from raw: String) -> [(bucket: String, path: String)] {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+
+        if let range = trimmed.range(of: "/storage/v1/object/public/") {
+            let tail = String(trimmed[range.upperBound...])
+            let parts = tail.split(separator: "/", maxSplits: 1).map(String.init)
+            if parts.count == 2 { return [(parts[0], parts[1])] }
+        }
+
+        if let range = trimmed.range(of: "/storage/v1/object/sign/") {
+            let tail = String(trimmed[range.upperBound...])
+            let parts = tail.split(separator: "/", maxSplits: 1).map(String.init)
+            if parts.count == 2 { return [(parts[0], parts[1])] }
+        }
+
+        let clean = trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let parts = clean.split(separator: "/", maxSplits: 1).map(String.init)
+        if parts.count == 2, avatarBuckets.contains(parts[0]) {
+            return [(parts[0], parts[1])]
+        }
+
+        return avatarBuckets.map { ($0, clean) }
+    }
+
+    private func cachedSignedURL(for raw: String) -> URL? {
+        avatarLock.lock()
+        defer { avatarLock.unlock() }
+        guard let entry = signedAvatarURLCache[raw], entry.expiry > Date() else {
+            signedAvatarURLCache.removeValue(forKey: raw)
+            return nil
+        }
+        return entry.url
+    }
+
+    private func cacheSignedURL(_ url: URL, for raw: String) {
+        avatarLock.lock()
+        signedAvatarURLCache[raw] = (url, Date().addingTimeInterval(55 * 60))
+        avatarLock.unlock()
     }
     
     func fetchAvailableSlots(physioID: UUID, forDayContaining date: Date) async throws -> [SlotRow] {

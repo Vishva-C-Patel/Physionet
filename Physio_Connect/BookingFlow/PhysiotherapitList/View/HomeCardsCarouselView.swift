@@ -109,9 +109,8 @@ final class HomeCardsCarouselView: UIView, UICollectionViewDataSource, UICollect
         case .upcoming(let appt):
             cell.card.apply(state: .upcoming(appt))
             cell.card.setAvatarImage(nil, path: appt.profileImagePath)
-            if let path = appt.profileImagePath,
-               let url = PhysioService.shared.profileImageURL(pathOrUrl: path, version: appt.profileImageVersion) {
-                ImageLoader.shared.load(url) { [weak card = cell.card] image in
+            if let path = appt.profileImagePath {
+                PhysioService.shared.loadProfileImage(pathOrUrl: path, version: appt.profileImageVersion) { [weak card = cell.card] image in
                     guard let card else { return }
                     if card.isAvatarPath(path) {
                         card.setAvatarImage(image, path: path)
