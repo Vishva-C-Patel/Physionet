@@ -9,6 +9,8 @@ import UIKit
 final class RoleSelectionView: UIView {
 
     // MARK: - UI
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     private let container = UIView()
     let heroImageView = UIImageView()
 
@@ -32,11 +34,15 @@ final class RoleSelectionView: UIView {
 
     // MARK: - Setup
     private func buildUI() {
-        addSubview(container)
+        addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        contentView.addSubview(container)
         [heroImageView, titleLabel, subtitleLabel, patientButton, physioButton].forEach { container.addSubview($0) }
     }
 
     private func layoutUI() {
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
         container.translatesAutoresizingMaskIntoConstraints = false
         heroImageView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -46,9 +52,21 @@ final class RoleSelectionView: UIView {
         backButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            container.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            container.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
-            container.centerYAnchor.constraint(equalTo: centerYAnchor),
+            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            container.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
 
             heroImageView.topAnchor.constraint(equalTo: container.topAnchor),
             heroImageView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
@@ -78,6 +96,8 @@ final class RoleSelectionView: UIView {
     }
 
     private func styleUI() {
+        scrollView.showsVerticalScrollIndicator = false
+
         // Hero
         heroImageView.contentMode = .scaleAspectFill
         heroImageView.clipsToBounds = true

@@ -2,6 +2,8 @@ import UIKit
 
 final class PhysioRoleChoiceView: UIView {
 
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     private let container = UIView()
     private let topBar = UIView()
     let backButton = UIButton(type: .system)
@@ -23,10 +25,14 @@ final class PhysioRoleChoiceView: UIView {
     }
 
     private func build() {
-        [topBar, container].forEach { addSubview($0) }
+        [scrollView].forEach { addSubview($0) }
+        scrollView.addSubview(contentView)
+        [topBar, container].forEach { contentView.addSubview($0) }
         [backButton].forEach { topBar.addSubview($0) }
         [titleLabel, subtitleLabel, loginButton, signupButton].forEach { container.addSubview($0) }
 
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
         topBar.translatesAutoresizingMaskIntoConstraints = false
         backButton.translatesAutoresizingMaskIntoConstraints = false
         container.translatesAutoresizingMaskIntoConstraints = false
@@ -53,9 +59,20 @@ final class PhysioRoleChoiceView: UIView {
         configurePrimaryButton(signupButton, title: "Sign Up")
 
         NSLayoutConstraint.activate([
-            topBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
-            topBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+
+            topBar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            topBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            topBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             topBar.heightAnchor.constraint(equalToConstant: 32),
 
             backButton.leadingAnchor.constraint(equalTo: topBar.leadingAnchor),
@@ -63,10 +80,9 @@ final class PhysioRoleChoiceView: UIView {
             backButton.widthAnchor.constraint(equalToConstant: 36),
             backButton.heightAnchor.constraint(equalToConstant: 36),
 
-            container.centerXAnchor.constraint(equalTo: centerXAnchor),
-            container.centerYAnchor.constraint(equalTo: centerYAnchor),
-            container.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
-            container.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+            container.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 24),
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
 
             titleLabel.topAnchor.constraint(equalTo: container.topAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
@@ -85,8 +101,12 @@ final class PhysioRoleChoiceView: UIView {
             signupButton.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             signupButton.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             signupButton.heightAnchor.constraint(equalToConstant: 52),
-            signupButton.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            signupButton.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+
+            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
+
+        scrollView.showsVerticalScrollIndicator = false
     }
 
     private func configurePrimaryButton(_ button: UIButton, title: String) {
