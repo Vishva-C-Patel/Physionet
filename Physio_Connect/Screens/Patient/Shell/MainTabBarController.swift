@@ -25,7 +25,7 @@ final class MainTabBarController: UITabBarController {
         )
 
         // Appointments
-        let apptVC = AppointmentsViewController() // we will build next
+        let apptVC = AppointmentsViewController()
         let apptNav = UINavigationController(rootViewController: apptVC)
         apptNav.tabBarItem = UITabBarItem(
             title: "Appointments",
@@ -34,7 +34,7 @@ final class MainTabBarController: UITabBarController {
         )
 
         // Videos
-        let videosVC = VideosViewController() // placeholder if you already have
+        let videosVC = VideosViewController()
         let videosNav = UINavigationController(rootViewController: videosVC)
         videosNav.tabBarItem = UITabBarItem(
             title: "Videos",
@@ -43,7 +43,7 @@ final class MainTabBarController: UITabBarController {
         )
 
         // Articles
-        let articlesVC = ArticlesViewController() // placeholder if you already have
+        let articlesVC = ArticlesViewController()
         let articlesNav = UINavigationController(rootViewController: articlesVC)
         articlesNav.tabBarItem = UITabBarItem(
             title: "Articles",
@@ -53,34 +53,30 @@ final class MainTabBarController: UITabBarController {
 
         viewControllers = [homeNav, apptNav, videosNav, articlesNav]
         selectedIndex = 0
+
+        // Apply transparent scroll-edge and frosted glass standard appearance
+        let standard = UITheme.makeGlassNavBarAppearance()
+        let scrollEdge = UINavigationBarAppearance()
+        scrollEdge.configureWithTransparentBackground()
+        scrollEdge.shadowColor = .clear
+        scrollEdge.titleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        
+        for nav in [homeNav, apptNav, videosNav, articlesNav] {
+            nav.navigationBar.tintColor = UITheme.Colors.accent
+            nav.navigationBar.standardAppearance = standard
+            nav.navigationBar.scrollEdgeAppearance = scrollEdge
+            nav.navigationBar.compactAppearance = standard
+        }
     }
 
     private func styleTabBar() {
-        // Native appearance API (iOS 13+)
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-
-        // Background like your screenshot (soft grey)
-        appearance.backgroundColor = UIColor(white: 0.92, alpha: 1.0)
-
-        // Icon/text colors
-        let normal = appearance.stackedLayoutAppearance.normal
-        normal.iconColor = UIColor.black.withAlphaComponent(0.45)
-        normal.titleTextAttributes = [.foregroundColor: UIColor.black.withAlphaComponent(0.45)]
-
-        let selected = appearance.stackedLayoutAppearance.selected
-        selected.iconColor = UIColor(hex: "1E6EF7")
-        selected.titleTextAttributes = [.foregroundColor: UIColor(hex: "1E6EF7")]
-
+        // iOS 26 Liquid Glass — transparent + blur
+        let appearance = UITheme.makeGlassTabBarAppearance()
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
-
-        // Slightly taller + rounded look (simple version)
-        tabBar.layer.cornerRadius = 22
-        tabBar.layer.masksToBounds = true
-
-        // Optional: lift the bar a bit like a “floating” tab
         tabBar.itemPositioning = .automatic
     }
 }
-

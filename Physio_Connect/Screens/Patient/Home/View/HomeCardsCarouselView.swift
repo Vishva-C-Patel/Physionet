@@ -58,8 +58,8 @@ final class HomeCardsCarouselView: UIView, UICollectionViewDataSource, UICollect
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         pageControl.numberOfPages = 1
         pageControl.currentPage = 0
-        pageControl.pageIndicatorTintColor = UIColor.black.withAlphaComponent(0.2)
-        pageControl.currentPageIndicatorTintColor = UIColor(hex: "1E6EF7")
+        pageControl.pageIndicatorTintColor = UIColor.tertiaryLabel
+        pageControl.currentPageIndicatorTintColor = UITheme.Colors.accent
         addSubview(pageControl)
 
         NSLayoutConstraint.activate([

@@ -24,7 +24,7 @@ final class RoleSelectionView: UIView {
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = .systemGroupedBackground
         buildUI()
         layoutUI()
         styleUI()
@@ -101,20 +101,20 @@ final class RoleSelectionView: UIView {
         // Hero
         heroImageView.contentMode = .scaleAspectFill
         heroImageView.clipsToBounds = true
-        heroImageView.layer.cornerRadius = 16
+        heroImageView.layer.cornerRadius = UITheme.Metrics.cardCornerRadius
 
         // Text
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 2
         titleLabel.text = "Welcome to\nPhysioNet"
         titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
 
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
         subtitleLabel.text = "Find the perfect physiotherapist and resources to support your health journey."
         subtitleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.45)
+        subtitleLabel.textColor = .secondaryLabel
 
         // Buttons
         configurePrimaryButton(patientButton, title: "Patient")
@@ -126,8 +126,8 @@ final class RoleSelectionView: UIView {
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        button.backgroundColor = UIColor(hex: "1E6EF7")
-        button.layer.cornerRadius = 14
+        button.backgroundColor = UITheme.Colors.accent
+        button.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.10
         button.layer.shadowRadius = 10

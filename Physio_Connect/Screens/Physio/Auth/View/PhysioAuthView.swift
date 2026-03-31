@@ -30,7 +30,7 @@ final class PhysioAuthView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -48,7 +48,7 @@ final class PhysioAuthView: UIView {
 
         headerLabel.text = "Physio Login"
         headerLabel.font = .systemFont(ofSize: 28, weight: .bold)
-        headerLabel.textColor = UIColor(hex: "102A43")
+        headerLabel.textColor = .label
 
         subtitleLabel.text = "Access your dashboard to manage sessions."
         subtitleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
@@ -56,7 +56,7 @@ final class PhysioAuthView: UIView {
         subtitleLabel.numberOfLines = 0
 
         modeControl.selectedSegmentIndex = 0
-        modeControl.selectedSegmentTintColor = UIColor(hex: "1E6EF7")
+        modeControl.selectedSegmentTintColor = UITheme.Colors.accent
         modeControl.setTitleTextAttributes([.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)], for: .selected)
         modeControl.setTitleTextAttributes([.foregroundColor: UIColor.black.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 14, weight: .semibold)], for: .normal)
 
@@ -75,7 +75,7 @@ final class PhysioAuthView: UIView {
         actionButton.setTitle("Log In", for: .normal)
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        actionButton.backgroundColor = UIColor(hex: "1E6EF7")
+        actionButton.backgroundColor = UITheme.Colors.accent
         actionButton.layer.cornerRadius = 14
         actionButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         actionButton.layer.shadowColor = UIColor.black.cgColor

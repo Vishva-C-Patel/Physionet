@@ -45,7 +45,7 @@ final class HomeVideoCardCell: UICollectionViewCell {
             thumbnailView.tintColor = nil
         } else {
             thumbnailView.image = UIImage(systemName: "photo")
-            thumbnailView.tintColor = UIColor.black.withAlphaComponent(0.2)
+            thumbnailView.tintColor = .tertiaryLabel
         }
     }
 
@@ -53,29 +53,24 @@ final class HomeVideoCardCell: UICollectionViewCell {
         backgroundColor = .clear
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 16
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.08
-        card.layer.shadowRadius = 8
-        card.layer.shadowOffset = CGSize(width: 0, height: 4)
+        UITheme.applyCardStyle(card)
         contentView.addSubview(card)
 
         thumbnailView.translatesAutoresizingMaskIntoConstraints = false
-        thumbnailView.backgroundColor = UIColor(hex: "E9EEF7")
+        thumbnailView.backgroundColor = UITheme.Colors.neutralFill
         thumbnailView.layer.cornerRadius = 14
         thumbnailView.clipsToBounds = true
         thumbnailView.contentMode = .scaleAspectFill
         thumbnailView.image = UIImage(systemName: "photo")
-        thumbnailView.tintColor = UIColor.black.withAlphaComponent(0.2)
+        thumbnailView.tintColor = .tertiaryLabel
 
         playCircle.translatesAutoresizingMaskIntoConstraints = false
-        playCircle.backgroundColor = UIColor.white.withAlphaComponent(0.95)
+        playCircle.backgroundColor = UITheme.Colors.surface
         playCircle.layer.cornerRadius = 18
 
         playIcon.translatesAutoresizingMaskIntoConstraints = false
         playIcon.image = UIImage(systemName: "play.fill")
-        playIcon.tintColor = UIColor(hex: "1E6EF7")
+        playIcon.tintColor = UITheme.Colors.accent
 
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
         durationLabel.font = UITheme.Typography.caption

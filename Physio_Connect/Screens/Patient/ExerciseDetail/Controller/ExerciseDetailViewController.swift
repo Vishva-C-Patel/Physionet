@@ -93,10 +93,16 @@ final class ExerciseDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: headerTitleText)
+        // Custom back — saves progress before popping
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.left"),
+            style: .plain,
+            target: self,
+            action: #selector(backTapped)
+        )
 
         detailView.configure(with: ExerciseDetailView.ViewModel(
-            headerTitle: headerTitleText,
             title: titleText,
             durationMinutes: (durationSeconds ?? 0) / 60,
             description: descriptionText ?? "Follow the guided video and maintain controlled movement throughout."
@@ -106,7 +112,6 @@ final class ExerciseDetailViewController: UIViewController {
         detailView.nextUpCollection.delegate = self
         detailView.nextUpCollection.register(NextUpCell.self, forCellWithReuseIdentifier: NextUpCell.reuseID)
 
-        detailView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         detailView.playButton.addTarget(self, action: #selector(playTapped), for: .touchUpInside)
         detailView.completeButton.addTarget(self, action: #selector(toggleCompleted), for: .touchUpInside)
         detailView.painScaleToggle.addTarget(self, action: #selector(toggleScale), for: .touchUpInside)
@@ -450,9 +455,9 @@ final class NextUpCell: UICollectionViewCell {
         titleLabel.text = nil
         subtitleLabel.text = nil
         playIcon.image = UIImage(systemName: "play.fill")
-        playIcon.tintColor = UIColor(hex: "1E6EF7")
-        imageView.alpha = 1
-        titleLabel.textColor = UIColor(hex: "1E2A44")
+        playIcon.tintColor = UITheme.Colors.accent
+        
+        titleLabel.textColor = .label
         subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
     }
 
@@ -467,9 +472,9 @@ final class NextUpCell: UICollectionViewCell {
             subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.35)
         } else {
             playIcon.image = UIImage(systemName: "play.fill")
-            playIcon.tintColor = UIColor(hex: "1E6EF7")
-            imageView.alpha = 1
-            titleLabel.textColor = UIColor(hex: "1E2A44")
+            playIcon.tintColor = UITheme.Colors.accent
+            
+            titleLabel.textColor = .label
             subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
         }
     }
@@ -490,21 +495,21 @@ final class NextUpCell: UICollectionViewCell {
         card.layer.shadowOffset = CGSize(width: 0, height: 4)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.backgroundColor = .tertiarySystemFill
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 12
         imageView.clipsToBounds = true
-        imageView.backgroundColor = UIColor(hex: "E3F0FF")
+        
+        playIcon.tintColor = UITheme.Colors.accent
 
         playIcon.translatesAutoresizingMaskIntoConstraints = false
         playIcon.image = UIImage(systemName: "play.fill")
-        playIcon.tintColor = UIColor(hex: "1E6EF7")
         playIcon.backgroundColor = .white
         playIcon.layer.cornerRadius = 16
         playIcon.layer.masksToBounds = true
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 12, weight: .bold)
-        titleLabel.textColor = UIColor(hex: "1E2A44")
+        titleLabel.textColor = .label
         titleLabel.numberOfLines = 2
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false

@@ -20,16 +20,18 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        navigationItem.hidesBackButton = true
-        navigationItem.rightBarButtonItem = nil
-        profileView.onBack = { [weak self] in self?.navigationController?.popViewController(animated: true) }
-        profileView.onEdit = { [weak self] in self?.showEdit() }
+        UITheme.applyNativeNavBar(to: self, title: "Profile")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Edit",
+            style: .plain,
+            target: self,
+            action: #selector(editTapped)
+        )
+
         profileView.onSignOut = { [weak self] in self?.signOut() }
         profileView.onSwitchRole = { [weak self] in self?.confirmSwitchRole() }
         profileView.onRefresh = { [weak self] in Task { await self?.loadProfile() } }
         profileView.onAvatarTapped = { [weak self] in self?.presentAvatarPicker() }
-        profileView.setShowsEditButton(true)
         profileView.setAvailabilityVisible(true)
         profileView.onAvailabilitySave = { [weak self] day, start, end in
             self?.presentRepeatPicker(for: day, start: start, end: end)
@@ -41,7 +43,6 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: false)
     }
 
     @objc private func editTapped() {

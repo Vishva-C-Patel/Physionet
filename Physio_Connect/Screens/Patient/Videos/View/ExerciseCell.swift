@@ -73,17 +73,12 @@ final class ExerciseCell: UITableViewCell {
 
     private func build() {
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 18
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.06
-        card.layer.shadowRadius = 10
-        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(card)
 
         heroImageView.translatesAutoresizingMaskIntoConstraints = false
         heroImageView.contentMode = .scaleAspectFill
-        heroImageView.tintColor = UIColor(hex: "1E6EF7")
-        heroImageView.backgroundColor = UIColor(hex: "E3F0FF")
+        heroImageView.tintColor = UITheme.Colors.accent
+        heroImageView.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         heroImageView.layer.cornerRadius = 18
         heroImageView.layer.masksToBounds = true
         heroImageView.image = UIImage(systemName: "video")
@@ -91,7 +86,7 @@ final class ExerciseCell: UITableViewCell {
         playButton.translatesAutoresizingMaskIntoConstraints = false
         var playConfig = UIButton.Configuration.filled()
         playConfig.baseBackgroundColor = .white
-        playConfig.baseForegroundColor = UIColor(hex: "1E6EF7")
+        playConfig.baseForegroundColor = UITheme.Colors.accent
         playConfig.cornerStyle = .capsule
         playConfig.image = UIImage(systemName: "play.fill")
         playButton.configuration = playConfig
@@ -99,8 +94,8 @@ final class ExerciseCell: UITableViewCell {
 
         levelBadge.translatesAutoresizingMaskIntoConstraints = false
         levelBadge.font = UITheme.Typography.caption
-        levelBadge.textColor = UIColor(hex: "1E6EF7")
-        levelBadge.backgroundColor = UIColor(hex: "DFF7E8")
+        levelBadge.textColor = .systemGreen
+        levelBadge.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.15)
         levelBadge.textAlignment = .center
         levelBadge.contentInsets = UIEdgeInsets(top: 4, left: 12, bottom: 4, right: 12)
         levelBadge.setContentHuggingPriority(.required, for: .horizontal)
@@ -120,7 +115,7 @@ final class ExerciseCell: UITableViewCell {
 
         subLabel.translatesAutoresizingMaskIntoConstraints = false
         subLabel.font = UITheme.Typography.meta
-        subLabel.textColor = UIColor(hex: "1E6EF7")
+        subLabel.textColor = UITheme.Colors.accent
         subLabel.numberOfLines = 1
 
         descLabel.translatesAutoresizingMaskIntoConstraints = false

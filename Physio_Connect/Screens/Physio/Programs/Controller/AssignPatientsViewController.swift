@@ -37,7 +37,7 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Assign Patients"
-        view.backgroundColor = UIColor(hex: "E6F1FF")
+        view.backgroundColor = UITheme.Colors.background
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Close", style: .plain, target: self, action: #selector(closeTapped))
         setupSearch()
 

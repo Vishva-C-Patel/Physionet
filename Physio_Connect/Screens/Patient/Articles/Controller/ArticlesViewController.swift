@@ -27,7 +27,8 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Articles")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: articlesView.profileButton)
         articlesView.profileButton.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
 
         articlesView.tableView.dataSource = self

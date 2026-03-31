@@ -12,8 +12,8 @@ final class ProgramTrendsView: UIView {
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let legendStack = UIStackView()
-    private let painLegend = LegendDotView(text: "Pain Level", color: UIColor(hex: "F97316"))
-    private let adherenceLegend = LegendDotView(text: "Adherence", color: UIColor(hex: "3B82F6"))
+    private let painLegend = LegendDotView(text: "Pain Level", color: .systemOrange)
+    private let adherenceLegend = LegendDotView(text: "Adherence", color: .systemBlue)
 
     private let yAxisLeft = UIStackView()
     private let yAxisRight = UIStackView()
@@ -48,7 +48,7 @@ final class ProgramTrendsView: UIView {
     }
 
     private func build() {
-        backgroundColor = UIColor(hex: "EAF2FF")
+        backgroundColor = .tertiarySystemFill
         layer.cornerRadius = 22
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.06
@@ -291,15 +291,15 @@ private final class TrendChartView: UIView {
         gridLayer.fillColor = UIColor.clear.cgColor
         layer.addSublayer(gridLayer)
 
-        painLine.strokeColor = UIColor(hex: "F97316").cgColor
+        painLine.strokeColor = UIColor.systemOrange.cgColor
         painLine.lineWidth = 2.2
         painLine.fillColor = UIColor.clear.cgColor
         painLine.lineCap = .round
         painLine.lineJoin = .round
 
         painGradient.colors = [
-            UIColor(hex: "F97316").withAlphaComponent(0.18).cgColor,
-            UIColor(hex: "F97316").withAlphaComponent(0.0).cgColor
+            UIColor.systemOrange.withAlphaComponent(0.18).cgColor,
+            UIColor.systemOrange.withAlphaComponent(0.0).cgColor
         ]
         painGradient.startPoint = CGPoint(x: 0.5, y: 0)
         painGradient.endPoint = CGPoint(x: 0.5, y: 1)
@@ -307,15 +307,15 @@ private final class TrendChartView: UIView {
         layer.addSublayer(painGradient)
         layer.addSublayer(painLine)
 
-        adherenceLine.strokeColor = UIColor(hex: "3B82F6").cgColor
+        adherenceLine.strokeColor = UIColor.systemBlue.cgColor
         adherenceLine.lineWidth = 2.2
         adherenceLine.fillColor = UIColor.clear.cgColor
         adherenceLine.lineCap = .round
         adherenceLine.lineJoin = .round
 
         adherenceGradient.colors = [
-            UIColor(hex: "3B82F6").withAlphaComponent(0.18).cgColor,
-            UIColor(hex: "3B82F6").withAlphaComponent(0.0).cgColor
+            UIColor.systemBlue.withAlphaComponent(0.18).cgColor,
+            UIColor.systemBlue.withAlphaComponent(0.0).cgColor
         ]
         adherenceGradient.startPoint = CGPoint(x: 0.5, y: 0)
         adherenceGradient.endPoint = CGPoint(x: 0.5, y: 1)
@@ -332,13 +332,13 @@ private final class TrendChartView: UIView {
         layer.addSublayer(indicatorLine)
 
         indicatorDotPain.fillColor = UIColor.white.cgColor
-        indicatorDotPain.strokeColor = UIColor(hex: "F97316").cgColor
+        indicatorDotPain.strokeColor = UIColor.systemOrange.cgColor
         indicatorDotPain.lineWidth = 2
         indicatorDotPain.isHidden = true
         layer.addSublayer(indicatorDotPain)
 
         indicatorDotAdherence.fillColor = UIColor.white.cgColor
-        indicatorDotAdherence.strokeColor = UIColor(hex: "3B82F6").cgColor
+        indicatorDotAdherence.strokeColor = UIColor.systemBlue.cgColor
         indicatorDotAdherence.lineWidth = 2
         indicatorDotAdherence.isHidden = true
         layer.addSublayer(indicatorDotAdherence)
@@ -407,13 +407,13 @@ private final class TrendChartView: UIView {
         valueLabels.forEach { $0.removeFromSuperview() }
         valueLabels = []
         if let lastIndex = painPoints.indices.last {
-            let painLabel = makeValueLabel(text: "\(pain[lastIndex])", color: UIColor(hex: "F97316"))
+            let painLabel = makeValueLabel(text: "\(pain[lastIndex])", color: .systemOrange)
             let painY = max(painPoints[lastIndex].y - 24, 2)
             painLabel.frame = CGRect(x: painPoints[lastIndex].x - 10, y: painY, width: 22, height: 14)
             addSubview(painLabel)
             valueLabels.append(painLabel)
 
-            let adhLabel = makeValueLabel(text: "\(adherence[lastIndex])", color: UIColor(hex: "3B82F6"))
+            let adhLabel = makeValueLabel(text: "\(adherence[lastIndex])", color: .systemBlue)
             let adhY = max(adherencePoints[lastIndex].y - 24, 2)
             adhLabel.frame = CGRect(x: adherencePoints[lastIndex].x - 14, y: adhY, width: 28, height: 14)
             addSubview(adhLabel)

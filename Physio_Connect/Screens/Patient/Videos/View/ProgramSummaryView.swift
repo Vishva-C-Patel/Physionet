@@ -55,7 +55,7 @@ final class ProgramSummaryView: UIView {
         contentView.layer.masksToBounds = true
         addSubview(contentView)
 
-        gradientLayer.colors = [UIColor(hex: "2D7CFF").cgColor, UIColor(hex: "1F62F3").cgColor]
+        gradientLayer.colors = [UITheme.Colors.accent.cgColor, UITheme.Colors.accent.withAlphaComponent(0.8).cgColor]
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         contentView.layer.insertSublayer(gradientLayer, at: 0)

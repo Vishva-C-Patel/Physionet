@@ -8,21 +8,14 @@ import UIKit
 
 final class PaymentView: UIView {
 
-    // Theme
-    private let bg = UIColor(hex: "E3F0FF")
-    private let primaryBlue = UIColor(hex: "1E6EF7")
-    private let green = UIColor(hex: "2E9B5E")
-
     // Scroll
     let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stack = UIStackView()
+    private let bottomContainer = UIView()
+    private let bottomBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemChromeMaterial))
 
-    // Header
-    let backButton = UIButton(type: .system)
-    private let titleLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    private let divider = UIView()
+    // Header (No longer contains back button or nav title)
     private let summaryLabel = UILabel()
     private let paymentLabel = UILabel()
 
@@ -48,6 +41,7 @@ final class PaymentView: UIView {
     private let securityCard = UIView()
     private let securityIcon = UIImageView()
     private let securityText = UILabel()
+    
     private let paymentMethodCard = UIView()
     private let paymentMethodIconBg = UIView()
     private let paymentMethodIcon = UIImageView()
@@ -60,7 +54,7 @@ final class PaymentView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = bg
+        backgroundColor = UITheme.Colors.background
         build()
     }
 
@@ -77,11 +71,28 @@ final class PaymentView: UIView {
         scrollView.addSubview(contentView)
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
+        // Bottom Container
+        addSubview(bottomContainer)
+        bottomContainer.translatesAutoresizingMaskIntoConstraints = false
+        bottomContainer.backgroundColor = .clear
+
+        bottomBlur.translatesAutoresizingMaskIntoConstraints = false
+        bottomContainer.addSubview(bottomBlur)
+
         NSLayoutConstraint.activate([
+            bottomBlur.topAnchor.constraint(equalTo: bottomContainer.topAnchor),
+            bottomBlur.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor),
+            bottomBlur.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor),
+            bottomBlur.bottomAnchor.constraint(equalTo: bottomContainer.bottomAnchor),
+
+            bottomContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
+            bottomContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bottomContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
+
             scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomContainer.topAnchor),
 
             contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
@@ -93,73 +104,32 @@ final class PaymentView: UIView {
 
         // Stack
         stack.axis = .vertical
-        stack.spacing = 22
+        stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -18)
+            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32)
         ])
-
-        // Header
-        let headerRow = UIView()
-        headerRow.translatesAutoresizingMaskIntoConstraints = false
-
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = primaryBlue
-        backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 6, bottom: 8, right: 6)
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Payment"
-        titleLabel.font = .boldSystemFont(ofSize: 22)
-        titleLabel.textAlignment = .center
-
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "Complete payment to confirm your booking"
-        subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        subtitleLabel.textColor = .darkGray
-        subtitleLabel.textAlignment = .center
-
-        divider.translatesAutoresizingMaskIntoConstraints = false
-        divider.backgroundColor = UIColor.black.withAlphaComponent(0.08)
-
-        headerRow.addSubview(backButton)
-        headerRow.addSubview(titleLabel)
-
-        NSLayoutConstraint.activate([
-            headerRow.heightAnchor.constraint(equalToConstant: 40),
-            backButton.leadingAnchor.constraint(equalTo: headerRow.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: headerRow.centerYAnchor),
-            titleLabel.centerXAnchor.constraint(equalTo: headerRow.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: headerRow.centerYAnchor)
-        ])
-
-        stack.addArrangedSubview(headerRow)
-        stack.addArrangedSubview(subtitleLabel)
-        stack.addArrangedSubview(divider)
-        divider.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        stack.setCustomSpacing(6, after: headerRow)
-        stack.setCustomSpacing(14, after: subtitleLabel)
-        stack.setCustomSpacing(20, after: divider)
 
         summaryLabel.text = "Booking Summary"
-        summaryLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        summaryLabel.textColor = .darkGray
+        summaryLabel.font = UITheme.Typography.sectionTitle
+        summaryLabel.textColor = UITheme.Colors.textSecondary
         stack.addArrangedSubview(summaryLabel)
         stack.setCustomSpacing(12, after: summaryLabel)
 
-        // Saved banner card (blue like your ref)
-        styleCard(savedCard)
+        // Saved banner card
+        UITheme.applyCardStyle(savedCard)
+        // Tint the background slightly to make it stand out as a success state
+        savedCard.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.08)
         savedCard.layer.borderWidth = 1
-        savedCard.layer.borderColor = primaryBlue.withAlphaComponent(0.25).cgColor
-        savedCard.backgroundColor = primaryBlue.withAlphaComponent(0.08)
+        savedCard.layer.borderColor = UITheme.Colors.accent.withAlphaComponent(0.2).cgColor
 
         savedIconBg.translatesAutoresizingMaskIntoConstraints = false
-        savedIconBg.backgroundColor = primaryBlue
+        savedIconBg.backgroundColor = UITheme.Colors.accent
         savedIconBg.layer.cornerRadius = 20
 
         savedIcon.translatesAutoresizingMaskIntoConstraints = false
@@ -170,15 +140,15 @@ final class PaymentView: UIView {
         savedTitle.translatesAutoresizingMaskIntoConstraints = false
         savedTitle.text = "Appointment Saved!"
         savedTitle.font = .systemFont(ofSize: 15, weight: .bold)
-        savedTitle.textColor = primaryBlue
+        savedTitle.textColor = UITheme.Colors.accent
 
         savedLine1.translatesAutoresizingMaskIntoConstraints = false
-        savedLine1.font = .systemFont(ofSize: 14, weight: .semibold)
-        savedLine1.textColor = .black
+        savedLine1.font = .systemFont(ofSize: 15, weight: .semibold)
+        savedLine1.textColor = UIColor.label
 
         savedLine2.translatesAutoresizingMaskIntoConstraints = false
-        savedLine2.font = .systemFont(ofSize: 13, weight: .medium)
-        savedLine2.textColor = .darkGray
+        savedLine2.font = UITheme.Typography.caption
+        savedLine2.textColor = UITheme.Colors.textSecondary
         savedLine2.text = "Pay now to confirm your booking"
 
         let savedTextStack = UIStackView(arrangedSubviews: [savedTitle, savedLine1, savedLine2])
@@ -191,8 +161,8 @@ final class PaymentView: UIView {
         savedCard.addSubview(savedTextStack)
 
         NSLayoutConstraint.activate([
-            savedIconBg.leadingAnchor.constraint(equalTo: savedCard.leadingAnchor, constant: 14),
-            savedIconBg.topAnchor.constraint(equalTo: savedCard.topAnchor, constant: 14),
+            savedIconBg.leadingAnchor.constraint(equalTo: savedCard.leadingAnchor, constant: 16),
+            savedIconBg.topAnchor.constraint(equalTo: savedCard.topAnchor, constant: 16),
             savedIconBg.widthAnchor.constraint(equalToConstant: 40),
             savedIconBg.heightAnchor.constraint(equalToConstant: 40),
 
@@ -201,23 +171,23 @@ final class PaymentView: UIView {
             savedIcon.widthAnchor.constraint(equalToConstant: 18),
             savedIcon.heightAnchor.constraint(equalToConstant: 18),
 
-            savedTextStack.leadingAnchor.constraint(equalTo: savedIconBg.trailingAnchor, constant: 12),
-            savedTextStack.trailingAnchor.constraint(equalTo: savedCard.trailingAnchor, constant: -14),
-            savedTextStack.topAnchor.constraint(equalTo: savedCard.topAnchor, constant: 14),
-            savedTextStack.bottomAnchor.constraint(equalTo: savedCard.bottomAnchor, constant: -14)
+            savedTextStack.leadingAnchor.constraint(equalTo: savedIconBg.trailingAnchor, constant: 14),
+            savedTextStack.trailingAnchor.constraint(equalTo: savedCard.trailingAnchor, constant: -16),
+            savedTextStack.topAnchor.constraint(equalTo: savedCard.topAnchor, constant: 16),
+            savedTextStack.bottomAnchor.constraint(equalTo: savedCard.bottomAnchor, constant: -16)
         ])
 
         stack.addArrangedSubview(savedCard)
-        stack.setCustomSpacing(16, after: savedCard)
 
         // Details card
-        styleCard(detailsCard)
+        UITheme.applyCardStyle(detailsCard)
         detailsTitle.text = "Booking Details"
-        detailsTitle.font = .boldSystemFont(ofSize: 16)
+        detailsTitle.font = .systemFont(ofSize: 15, weight: .semibold)
+        detailsTitle.textColor = UIColor.label
 
         detailsText.numberOfLines = 0
-        detailsText.font = .systemFont(ofSize: 13, weight: .medium)
-        detailsText.textColor = .darkGray
+        detailsText.font = UITheme.Typography.body
+        detailsText.textColor = UITheme.Colors.textSecondary
 
         let detailsStack = UIStackView(arrangedSubviews: [detailsTitle, detailsText])
         detailsStack.axis = .vertical
@@ -226,36 +196,38 @@ final class PaymentView: UIView {
 
         detailsCard.addSubview(detailsStack)
         NSLayoutConstraint.activate([
-            detailsStack.topAnchor.constraint(equalTo: detailsCard.topAnchor, constant: 14),
-            detailsStack.leadingAnchor.constraint(equalTo: detailsCard.leadingAnchor, constant: 14),
-            detailsStack.trailingAnchor.constraint(equalTo: detailsCard.trailingAnchor, constant: -14),
-            detailsStack.bottomAnchor.constraint(equalTo: detailsCard.bottomAnchor, constant: -14)
+            detailsStack.topAnchor.constraint(equalTo: detailsCard.topAnchor, constant: 16),
+            detailsStack.leadingAnchor.constraint(equalTo: detailsCard.leadingAnchor, constant: 16),
+            detailsStack.trailingAnchor.constraint(equalTo: detailsCard.trailingAnchor, constant: -16),
+            detailsStack.bottomAnchor.constraint(equalTo: detailsCard.bottomAnchor, constant: -16)
         ])
 
         stack.addArrangedSubview(detailsCard)
-        stack.setCustomSpacing(20, after: detailsCard)
+        stack.setCustomSpacing(24, after: detailsCard)
 
         paymentLabel.text = "Payment"
-        paymentLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        paymentLabel.textColor = .darkGray
+        paymentLabel.font = UITheme.Typography.sectionTitle
+        paymentLabel.textColor = UITheme.Colors.textSecondary
         stack.addArrangedSubview(paymentLabel)
         stack.setCustomSpacing(12, after: paymentLabel)
 
         // Price card
-        styleCard(priceCard)
+        UITheme.applyCardStyle(priceCard)
         priceTitle.text = "Price Breakdown"
-        priceTitle.font = .boldSystemFont(ofSize: 16)
+        priceTitle.font = .systemFont(ofSize: 15, weight: .semibold)
+        priceTitle.textColor = UIColor.label
 
         priceStack.axis = .vertical
-        priceStack.spacing = 12
+        priceStack.spacing = 14
         priceStack.translatesAutoresizingMaskIntoConstraints = false
 
         totalLeft.text = "Total"
-        totalLeft.font = .boldSystemFont(ofSize: 16)
+        totalLeft.font = .systemFont(ofSize: 15, weight: .semibold)
+        totalLeft.textColor = UIColor.label
 
         totalRight.text = "₹0"
-        totalRight.font = .boldSystemFont(ofSize: 16)
-        totalRight.textColor = green
+        totalRight.font = .systemFont(ofSize: 17, weight: .bold)
+        totalRight.textColor = UIColor.systemGreen
         totalRight.textAlignment = .right
 
         totalRow.translatesAutoresizingMaskIntoConstraints = false
@@ -277,37 +249,43 @@ final class PaymentView: UIView {
         priceContainer.axis = .vertical
         priceContainer.spacing = 16
         priceContainer.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Add separator before total
+        let priceDivider = UIView()
+        priceDivider.backgroundColor = UIColor.separator.withAlphaComponent(0.5)
+        priceDivider.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+        priceContainer.insertArrangedSubview(priceDivider, at: 2)
 
         priceCard.addSubview(priceContainer)
         NSLayoutConstraint.activate([
-            priceContainer.topAnchor.constraint(equalTo: priceCard.topAnchor, constant: 14),
-            priceContainer.leadingAnchor.constraint(equalTo: priceCard.leadingAnchor, constant: 14),
-            priceContainer.trailingAnchor.constraint(equalTo: priceCard.trailingAnchor, constant: -14),
-            priceContainer.bottomAnchor.constraint(equalTo: priceCard.bottomAnchor, constant: -14)
+            priceContainer.topAnchor.constraint(equalTo: priceCard.topAnchor, constant: 16),
+            priceContainer.leadingAnchor.constraint(equalTo: priceCard.leadingAnchor, constant: 16),
+            priceContainer.trailingAnchor.constraint(equalTo: priceCard.trailingAnchor, constant: -16),
+            priceContainer.bottomAnchor.constraint(equalTo: priceCard.bottomAnchor, constant: -16)
         ])
 
         stack.addArrangedSubview(priceCard)
-        stack.setCustomSpacing(12, after: priceCard)
 
         // Payment method card
-        styleCard(paymentMethodCard)
+        UITheme.applyCardStyle(paymentMethodCard)
 
         paymentMethodIconBg.translatesAutoresizingMaskIntoConstraints = false
-        paymentMethodIconBg.backgroundColor = primaryBlue.withAlphaComponent(0.12)
+        paymentMethodIconBg.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         paymentMethodIconBg.layer.cornerRadius = 18
 
         paymentMethodIcon.translatesAutoresizingMaskIntoConstraints = false
         paymentMethodIcon.image = UIImage(systemName: "creditcard")
-        paymentMethodIcon.tintColor = primaryBlue
+        paymentMethodIcon.tintColor = UITheme.Colors.accent
 
         paymentMethodTitle.translatesAutoresizingMaskIntoConstraints = false
         paymentMethodTitle.text = "Payment Method"
-        paymentMethodTitle.font = .systemFont(ofSize: 15, weight: .bold)
+        paymentMethodTitle.font = .systemFont(ofSize: 15, weight: .semibold)
+        paymentMethodTitle.textColor = UIColor.label
 
         paymentMethodSub.translatesAutoresizingMaskIntoConstraints = false
         paymentMethodSub.text = "Pay securely with UPI, card, or netbanking"
-        paymentMethodSub.font = .systemFont(ofSize: 12, weight: .medium)
-        paymentMethodSub.textColor = .darkGray
+        paymentMethodSub.font = UITheme.Typography.caption
+        paymentMethodSub.textColor = UITheme.Colors.textSecondary
 
         let paymentMethodTextStack = UIStackView(arrangedSubviews: [paymentMethodTitle, paymentMethodSub])
         paymentMethodTextStack.axis = .vertical
@@ -319,7 +297,7 @@ final class PaymentView: UIView {
         paymentMethodCard.addSubview(paymentMethodTextStack)
 
         NSLayoutConstraint.activate([
-            paymentMethodIconBg.leadingAnchor.constraint(equalTo: paymentMethodCard.leadingAnchor, constant: 14),
+            paymentMethodIconBg.leadingAnchor.constraint(equalTo: paymentMethodCard.leadingAnchor, constant: 16),
             paymentMethodIconBg.centerYAnchor.constraint(equalTo: paymentMethodCard.centerYAnchor),
             paymentMethodIconBg.widthAnchor.constraint(equalToConstant: 36),
             paymentMethodIconBg.heightAnchor.constraint(equalToConstant: 36),
@@ -329,69 +307,107 @@ final class PaymentView: UIView {
             paymentMethodIcon.widthAnchor.constraint(equalToConstant: 18),
             paymentMethodIcon.heightAnchor.constraint(equalToConstant: 18),
 
-            paymentMethodTextStack.leadingAnchor.constraint(equalTo: paymentMethodIconBg.trailingAnchor, constant: 12),
-            paymentMethodTextStack.trailingAnchor.constraint(equalTo: paymentMethodCard.trailingAnchor, constant: -14),
-            paymentMethodTextStack.topAnchor.constraint(equalTo: paymentMethodCard.topAnchor, constant: 14),
-            paymentMethodTextStack.bottomAnchor.constraint(equalTo: paymentMethodCard.bottomAnchor, constant: -14)
+            paymentMethodTextStack.leadingAnchor.constraint(equalTo: paymentMethodIconBg.trailingAnchor, constant: 14),
+            paymentMethodTextStack.trailingAnchor.constraint(equalTo: paymentMethodCard.trailingAnchor, constant: -16),
+            paymentMethodTextStack.topAnchor.constraint(equalTo: paymentMethodCard.topAnchor, constant: 16),
+            paymentMethodTextStack.bottomAnchor.constraint(equalTo: paymentMethodCard.bottomAnchor, constant: -16)
         ])
 
         stack.addArrangedSubview(paymentMethodCard)
-        stack.setCustomSpacing(16, after: paymentMethodCard)
 
-        // Security card (blue)
-        styleCard(securityCard)
-        securityCard.backgroundColor = primaryBlue.withAlphaComponent(0.08)
+        // Security card
+        UITheme.applyCardStyle(securityCard)
+        securityCard.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.08)
         securityCard.layer.borderWidth = 1
-        securityCard.layer.borderColor = primaryBlue.withAlphaComponent(0.25).cgColor
+        securityCard.layer.borderColor = UITheme.Colors.accent.withAlphaComponent(0.2).cgColor
 
         securityIcon.translatesAutoresizingMaskIntoConstraints = false
-        securityIcon.image = UIImage(systemName: "lock.shield")
-        securityIcon.tintColor = primaryBlue
+        securityIcon.image = UIImage(systemName: "lock.shield.fill")
+        securityIcon.tintColor = UITheme.Colors.accent
 
         securityText.translatesAutoresizingMaskIntoConstraints = false
         securityText.numberOfLines = 0
-        securityText.textColor = primaryBlue
-        securityText.font = .systemFont(ofSize: 12, weight: .semibold)
+        securityText.textColor = UITheme.Colors.accent
+        securityText.font = .systemFont(ofSize: 12, weight: .medium)
         securityText.text = "Your information is encrypted and secure. We never share your data with third parties."
 
         securityCard.addSubview(securityIcon)
         securityCard.addSubview(securityText)
 
         NSLayoutConstraint.activate([
-            securityIcon.leadingAnchor.constraint(equalTo: securityCard.leadingAnchor, constant: 14),
-            securityIcon.topAnchor.constraint(equalTo: securityCard.topAnchor, constant: 14),
-            securityIcon.widthAnchor.constraint(equalToConstant: 18),
-            securityIcon.heightAnchor.constraint(equalToConstant: 18),
+            securityIcon.leadingAnchor.constraint(equalTo: securityCard.leadingAnchor, constant: 16),
+            securityIcon.topAnchor.constraint(equalTo: securityCard.topAnchor, constant: 16),
+            securityIcon.widthAnchor.constraint(equalToConstant: 20),
+            securityIcon.heightAnchor.constraint(equalToConstant: 20),
 
-            securityText.leadingAnchor.constraint(equalTo: securityIcon.trailingAnchor, constant: 10),
-            securityText.trailingAnchor.constraint(equalTo: securityCard.trailingAnchor, constant: -14),
-            securityText.topAnchor.constraint(equalTo: securityCard.topAnchor, constant: 14),
-            securityText.bottomAnchor.constraint(equalTo: securityCard.bottomAnchor, constant: -14)
+            securityText.leadingAnchor.constraint(equalTo: securityIcon.trailingAnchor, constant: 12),
+            securityText.trailingAnchor.constraint(equalTo: securityCard.trailingAnchor, constant: -16),
+            securityText.topAnchor.constraint(equalTo: securityCard.topAnchor, constant: 16),
+            securityText.bottomAnchor.constraint(equalTo: securityCard.bottomAnchor, constant: -16)
         ])
 
         stack.addArrangedSubview(securityCard)
-        stack.setCustomSpacing(20, after: securityCard)
+        stack.setCustomSpacing(32, after: securityCard)
 
         // Pay button
         payButton.translatesAutoresizingMaskIntoConstraints = false
         payButton.setTitle("Pay & Confirm Booking", for: .normal)
         payButton.setTitleColor(.white, for: .normal)
-        payButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
-        payButton.backgroundColor = primaryBlue
-        payButton.layer.cornerRadius = 18
-        payButton.layer.shadowColor = UIColor.black.cgColor
-        payButton.layer.shadowOpacity = 0.12
-        payButton.layer.shadowRadius = 10
+        payButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
+        
+        let payGradient = CAGradientLayer()
+        payGradient.colors = [UITheme.Colors.accent.cgColor, UITheme.Colors.accent.withAlphaComponent(0.85).cgColor]
+        payGradient.startPoint = CGPoint(x: 0, y: 0)
+        payGradient.endPoint = CGPoint(x: 1, y: 1)
+        payGradient.cornerRadius = 22
+        payButton.layer.insertSublayer(payGradient, at: 0)
+        
+        payButton.layer.cornerRadius = 22
+        payButton.layer.shadowColor = UITheme.Colors.accent.cgColor
+        payButton.layer.shadowOpacity = 0.3
+        payButton.layer.shadowRadius = 12
         payButton.layer.shadowOffset = CGSize(width: 0, height: 6)
         payButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
+        
+        // Ensure gradient resizes
+        payButton.layer.masksToBounds = false
+        DispatchQueue.main.async {
+            payGradient.frame = self.payButton.bounds
+        }
 
         payHint.text = "Payment is required to confirm your appointment"
-        payHint.font = .systemFont(ofSize: 12, weight: .medium)
-        payHint.textColor = .gray
+        payHint.font = UITheme.Typography.caption
+        payHint.textColor = UITheme.Colors.textSecondary
         payHint.textAlignment = .center
 
-        stack.addArrangedSubview(payButton)
-        stack.addArrangedSubview(payHint)
+        bottomContainer.addSubview(payButton)
+        bottomContainer.addSubview(payHint)
+
+        payHint.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            payButton.topAnchor.constraint(equalTo: bottomContainer.topAnchor, constant: 16),
+            payButton.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor, constant: 16),
+            payButton.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor, constant: -16),
+
+            payHint.topAnchor.constraint(equalTo: payButton.bottomAnchor, constant: 12),
+            payHint.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor, constant: 16),
+            payHint.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor, constant: -16),
+            payHint.bottomAnchor.constraint(equalTo: bottomContainer.safeAreaLayoutGuide.bottomAnchor, constant: -12)
+        ])
+        
+        // Update gradient on layout
+        payButton.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            payGradient.frame = self.payButton.bounds
+        }, for: .allTouchEvents) // Small hack to ensure layout size
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if let gradientLayer = payButton.layer.sublayers?.first as? CAGradientLayer {
+            gradientLayer.frame = payButton.bounds
+        }
     }
 
     // MARK: - Public render
@@ -404,7 +420,7 @@ final class PaymentView: UIView {
         "\(model.draft.address)\n" +
         "\(model.draft.phone)"
         let detailsStyle = NSMutableParagraphStyle()
-        detailsStyle.lineSpacing = 4
+        detailsStyle.lineSpacing = 6
         detailsText.attributedText = NSAttributedString(
             string: detailsString,
             attributes: [
@@ -431,11 +447,12 @@ final class PaymentView: UIView {
         let r = UILabel()
 
         l.text = left
-        l.font = .systemFont(ofSize: 13, weight: .medium)
-        l.textColor = .darkGray
+        l.font = UITheme.Typography.body
+        l.textColor = UITheme.Colors.textSecondary
 
         r.text = right
-        r.font = .systemFont(ofSize: 13, weight: .semibold)
+        r.font = .systemFont(ofSize: 15, weight: .semibold)
+        r.textColor = UIColor.label
         r.textAlignment = .right
 
         l.translatesAutoresizingMaskIntoConstraints = false
@@ -454,15 +471,5 @@ final class PaymentView: UIView {
         ])
 
         return row
-    }
-
-    private func styleCard(_ v: UIView) {
-        v.translatesAutoresizingMaskIntoConstraints = false
-        v.backgroundColor = .white
-        v.layer.cornerRadius = 18
-        v.layer.shadowColor = UIColor.black.cgColor
-        v.layer.shadowOpacity = 0.06
-        v.layer.shadowRadius = 10
-        v.layer.shadowOffset = CGSize(width: 0, height: 6)
     }
 }

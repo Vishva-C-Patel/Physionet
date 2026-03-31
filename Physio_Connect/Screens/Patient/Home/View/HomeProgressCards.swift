@@ -37,14 +37,14 @@ final class HomePainTrendCardView: UIView {
 
     private func build() {
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .white
+        container.backgroundColor = UITheme.Colors.surface
         container.layer.cornerRadius = 20
         container.layer.shadowColor = UIColor.black.cgColor
         container.layer.shadowOpacity = 0.03
         container.layer.shadowRadius = 8
         container.layer.shadowOffset = CGSize(width: 0, height: 4)
         container.layer.borderWidth = 1
-        container.layer.borderColor = UIColor.black.withAlphaComponent(0.04).cgColor
+        container.layer.borderColor = UIColor.separator.cgColor
         addSubview(container)
 
         iconWrap.translatesAutoresizingMaskIntoConstraints = false
@@ -59,12 +59,12 @@ final class HomePainTrendCardView: UIView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Pain Level"
         titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.text = "Last 7 days"
         subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        subtitleLabel.textColor = .secondaryLabel
 
         trendLabel.translatesAutoresizingMaskIntoConstraints = false
         trendLabel.font = .systemFont(ofSize: 14, weight: .bold)
@@ -79,12 +79,12 @@ final class HomePainTrendCardView: UIView {
             let label = UILabel()
             label.text = $0
             label.font = .systemFont(ofSize: 12, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            label.textColor = .tertiaryLabel
             yAxisStack.addArrangedSubview(label)
         }
 
         chartView.translatesAutoresizingMaskIntoConstraints = false
-        chartView.backgroundColor = UIColor(hex: "FFF7F7")
+        chartView.backgroundColor = UIColor.tertiarySystemFill
         chartView.layer.cornerRadius = 12
 
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
@@ -145,7 +145,7 @@ final class HomePainTrendCardView: UIView {
             let label = UILabel()
             label.text = text
             label.font = .systemFont(ofSize: 11, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            label.textColor = .tertiaryLabel
             xAxisStack.addArrangedSubview(label)
         }
     }
@@ -193,20 +193,20 @@ final class HomeAdherenceCardView: UIView {
 
     private func build() {
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = UIColor(hex: "ECFEFF")
+        container.backgroundColor = UITheme.Colors.surface
         container.layer.cornerRadius = 20
         container.layer.shadowColor = UIColor.black.cgColor
         container.layer.shadowOpacity = 0.03
         container.layer.shadowRadius = 8
         container.layer.shadowOffset = CGSize(width: 0, height: 4)
         container.layer.borderWidth = 1
-        container.layer.borderColor = UIColor.black.withAlphaComponent(0.04).cgColor
+        container.layer.borderColor = UIColor.separator.cgColor
         addSubview(container)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Weekly Adherence"
         titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        titleLabel.textColor = UIColor(hex: "0F172A")
+        titleLabel.textColor = .label
 
         percentLabel.translatesAutoresizingMaskIntoConstraints = false
         percentLabel.font = .systemFont(ofSize: 26, weight: .bold)
@@ -215,7 +215,7 @@ final class HomeAdherenceCardView: UIView {
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.text = "this week"
         subtitleLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        subtitleLabel.textColor = .secondaryLabel
 
         yAxisStack.translatesAutoresizingMaskIntoConstraints = false
         yAxisStack.axis = .vertical
@@ -226,12 +226,12 @@ final class HomeAdherenceCardView: UIView {
             let label = UILabel()
             label.text = $0
             label.font = .systemFont(ofSize: 12, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            label.textColor = .tertiaryLabel
             yAxisStack.addArrangedSubview(label)
         }
 
         chartView.translatesAutoresizingMaskIntoConstraints = false
-        chartView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+        chartView.backgroundColor = UIColor.tertiarySystemFill
         chartView.layer.cornerRadius = 12
 
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
@@ -283,7 +283,7 @@ final class HomeAdherenceCardView: UIView {
             let label = UILabel()
             label.text = text
             label.font = .systemFont(ofSize: 11, weight: .medium)
-            label.textColor = UIColor.black.withAlphaComponent(0.4)
+            label.textColor = .tertiaryLabel
             xAxisStack.addArrangedSubview(label)
         }
     }
@@ -342,7 +342,7 @@ final class LineChartView: UIView {
     }
 
     private func setupLayers() {
-        gridLayer.strokeColor = UIColor.black.withAlphaComponent(0.06).cgColor
+        gridLayer.strokeColor = UIColor.separator.cgColor
         gridLayer.lineWidth = 1
         gridLayer.fillColor = UIColor.clear.cgColor
         gridLayer.lineDashPattern = [3, 3]
@@ -360,7 +360,7 @@ final class LineChartView: UIView {
     }
 
     private func setupIndicator() {
-        indicatorLine.strokeColor = UIColor.black.withAlphaComponent(0.15).cgColor
+        indicatorLine.strokeColor = UIColor.separator.cgColor
         indicatorLine.lineWidth = 1
         indicatorLine.lineDashPattern = [3, 3]
         indicatorLine.isHidden = true

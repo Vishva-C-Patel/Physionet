@@ -12,6 +12,7 @@ final class ExerciseFilterChipCell: UICollectionViewCell {
     static let reuseID = "ExerciseFilterChipCell"
 
     private let titleLabel = UILabel()
+    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -28,12 +29,13 @@ final class ExerciseFilterChipCell: UICollectionViewCell {
     }
 
     private func build() {
-        contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 16
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.08
-        contentView.layer.shadowRadius = 6
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        contentView.layer.masksToBounds = true
+        contentView.layer.borderWidth = 1
+        contentView.layer.borderColor = UITheme.Colors.border.cgColor
+
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(blurView)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
@@ -42,6 +44,11 @@ final class ExerciseFilterChipCell: UICollectionViewCell {
         contentView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            blurView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
@@ -51,11 +58,15 @@ final class ExerciseFilterChipCell: UICollectionViewCell {
 
     private func applySelectionState(_ selected: Bool) {
         if selected {
-            contentView.backgroundColor = UIColor(hex: "1E6EF7")
+            contentView.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.85)
+            blurView.isHidden = true
             titleLabel.textColor = .white
+            contentView.layer.borderColor = UITheme.Colors.accent.cgColor
         } else {
-            contentView.backgroundColor = .white
-            titleLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+            contentView.backgroundColor = .clear
+            blurView.isHidden = false
+            titleLabel.textColor = UITheme.Colors.textPrimary
+            contentView.layer.borderColor = UITheme.Colors.glassBorder.cgColor
         }
     }
 

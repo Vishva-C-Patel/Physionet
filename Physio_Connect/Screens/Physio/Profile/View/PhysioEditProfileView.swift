@@ -46,7 +46,7 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E8EEF5")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -160,8 +160,8 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         topBar.layer.cornerRadius = 0
         topBar.backgroundColor = .clear
 
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = UIColor(hex: "1E6EF7")
+        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)), for: .normal)
+        backButton.tintColor = UITheme.Colors.accent
         backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         backButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -171,7 +171,7 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         saveButton.setTitle("Save", for: .normal)
-        saveButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        saveButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         saveButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         saveButton.translatesAutoresizingMaskIntoConstraints = false

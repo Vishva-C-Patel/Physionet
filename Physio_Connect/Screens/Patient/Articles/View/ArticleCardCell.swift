@@ -60,18 +60,13 @@ final class ArticleCardCell: UITableViewCell {
         contentView.backgroundColor = .clear
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 22
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.08
-        card.layer.shadowRadius = 10
-        card.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(card)
         contentView.addSubview(card)
 
         categoryPill.translatesAutoresizingMaskIntoConstraints = false
         categoryPill.font = UITheme.Typography.caption
-        categoryPill.textColor = UIColor(hex: "1E6EF7")
-        categoryPill.backgroundColor = UIColor(hex: "EDF4FF")
+        categoryPill.textColor = UITheme.Colors.accent
+        categoryPill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         categoryPill.layer.cornerRadius = 14
         categoryPill.layer.masksToBounds = true
         categoryPill.textAlignment = .center
@@ -81,11 +76,11 @@ final class ArticleCardCell: UITableViewCell {
 
         timeIcon.translatesAutoresizingMaskIntoConstraints = false
         timeIcon.image = UIImage(systemName: "clock")
-        timeIcon.tintColor = UIColor.black.withAlphaComponent(0.4)
+        timeIcon.tintColor = UITheme.Colors.textSecondary
 
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.font = UITheme.Typography.caption
-        timeLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        timeLabel.textColor = UITheme.Colors.textSecondary
 
         timeStack.axis = .horizontal
         timeStack.spacing = 6
@@ -97,11 +92,11 @@ final class ArticleCardCell: UITableViewCell {
         timeStack.addArrangedSubview(timeLabel)
 
         bookmarkButton.translatesAutoresizingMaskIntoConstraints = false
-        bookmarkButton.backgroundColor = UIColor(hex: "F1F4FA")
+        bookmarkButton.backgroundColor = UITheme.Colors.neutralFill
         bookmarkButton.layer.cornerRadius = 16
         let bookmarkConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         bookmarkButton.setImage(UIImage(systemName: "bookmark", withConfiguration: bookmarkConfig), for: .normal)
-        bookmarkButton.tintColor = UIColor.black.withAlphaComponent(0.6)
+        bookmarkButton.tintColor = UITheme.Colors.textSecondary
         bookmarkButton.addTarget(self, action: #selector(bookmarkTapped), for: .touchUpInside)
 
         topMetaStack.axis = .horizontal
@@ -129,11 +124,11 @@ final class ArticleCardCell: UITableViewCell {
         summaryLabel.numberOfLines = 2
 
         readMoreButton.setTitle("Read more", for: .normal)
-        readMoreButton.titleLabel?.font = UITheme.Typography.buttonSmall
-        readMoreButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        readMoreButton.setTitleColor(UITheme.Colors.accent, for: .normal)
+        readMoreButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         let chevronConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
         readMoreButton.setImage(UIImage(systemName: "chevron.right", withConfiguration: chevronConfig), for: .normal)
-        readMoreButton.tintColor = UIColor(hex: "1E6EF7")
+        readMoreButton.tintColor = UITheme.Colors.accent
         readMoreButton.semanticContentAttribute = .forceRightToLeft
         readMoreButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 0, bottom: 6, right: 0)
         readMoreButton.addTarget(self, action: #selector(readTapped), for: .touchUpInside)
@@ -196,7 +191,7 @@ final class ArticleCardCell: UITableViewCell {
         let imageName = bookmarked ? "bookmark.fill" : "bookmark"
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         bookmarkButton.setImage(UIImage(systemName: imageName, withConfiguration: config), for: .normal)
-        bookmarkButton.tintColor = bookmarked ? UIColor(hex: "1E6EF7") : UIColor.black.withAlphaComponent(0.6)
+        bookmarkButton.tintColor = bookmarked ? UITheme.Colors.accent : .tertiaryLabel
     }
 
     @objc private func bookmarkTapped() {

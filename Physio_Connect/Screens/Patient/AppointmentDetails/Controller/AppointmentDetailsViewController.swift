@@ -30,9 +30,15 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        title = "Appointment Details"
-        view.backgroundColor = UIColor(hex: "E3F0FF")
+        UITheme.applyNativeNavBar(to: self, title: "Appointment Details")
+        // Custom back — pops to root
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.left"),
+            style: .plain,
+            target: self,
+            action: #selector(backTapped)
+        )
+        view.backgroundColor = UITheme.Colors.background
 
         // ✅ Pass MODEL to VIEW
         detailsView.configure(with: makeDetailsModel(from: appointment))
@@ -40,7 +46,6 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
         detailsView.updateNotesHeight()
 
         detailsView.notesTextView.delegate = self
-        detailsView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         detailsView.callButton.addTarget(self, action: #selector(callTapped), for: .touchUpInside)
         detailsView.messageButton.addTarget(self, action: #selector(messageTapped), for: .touchUpInside)
     }

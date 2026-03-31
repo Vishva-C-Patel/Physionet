@@ -2,27 +2,35 @@ import UIKit
 
 enum UITheme {
     enum Colors {
+        // iOS 26 system-adaptive colors for Liquid Glass design
         static let accent = UIColor(hex: "1E6EF7")
-        static let background = UIColor(hex: "EAF2FF")
-        static let surface = UIColor.white
-        static let textPrimary = UIColor(hex: "1E2A44")
-        static let textSecondary = UIColor(hex: "5C6B80")
-        static let textMuted = UIColor.black.withAlphaComponent(0.5)
-        static let border = UIColor(hex: "D9E6FF")
-        static let neutralFill = UIColor(hex: "F5F7FB")
+        static let background = UIColor.systemGroupedBackground
+        static let surface = UIColor.secondarySystemGroupedBackground
+        static let textPrimary = UIColor.label
+        static let textSecondary = UIColor.secondaryLabel
+        static let textMuted = UIColor.tertiaryLabel
+        static let border = UIColor.separator
+        static let neutralFill = UIColor.tertiarySystemFill
+
+        // Glass-specific
+        static let glassBackground = UIColor.systemBackground.withAlphaComponent(0.7)
+        static let glassBorder = UIColor.separator.withAlphaComponent(0.3)
+
+        // Card backgrounds (system-adaptive)
+        static let cardBackground = UIColor.secondarySystemGroupedBackground
     }
 
     enum Fonts {
         static func title(_ size: CGFloat) -> UIFont {
-            UIFont(name: "AvenirNext-Bold", size: size) ?? .systemFont(ofSize: size, weight: .bold)
+            .systemFont(ofSize: size, weight: .bold)
         }
 
         static func subtitle(_ size: CGFloat) -> UIFont {
-            UIFont(name: "AvenirNext-DemiBold", size: size) ?? .systemFont(ofSize: size, weight: .semibold)
+            .systemFont(ofSize: size, weight: .semibold)
         }
 
         static func body(_ size: CGFloat) -> UIFont {
-            UIFont(name: "AvenirNext-Regular", size: size) ?? .systemFont(ofSize: size, weight: .regular)
+            .systemFont(ofSize: size, weight: .regular)
         }
     }
 
@@ -42,13 +50,53 @@ enum UITheme {
     }
 
     enum Metrics {
-        static let cardCornerRadius: CGFloat = 16
-        static let chipCornerRadius: CGFloat = 12
-        static let cardShadowOpacity: Float = 0.08
-        static let cardShadowRadius: CGFloat = 10
-        static let cardShadowOffset = CGSize(width: 0, height: 6)
+        static let cardCornerRadius: CGFloat = 22
+        static let chipCornerRadius: CGFloat = 14
+        static let buttonCornerRadius: CGFloat = 20
+        static let cardShadowOpacity: Float = 0.04
+        static let cardShadowRadius: CGFloat = 16
+        static let cardShadowOffset = CGSize(width: 0, height: 4)
     }
 
+    // MARK: - Glass Card Style (iOS 26 Liquid Glass)
+
+    /// Applies a translucent glass card style using UIVisualEffectView.
+    /// Returns the content view where subviews should be added.
+    @discardableResult
+    static func applyGlassCardStyle(_ view: UIView) -> UIVisualEffectView {
+        view.backgroundColor = .clear
+        view.layer.cornerRadius = Metrics.cardCornerRadius
+        view.clipsToBounds = true
+
+        // Create blur effect
+        let blur = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.layer.cornerRadius = Metrics.cardCornerRadius
+        blurView.clipsToBounds = true
+        view.insertSubview(blurView, at: 0)
+
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: view.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        // Subtle border for glass definition
+        view.layer.borderWidth = 0.5
+        view.layer.borderColor = Colors.glassBorder.cgColor
+
+        // Softer shadow
+        view.layer.masksToBounds = false
+        view.clipsToBounds = false
+        blurView.layer.cornerRadius = Metrics.cardCornerRadius
+        blurView.clipsToBounds = true
+
+        return blurView
+    }
+
+    /// Classic card style — updated for iOS 26 with larger corner radius and softer shadows.
     static func applyCardStyle(_ view: UIView) {
         view.backgroundColor = Colors.surface
         view.layer.cornerRadius = Metrics.cardCornerRadius
@@ -61,12 +109,71 @@ enum UITheme {
     static func applySecondaryCardStyle(_ view: UIView) {
         view.backgroundColor = Colors.surface
         view.layer.cornerRadius = Metrics.cardCornerRadius
-        view.layer.borderWidth = 1
+        view.layer.borderWidth = 0.5
         view.layer.borderColor = Colors.border.cgColor
         view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.04
-        view.layer.shadowRadius = 8
-        view.layer.shadowOffset = CGSize(width: 0, height: 4)
+        view.layer.shadowOpacity = 0.03
+        view.layer.shadowRadius = 12
+        view.layer.shadowOffset = CGSize(width: 0, height: 3)
+    }
+
+    // MARK: - Glass Tab/Nav Bar Appearance
+
+    static func makeGlassTabBarAppearance() -> UITabBarAppearance {
+        let appearance = UITabBarAppearance()
+        // iOS 26: use default background for native Liquid Glass capsule rendering
+        appearance.configureWithDefaultBackground()
+
+        let normal = appearance.stackedLayoutAppearance.normal
+        normal.iconColor = UIColor.secondaryLabel
+        normal.titleTextAttributes = [.foregroundColor: UIColor.secondaryLabel]
+
+        let selected = appearance.stackedLayoutAppearance.selected
+        selected.iconColor = Colors.accent
+        selected.titleTextAttributes = [.foregroundColor: Colors.accent]
+
+        return appearance
+    }
+
+    static func makeGlassNavBarAppearance() -> UINavigationBarAppearance {
+        let appearance = UINavigationBarAppearance()
+        // iOS 26: use default background for native Liquid Glass nav bar
+        appearance.configureWithDefaultBackground()
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        return appearance
+    }
+
+    /// Applies native iOS 26 navigation bar — fully transparent with no background box.
+    /// The title and bar buttons float cleanly over the content on all screens.
+    static func applyNativeNavBar(to vc: UIViewController, title: String) {
+        vc.navigationController?.setNavigationBarHidden(false, animated: false)
+
+        let navBar = vc.navigationController?.navigationBar
+        navBar?.prefersLargeTitles = false
+        navBar?.tintColor = Colors.accent
+
+        // Scrolled state — frosted glass background
+        let standard = makeGlassNavBarAppearance()
+        
+        // At-rest state — fully transparent
+        let scrollEdge = UINavigationBarAppearance()
+        scrollEdge.configureWithTransparentBackground()
+        scrollEdge.shadowColor = .clear
+        scrollEdge.titleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+
+        navBar?.standardAppearance = standard
+        navBar?.scrollEdgeAppearance = scrollEdge
+        navBar?.compactAppearance = standard
+
+        vc.navigationItem.title = title
+        vc.navigationItem.backButtonDisplayMode = .minimal
     }
 }
 

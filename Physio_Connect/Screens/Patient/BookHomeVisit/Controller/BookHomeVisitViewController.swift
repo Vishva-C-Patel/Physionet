@@ -31,10 +31,9 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Book Home Visit")
 
         // Actions
-        bookView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         bookView.confirmButton.addTarget(self, action: #selector(confirmTapped), for: .touchUpInside)
         bookView.calendarButton.addTarget(self, action: #selector(calendarTapped), for: .touchUpInside)
 
@@ -61,10 +60,6 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
             time: nil,
             address: nil
         )
-    }
-
-    @objc private func backTapped() {
-        navigationController?.popViewController(animated: true)
     }
 
     @objc private func calendarTapped() {

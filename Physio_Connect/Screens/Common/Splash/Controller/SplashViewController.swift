@@ -49,7 +49,7 @@ final class SplashViewController: UIViewController {
             brandLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -20)
         ])
 
-        ringLayer.strokeColor = UIColor.systemBlue.withAlphaComponent(0.35).cgColor
+        ringLayer.strokeColor = UITheme.Colors.accent.withAlphaComponent(0.35).cgColor
         ringLayer.fillColor = UIColor.clear.cgColor
         ringLayer.lineWidth = 2.0
         ringLayer.lineCap = .round

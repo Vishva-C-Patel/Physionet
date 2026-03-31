@@ -9,17 +9,9 @@ import UIKit
 
 final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegate {
 
-    var onBack: (() -> Void)?
-    var onSave: (() -> Void)?
-
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stackView = UIStackView()
-
-    private let topBar = UIView()
-    private let backButton = UIButton(type: .system)
-    private let titleLabel = UILabel()
-    private let saveButton = UIButton(type: .system)
 
     private let nameField = LabeledTextField(title: "Full Name", placeholder: "Your name")
     private let phoneField = LabeledTextField(title: "Phone", placeholder: "Phone number")
@@ -34,7 +26,7 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E8EEF5")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -54,10 +46,6 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
         }
     }
 
-    func setSaving(_ saving: Bool) {
-        saveButton.isEnabled = !saving
-        saveButton.alpha = saving ? 0.6 : 1.0
-    }
 
     func currentInput() -> ProfileModel.ProfileUpdateInput {
         let resolvedGender: String = {
@@ -111,49 +99,9 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
 
-        buildTopBar()
         buildForm()
     }
 
-    private func buildTopBar() {
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = UIColor(hex: "1E6EF7")
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-
-        titleLabel.text = "Edit Profile"
-        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        titleLabel.textColor = UIColor.black
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        saveButton.setTitle("Save", for: .normal)
-        saveButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-        saveButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        saveButton.translatesAutoresizingMaskIntoConstraints = false
-
-        topBar.addSubview(backButton)
-        topBar.addSubview(titleLabel)
-        topBar.addSubview(saveButton)
-
-        NSLayoutConstraint.activate([
-            backButton.leadingAnchor.constraint(equalTo: topBar.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            backButton.heightAnchor.constraint(equalToConstant: 32),
-            backButton.widthAnchor.constraint(equalToConstant: 32),
-
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            saveButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            saveButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor)
-        ])
-
-        topBar.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        stackView.addArrangedSubview(topBar)
-    }
 
     private func buildForm() {
         let card = makeCardView()
@@ -197,7 +145,7 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
 
     private func makeCardView() -> UIView {
         let view = UIView()
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UITheme.Colors.surface
         view.layer.cornerRadius = 18
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.05
@@ -206,13 +154,6 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
         return view
     }
 
-    @objc private func backTapped() {
-        onBack?()
-    }
-
-    @objc private func saveTapped() {
-        onSave?()
-    }
 
     @objc private func dobChanged() {
         dobField.text = Self.dateFormatter.string(from: dobPicker.date)
@@ -300,12 +241,12 @@ private final class LabeledTextField: UIView {
         super.init(frame: .zero)
         titleLabel.text = title
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        titleLabel.textColor = .secondaryLabel
 
         textField.placeholder = placeholder
         textField.font = .systemFont(ofSize: 16, weight: .semibold)
-        textField.textColor = UIColor.black
-        textField.backgroundColor = UIColor(hex: "F2F6FB")
+        textField.textColor = .label
+        textField.backgroundColor = .tertiarySystemFill
         textField.layer.cornerRadius = 12
         textField.setLeftPadding(12)
         textField.setRightPadding(12)

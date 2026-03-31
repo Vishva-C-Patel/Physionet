@@ -158,29 +158,29 @@ final class RepeatSelectionViewController: UIViewController {
         button.layer.cornerRadius = 14
         button.layer.borderWidth = 1
         if filled {
-            button.backgroundColor = UIColor(hex: "1E6EF7")
+            button.backgroundColor = UITheme.Colors.accent
             button.setTitleColor(.white, for: .normal)
-            button.layer.borderColor = UIColor(hex: "1E6EF7").cgColor
+            button.layer.borderColor = UITheme.Colors.accent.cgColor
         } else {
-            button.backgroundColor = .white
-            button.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-            button.layer.borderColor = UIColor(hex: "1E6EF7").cgColor
+            button.backgroundColor = .tertiarySystemFill
+            button.setTitleColor(UITheme.Colors.accent, for: .normal)
+            button.layer.borderColor = UITheme.Colors.accent.cgColor
         }
         return button
     }
 
     private func applySelectionState() {
         let isOnlyDate = onlyThisDateSelected
-        onlyThisDateButton.layer.borderColor = (isOnlyDate ? UIColor(hex: "1E6EF7") : UIColor(hex: "D5DAE4")).cgColor
-        onlyThisDateButton.backgroundColor = isOnlyDate ? UIColor(hex: "E8F1FF") : UIColor(hex: "F4F6FA")
-        onlyThisDateButton.setTitleColor(isOnlyDate ? UIColor(hex: "1E6EF7") : UIColor.black.withAlphaComponent(0.7), for: .normal)
+        onlyThisDateButton.layer.borderColor = (isOnlyDate ? UITheme.Colors.accent : UIColor.separator).cgColor
+        onlyThisDateButton.backgroundColor = isOnlyDate ? UITheme.Colors.accent.withAlphaComponent(0.12) : .tertiarySystemFill
+        onlyThisDateButton.setTitleColor(isOnlyDate ? UITheme.Colors.accent : .secondaryLabel, for: .normal)
 
         for (weekday, button) in dayButtons {
             let selected = selectedWeekdays.contains(weekday)
             button.isEnabled = !isOnlyDate
-            button.layer.borderColor = selected ? UIColor(hex: "1E6EF7").cgColor : UIColor(hex: "D5DAE4").cgColor
-            button.backgroundColor = selected ? UIColor(hex: "E8F1FF") : UIColor(hex: "F4F6FA")
-            let titleColor = selected ? UIColor(hex: "1E6EF7") : UIColor.black.withAlphaComponent(0.7)
+            button.layer.borderColor = selected ? UITheme.Colors.accent.cgColor : UIColor.separator.cgColor
+            button.backgroundColor = selected ? UITheme.Colors.accent.withAlphaComponent(0.12) : .tertiarySystemFill
+            let titleColor = selected ? UITheme.Colors.accent : .secondaryLabel
             button.setTitleColor(titleColor, for: .normal)
             button.alpha = isOnlyDate ? 0.4 : 1.0
         }

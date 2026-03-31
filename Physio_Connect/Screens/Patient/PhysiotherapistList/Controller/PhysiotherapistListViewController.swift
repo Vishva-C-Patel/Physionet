@@ -30,13 +30,11 @@ final class PhysiotherapistListViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.hidesBackButton = true
+        UITheme.applyNativeNavBar(to: self, title: "Find a Physiotherapist")
 
         listView.tableView.dataSource = self
         listView.tableView.delegate = self
         listView.searchBar.delegate = self
-
-        listView.backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         listView.datePill.addTarget(self, action: #selector(datePillTapped), for: .touchUpInside)
         listView.timePill.addTarget(self, action: #selector(timePillTapped), for: .touchUpInside)
         listView.filterButton.addTarget(self, action: #selector(openFilters), for: .touchUpInside)
@@ -128,7 +126,6 @@ final class PhysiotherapistListViewController: UIViewController {
     }
 
     // MARK: - Actions
-    @objc private func goBack() { navigationController?.popViewController(animated: true) }
 
     @objc private func datePillTapped() {
         presentDatePicker(mode: .date)

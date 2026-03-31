@@ -24,7 +24,7 @@ final class PhysioReviewCardView: UIView {
         backgroundColor = .white
         layer.cornerRadius = 18
         layer.borderWidth = 1
-        layer.borderColor = UIColor(hex: "D4E3FE").cgColor
+        layer.borderColor = UIColor.separator.cgColor
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.06
         layer.shadowRadius = 6
@@ -46,7 +46,7 @@ final class PhysioReviewCardView: UIView {
         ratingPill.font = .systemFont(ofSize: 13, weight: .semibold)
         ratingPill.textAlignment = .center
         ratingPill.textColor = .black
-        ratingPill.backgroundColor = UIColor(hex: "FFF3D6")
+        ratingPill.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.2)
         ratingPill.layer.cornerRadius = 12
         ratingPill.clipsToBounds = true
 

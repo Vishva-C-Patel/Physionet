@@ -27,19 +27,19 @@ final class ArticleDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Article")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.up"),
+            style: .plain,
+            target: self,
+            action: #selector(shareTapped)
+        )
         detailView.configure(with: article)
-        detailView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        detailView.shareButton.addTarget(self, action: #selector(shareTapped), for: .touchUpInside)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         Task { await incrementViewsAndRefresh() }
-    }
-
-    @objc private func backTapped() {
-        navigationController?.popViewController(animated: true)
     }
 
     @objc private func shareTapped() {
@@ -53,8 +53,7 @@ final class ArticleDetailViewController: UIViewController {
             self?.downloadPDF()
         }
         if let popover = vc.popoverPresentationController {
-            popover.sourceView = detailView.shareButton
-            popover.sourceRect = detailView.shareButton.bounds
+            popover.barButtonItem = navigationItem.rightBarButtonItem
         }
         present(vc, animated: true)
     }

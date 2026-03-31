@@ -67,7 +67,7 @@ final class FiltersOverlayViewController: UIViewController {
 
         // ================= Sheet View =================
         view.addSubview(sheetView)
-        sheetView.backgroundColor = UIColor(hex: "E3F0FF")
+        sheetView.backgroundColor = .systemGroupedBackground
         sheetView.layer.cornerRadius = 32
         sheetView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         sheetView.clipsToBounds = true
@@ -94,7 +94,7 @@ final class FiltersOverlayViewController: UIViewController {
         headerTitle.font = .boldSystemFont(ofSize: 22)
 
         clearButton.setTitle("clear", for: .normal)
-        clearButton.setTitleColor(.darkGray, for: .normal)
+        clearButton.setTitleColor(UITheme.Colors.textSecondary, for: .normal)
         clearButton.addTarget(self, action: #selector(resetFilters), for: .touchUpInside)
 
         [headerTitle, clearButton].forEach {
@@ -180,14 +180,14 @@ final class FiltersOverlayViewController: UIViewController {
 
         let cancel = UIButton(type: .system)
         cancel.setTitle("Cancel", for: .normal)
-        cancel.backgroundColor = .white
-        cancel.setTitleColor(.black, for: .normal)
+        cancel.backgroundColor = UITheme.Colors.surface
+        cancel.setTitleColor(.label, for: .normal)
         cancel.layer.cornerRadius = 22
         cancel.addTarget(self, action: #selector(close), for: .touchUpInside)
 
         let apply = UIButton(type: .system)
         apply.setTitle("Apply", for: .normal)
-        apply.backgroundColor = UIColor(hex: "1E6EF7")
+        apply.backgroundColor = UITheme.Colors.accent
         apply.setTitleColor(.white, for: .normal)
         apply.layer.cornerRadius = 22
         apply.addTarget(self, action: #selector(applyFiltersTapped), for: .touchUpInside)
@@ -250,7 +250,7 @@ final class FiltersOverlayViewController: UIViewController {
 
     private func baseCard() -> UIView {
         let v = UIView()
-        v.backgroundColor = .white
+        v.backgroundColor = UITheme.Colors.surface
         v.layer.cornerRadius = 20
         v.layer.shadowOpacity = 0.05
         v.layer.shadowRadius = 5
@@ -281,6 +281,7 @@ final class FiltersOverlayViewController: UIViewController {
             let label = UILabel()
             label.text = item
             label.font = .systemFont(ofSize: 15)
+            label.textColor = .label
 
             let btn = UIButton(type: .custom)
             btn.layer.cornerRadius = 10
@@ -321,7 +322,7 @@ final class FiltersOverlayViewController: UIViewController {
 
         distanceLabel.text = "within \(Int(selectedDistance)) km"
         distanceLabel.font = .systemFont(ofSize: 14)
-        distanceLabel.textColor = .darkGray
+        distanceLabel.textColor = UITheme.Colors.textSecondary
 
         distanceSlider.minimumValue = 1
         distanceSlider.maximumValue = 50
@@ -429,8 +430,8 @@ final class FiltersOverlayViewController: UIViewController {
 
     private func updateButton(_ button: UIButton, selected: Bool) {
         button.isSelected = selected
-        button.backgroundColor = selected ? UIColor(hex: "1E6EF7") : .white
-        button.layer.borderColor = selected ? UIColor.clear.cgColor : UIColor.lightGray.cgColor
+        button.backgroundColor = selected ? UITheme.Colors.accent : UITheme.Colors.surface
+        button.layer.borderColor = selected ? UIColor.clear.cgColor : UITheme.Colors.border.cgColor
     }
 
     private func updateRatingUI() {

@@ -11,20 +11,14 @@ import UIKit
 final class CreateAccountView: UIView {
 
     // MARK: - Theme (match project)
-    private let bg = UIColor(hex: "E3F0FF")
-    private let primaryBlue = UIColor(hex: "1E6EF7")
-    private let cardBg = UIColor.white
+    private let bg = UITheme.Colors.background
+    private let primaryBlue = UITheme.Colors.accent
+    private let cardBg = UITheme.Colors.cardBackground
 
     // MARK: - Scroll
     let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stack = UIStackView()
-
-    // MARK: - Header
-    let backButton = UIButton(type: .system)
-    private let titleLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    private let divider = UIView()
 
     // MARK: - Appointment saved banner
     private let savedCard = UIView()
@@ -133,48 +127,11 @@ final class CreateAccountView: UIView {
             stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -18)
         ])
 
-        // Header
-        let headerRow = UIView()
-        headerRow.translatesAutoresizingMaskIntoConstraints = false
-
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.tintColor = primaryBlue
-        backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 6, bottom: 8, right: 6)
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Create Your Account"
-        titleLabel.font = .boldSystemFont(ofSize: 22)
-        titleLabel.textAlignment = .center
-
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "Join us to complete your booking"
-        subtitleLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        subtitleLabel.textColor = .darkGray
-        subtitleLabel.textAlignment = .center
-
-        divider.translatesAutoresizingMaskIntoConstraints = false
-        divider.backgroundColor = UIColor.black.withAlphaComponent(0.08)
-
-        headerRow.addSubview(backButton)
-        headerRow.addSubview(titleLabel)
-
-        NSLayoutConstraint.activate([
-            headerRow.heightAnchor.constraint(equalToConstant: 40),
-            backButton.leadingAnchor.constraint(equalTo: headerRow.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: headerRow.centerYAnchor),
-            titleLabel.centerXAnchor.constraint(equalTo: headerRow.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: headerRow.centerYAnchor)
-        ])
-
-        stack.addArrangedSubview(headerRow)
-        stack.addArrangedSubview(subtitleLabel)
-        stack.addArrangedSubview(divider)
-        divider.heightAnchor.constraint(equalToConstant: 1).isActive = true
-
+        // Header removed, using native navigation bar.
+        
         // Appointment saved banner
         styleCard(savedCard)
-        savedCard.backgroundColor = UIColor.white
+        savedCard.backgroundColor = UITheme.Colors.cardBackground
         savedCard.layer.borderWidth = 1.2
         savedCard.layer.borderColor = primaryBlue.withAlphaComponent(0.18).cgColor
 
@@ -190,17 +147,17 @@ final class CreateAccountView: UIView {
         savedTitle.translatesAutoresizingMaskIntoConstraints = false
         savedTitle.text = "Appointment Saved!"
         savedTitle.font = .systemFont(ofSize: 14, weight: .bold)
-        savedTitle.textColor = UIColor(hex: "1E3A8A") // deep blue-ish
+        savedTitle.textColor = UITheme.Colors.accent
 
         savedLine1.translatesAutoresizingMaskIntoConstraints = false
         savedLine1.text = "--"
         savedLine1.font = .systemFont(ofSize: 13, weight: .semibold)
-        savedLine1.textColor = UIColor.black.withAlphaComponent(0.75)
+        savedLine1.textColor = .label
 
         savedLine2.translatesAutoresizingMaskIntoConstraints = false
         savedLine2.text = "Create an account to confirm your booking"
         savedLine2.font = .systemFont(ofSize: 13, weight: .medium)
-        savedLine2.textColor = UIColor.black.withAlphaComponent(0.55)
+        savedLine2.textColor = .secondaryLabel
         savedLine2.numberOfLines = 2
 
         let savedTextStack = UIStackView(arrangedSubviews: [savedTitle, savedLine1, savedLine2])
@@ -250,20 +207,17 @@ final class CreateAccountView: UIView {
         // Section title
         sectionTitle.text = "Sign up with email"
         sectionTitle.font = .systemFont(ofSize: 18, weight: .bold)
-        sectionTitle.textColor = .black
+        sectionTitle.textColor = .label
         stack.addArrangedSubview(sectionTitle)
 
         // Fields
-        fullNameField.titleText = "Full Name *"
-        fullNameField.placeholder = "Enter your full name"
+        fullNameField.placeholder = "Full Name"
 
-        emailField.titleText = "Email Address *"
-        emailField.placeholder = "your.email@example.com"
+        emailField.placeholder = "Email Address"
         emailField.textField.keyboardType = .emailAddress
         emailField.textField.autocapitalizationType = .none
 
-        phoneField.titleText = "Phone Number *"
-        phoneField.placeholder = "888 123 4567"
+        phoneField.placeholder = "Phone Number"
         phoneField.textField.keyboardType = .numberPad
         phoneField.textField.autocorrectionType = .no
         phoneField.textField.autocapitalizationType = .none
@@ -272,8 +226,7 @@ final class CreateAccountView: UIView {
             phoneField.textField.text = "+91 "
         }
 
-        passwordField.titleText = "Password *"
-        passwordField.placeholder = "Create a strong password"
+        passwordField.placeholder = "Password"
         passwordField.textField.isSecureTextEntry = true
         passwordField.textField.autocapitalizationType = .none
         passwordField.textField.autocorrectionType = .no
@@ -284,8 +237,7 @@ final class CreateAccountView: UIView {
         passwordField.textField.inputAssistantItem.trailingBarButtonGroups = []
         passwordField.textField.clearsOnBeginEditing = false
 
-        confirmPasswordField.titleText = "Confirm Password *"
-        confirmPasswordField.placeholder = "Re-enter your password"
+        confirmPasswordField.placeholder = "Confirm Password"
         confirmPasswordField.textField.isSecureTextEntry = true
         confirmPasswordField.textField.autocapitalizationType = .none
         confirmPasswordField.textField.autocorrectionType = .no
@@ -320,7 +272,7 @@ final class CreateAccountView: UIView {
 
         // Terms card
         styleCard(termsCard)
-        termsCard.backgroundColor = UIColor.black.withAlphaComponent(0.03)
+        termsCard.backgroundColor = UIColor.tertiarySystemFill
         termsCard.layer.shadowOpacity = 0 // looks like light panel (as in SS)
 
         termsCheckButton.translatesAutoresizingMaskIntoConstraints = false
@@ -330,7 +282,7 @@ final class CreateAccountView: UIView {
         termsLabel.translatesAutoresizingMaskIntoConstraints = false
         termsLabel.numberOfLines = 0
         termsLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        termsLabel.textColor = UIColor.black.withAlphaComponent(0.75)
+        termsLabel.textColor = .secondaryLabel
         termsLabel.text = "I agree to the Terms of Service and Privacy Policy"
 
         termsCard.addSubview(termsCheckButton)
@@ -358,7 +310,7 @@ final class CreateAccountView: UIView {
         createAccountButton.setTitleColor(.white, for: .normal)
         createAccountButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         createAccountButton.backgroundColor = primaryBlue
-        createAccountButton.layer.cornerRadius = 16
+        createAccountButton.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
         createAccountButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
         createAccountButton.layer.shadowColor = UIColor.black.cgColor
         createAccountButton.layer.shadowOpacity = 0.12
@@ -403,7 +355,7 @@ final class CreateAccountView: UIView {
         securityText.translatesAutoresizingMaskIntoConstraints = false
         securityText.numberOfLines = 0
         securityText.font = .systemFont(ofSize: 12, weight: .medium)
-        securityText.textColor = UIColor.black.withAlphaComponent(0.75)
+        securityText.textColor = .secondaryLabel
         securityText.text = "Your information is encrypted and secure. We never share your data with third parties."
 
         securityCard.addSubview(securityIcon)
@@ -426,7 +378,7 @@ final class CreateAccountView: UIView {
 
     // MARK: - Helpers
     private func configureEyeButton(_ b: UIButton) {
-        b.tintColor = UIColor.black.withAlphaComponent(0.35)
+        b.tintColor = .tertiaryLabel
         b.setImage(UIImage(systemName: "eye"), for: .normal)
         b.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
         b.contentMode = .center
@@ -442,7 +394,7 @@ final class CreateAccountView: UIView {
     private func styleCard(_ v: UIView) {
         v.translatesAutoresizingMaskIntoConstraints = false
         v.backgroundColor = cardBg
-        v.layer.cornerRadius = 18
+        v.layer.cornerRadius = UITheme.Metrics.cardCornerRadius
         v.layer.shadowColor = UIColor.black.cgColor
         v.layer.shadowOpacity = 0.06
         v.layer.shadowRadius = 10
@@ -452,15 +404,15 @@ final class CreateAccountView: UIView {
     private func styleOutlineSocialButton(_ b: UIButton, title: String, iconSystemName: String) {
         b.translatesAutoresizingMaskIntoConstraints = false
         b.setTitle("  \(title)", for: .normal)
-        b.setTitleColor(.black, for: .normal)
+        b.setTitleColor(.label, for: .normal)
         b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        b.layer.cornerRadius = 14
-        b.layer.borderWidth = 1.5
-        b.layer.borderColor = UIColor.black.withAlphaComponent(0.12).cgColor
-        b.backgroundColor = .white
+        b.layer.cornerRadius = UITheme.Metrics.chipCornerRadius
+        b.layer.borderWidth = 1
+        b.layer.borderColor = UIColor.separator.cgColor
+        b.backgroundColor = .secondarySystemGroupedBackground
         b.heightAnchor.constraint(equalToConstant: 52).isActive = true
         b.setImage(UIImage(systemName: iconSystemName), for: .normal)
-        b.tintColor = UIColor.black.withAlphaComponent(0.75)
+        b.tintColor = .secondaryLabel
     }
 }
 
@@ -485,8 +437,8 @@ private final class BenefitTileView: UIView {
     }
 
     private func build() {
-        backgroundColor = UIColor.black.withAlphaComponent(0.03)
-        layer.cornerRadius = 16
+        backgroundColor = UIColor.tertiarySystemFill
+        layer.cornerRadius = UITheme.Metrics.chipCornerRadius
 
         iconCircle.translatesAutoresizingMaskIntoConstraints = false
         iconCircle.layer.cornerRadius = 18
@@ -496,7 +448,7 @@ private final class BenefitTileView: UIView {
 
         title.translatesAutoresizingMaskIntoConstraints = false
         title.font = .systemFont(ofSize: 12, weight: .semibold)
-        title.textColor = UIColor.black.withAlphaComponent(0.75)
+        title.textColor = .secondaryLabel
         title.textAlignment = .center
         title.numberOfLines = 2
 
@@ -541,13 +493,13 @@ private final class OrDividerView: UIView {
 
         line1.translatesAutoresizingMaskIntoConstraints = false
         line2.translatesAutoresizingMaskIntoConstraints = false
-        line1.backgroundColor = UIColor.black.withAlphaComponent(0.12)
-        line2.backgroundColor = UIColor.black.withAlphaComponent(0.12)
+        line1.backgroundColor = UIColor.separator
+        line2.backgroundColor = UIColor.separator
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "or continue with"
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .gray
+        label.textColor = .tertiaryLabel
 
         addSubview(line1)
         addSubview(line2)
@@ -573,12 +525,14 @@ private final class OrDividerView: UIView {
 // MARK: - IconTextField (title + rounded textfield with left icon)
 final class IconTextField: UIView {
 
-    private let primaryBlue = UIColor(hex: "1E6EF7")
+    private let primaryBlue = UITheme.Colors.accent
 
-    var titleText: String = "" { didSet { titleLabel.text = titleText } }
-    var placeholder: String = "" { didSet { textField.placeholder = placeholder } }
+    var placeholder: String = "" { 
+        didSet { 
+            textField.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: [.foregroundColor: UIColor.placeholderText])
+        } 
+    }
 
-    let titleLabel = UILabel()
     let textField = UITextField()
 
     private let container = UIView()
@@ -595,39 +549,30 @@ final class IconTextField: UIView {
     private func build() {
         translatesAutoresizingMaskIntoConstraints = false
 
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.75)
-
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = UIColor(hex: "F6F7FB")
-        container.layer.cornerRadius = 14
-        container.layer.borderWidth = 1
-        container.layer.borderColor = UIColor.black.withAlphaComponent(0.08).cgColor
+        container.backgroundColor = UIColor.tertiarySystemFill
+        container.layer.cornerRadius = 18
+        container.layer.borderWidth = 0.5
+        container.layer.borderColor = UIColor.separator.cgColor
 
         icon.translatesAutoresizingMaskIntoConstraints = false
-        icon.tintColor = UIColor.black.withAlphaComponent(0.35)
+        icon.tintColor = .tertiaryLabel
         icon.contentMode = .scaleAspectFit
 
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.font = .systemFont(ofSize: 15, weight: .medium)
-        textField.textColor = .black
+        textField.textColor = .label
         textField.autocorrectionType = .no
 
-        addSubview(titleLabel)
         addSubview(container)
         container.addSubview(icon)
         container.addSubview(textField)
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: topAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-
-            container.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            container.topAnchor.constraint(equalTo: topAnchor),
             container.leadingAnchor.constraint(equalTo: leadingAnchor),
             container.trailingAnchor.constraint(equalTo: trailingAnchor),
-            container.heightAnchor.constraint(equalToConstant: 50),
+            container.heightAnchor.constraint(equalToConstant: 54),
             container.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             icon.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),

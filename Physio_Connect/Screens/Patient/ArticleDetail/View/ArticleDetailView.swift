@@ -9,11 +9,6 @@ import UIKit
 
 final class ArticleDetailView: UIView {
 
-    private let topBar = UIView()
-    let backButton = UIButton(type: .system)
-    let shareButton = UIButton(type: .system)
-    let titleLabel = UILabel()
-
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let contentCard = UIView()
@@ -26,7 +21,7 @@ final class ArticleDetailView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "EAF2FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -44,7 +39,6 @@ final class ArticleDetailView: UIView {
     }
 
     func configure(with article: ArticleRow) {
-        titleLabel.text = "Read Article"
         articleTitleLabel.text = article.title
         summaryLabel.text = article.summary
         bodyLabel.text = preferredBodyText(for: article)
@@ -58,7 +52,6 @@ final class ArticleDetailView: UIView {
                              (fallback?.isEmpty == false ? fallback : "Source"))))
         dateLabel.text = nil
         dateLabel.isHidden = true
-
         setTags(article.tags ?? [])
     }
 
@@ -79,30 +72,13 @@ final class ArticleDetailView: UIView {
     }
 
     private func build() {
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        let backConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
-        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: backConfig), for: .normal)
-        backButton.tintColor = UIColor.black.withAlphaComponent(0.7)
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textColor = UITheme.Colors.textPrimary
-        titleLabel.textAlignment = .center
-
-        shareButton.translatesAutoresizingMaskIntoConstraints = false
-        let shareConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
-        shareButton.setImage(UIImage(systemName: "square.and.arrow.up", withConfiguration: shareConfig), for: .normal)
-        shareButton.tintColor = UIColor(hex: "1E6EF7")
-
         scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.backgroundColor = UIColor(hex: "EAF2FF")
+        scrollView.backgroundColor = .systemGroupedBackground
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.backgroundColor = .clear
 
         contentCard.translatesAutoresizingMaskIntoConstraints = false
-        contentCard.backgroundColor = .white
+        contentCard.backgroundColor = UITheme.Colors.surface
         contentCard.layer.cornerRadius = 22
         contentCard.layer.shadowColor = UIColor.black.cgColor
         contentCard.layer.shadowOpacity = 0.08
@@ -110,15 +86,15 @@ final class ArticleDetailView: UIView {
         contentCard.layer.shadowOffset = CGSize(width: 0, height: 8)
 
         sourcePill.translatesAutoresizingMaskIntoConstraints = false
-        sourcePill.backgroundColor = UIColor(hex: "EDF4FF")
-        sourcePill.textColor = UIColor(hex: "1E6EF7")
+        sourcePill.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+        sourcePill.textColor = UITheme.Colors.accent
         sourcePill.font = UITheme.Typography.caption
         sourcePill.layer.cornerRadius = 14
         sourcePill.layer.masksToBounds = true
 
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         dateLabel.font = UITheme.Typography.meta
-        dateLabel.textColor = UIColor.black.withAlphaComponent(0.45)
+        dateLabel.textColor = UITheme.Colors.textSecondary
 
         tagsStack.translatesAutoresizingMaskIntoConstraints = false
         tagsStack.axis = .horizontal
@@ -140,11 +116,6 @@ final class ArticleDetailView: UIView {
         bodyLabel.textColor = UITheme.Colors.textPrimary
         bodyLabel.numberOfLines = 0
 
-        addSubview(topBar)
-        topBar.addSubview(backButton)
-        topBar.addSubview(titleLabel)
-        topBar.addSubview(shareButton)
-
         addSubview(scrollView)
         scrollView.addSubview(contentView)
 
@@ -157,25 +128,7 @@ final class ArticleDetailView: UIView {
         contentCard.addSubview(bodyLabel)
 
         NSLayoutConstraint.activate([
-            topBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
-            topBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
-
-            backButton.leadingAnchor.constraint(equalTo: topBar.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 40),
-            backButton.heightAnchor.constraint(equalToConstant: 40),
-
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            shareButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            shareButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            shareButton.widthAnchor.constraint(equalToConstant: 40),
-            shareButton.heightAnchor.constraint(equalToConstant: 40),
-
-            scrollView.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
+            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -235,12 +188,12 @@ private final class ArticleTagPillView: UIView {
 
     init(text: String) {
         super.init(frame: .zero)
-        backgroundColor = UIColor(hex: "E8F3FF")
+        backgroundColor = UITheme.Colors.surface
         layer.cornerRadius = 14
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = text
         label.font = .systemFont(ofSize: 12, weight: .semibold)
-        label.textColor = UIColor(hex: "1E6EF7")
+        label.textColor = UITheme.Colors.accent
         addSubview(label)
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: topAnchor, constant: 6),

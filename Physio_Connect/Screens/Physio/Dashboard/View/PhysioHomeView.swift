@@ -27,7 +27,7 @@ final class PhysioHomeView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -56,7 +56,7 @@ final class PhysioHomeView: UIView {
 
         upcomingTitle.text = "Upcoming Sessions"
         upcomingTitle.font = .systemFont(ofSize: 18, weight: .bold)
-        upcomingTitle.textColor = UIColor(hex: "102A43")
+        upcomingTitle.textColor = .label
         contentStack.addArrangedSubview(upcomingTitle)
 
         upcomingStack.axis = .vertical
@@ -67,12 +67,12 @@ final class PhysioHomeView: UIView {
 
         upcomingEmptyLabel.text = "No upcoming sessions yet."
         upcomingEmptyLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        upcomingEmptyLabel.textColor = UIColor.black.withAlphaComponent(0.45)
+        upcomingEmptyLabel.textColor = UITheme.Colors.textMuted
         upcomingStack.addArrangedSubview(upcomingEmptyLabel)
 
         patientsTitle.text = "Patients"
         patientsTitle.font = .systemFont(ofSize: 18, weight: .bold)
-        patientsTitle.textColor = UIColor(hex: "102A43")
+        patientsTitle.textColor = .label
         contentStack.addArrangedSubview(patientsTitle)
 
         patientsStack.axis = .vertical
@@ -83,7 +83,7 @@ final class PhysioHomeView: UIView {
 
         patientsEmptyLabel.text = "No patients assigned yet."
         patientsEmptyLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        patientsEmptyLabel.textColor = UIColor.black.withAlphaComponent(0.45)
+        patientsEmptyLabel.textColor = UITheme.Colors.textMuted
         patientsStack.addArrangedSubview(patientsEmptyLabel)
 
         NSLayoutConstraint.activate([
@@ -169,20 +169,15 @@ private final class StatCardView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = UIColor.white.withAlphaComponent(0.98)
-        layer.cornerRadius = 16
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.06
-        layer.shadowRadius = 10
-        layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(self)
 
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        valueLabel.textColor = UIColor(hex: "1E6EF7")
+        valueLabel.textColor = UITheme.Colors.accent
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        titleLabel.textColor = UITheme.Colors.textSecondary
         titleLabel.numberOfLines = 2
         titleLabel.lineBreakMode = .byWordWrapping
 
@@ -218,12 +213,7 @@ private final class UpcomingSessionCard: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = UIColor.white.withAlphaComponent(0.98)
-        layer.cornerRadius = 16
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.06
-        layer.shadowRadius = 10
-        layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(self)
 
         [titleLabel, patientLabel, timeLabel, locationLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -231,16 +221,16 @@ private final class UpcomingSessionCard: UIView {
         }
 
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        titleLabel.textColor = UIColor(hex: "102A43")
+        titleLabel.textColor = .label
 
         patientLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        patientLabel.textColor = UIColor.black.withAlphaComponent(0.75)
+        patientLabel.textColor = UITheme.Colors.textSecondary
 
         timeLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        timeLabel.textColor = UIColor(hex: "1E6EF7")
+        timeLabel.textColor = UITheme.Colors.accent
 
         locationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        locationLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        locationLabel.textColor = UITheme.Colors.textSecondary
 
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 14),
@@ -280,12 +270,7 @@ private final class PatientCardView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = UIColor.white.withAlphaComponent(0.98)
-        layer.cornerRadius = 14
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.05
-        layer.shadowRadius = 8
-        layer.shadowOffset = CGSize(width: 0, height: 4)
+        UITheme.applyCardStyle(self)
 
         [nameLabel, contactLabel, locationLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -293,13 +278,13 @@ private final class PatientCardView: UIView {
         }
 
         nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        nameLabel.textColor = UIColor(hex: "102A43")
+        nameLabel.textColor = .label
 
         contactLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        contactLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+        contactLabel.textColor = UITheme.Colors.textSecondary
 
         locationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        locationLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        locationLabel.textColor = UITheme.Colors.textMuted
 
         NSLayoutConstraint.activate([
             nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),

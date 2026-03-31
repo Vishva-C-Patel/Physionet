@@ -58,31 +58,32 @@ final class ProgramExerciseCell: UITableViewCell {
 
         if locked {
             statusBadge.image = UIImage(systemName: "lock.fill")
-            statusBadge.tintColor = UIColor.black.withAlphaComponent(0.35)
+            statusBadge.tintColor = UITheme.Colors.textMuted
             playOverlay.image = UIImage(systemName: "lock.fill")
-            playOverlay.tintColor = UIColor.black.withAlphaComponent(0.35)
+            playOverlay.tintColor = UITheme.Colors.textMuted
             thumbImageView.alpha = 0.45
-            titleLabel.textColor = UIColor.black.withAlphaComponent(0.4)
-            subLabel.textColor = UIColor.black.withAlphaComponent(0.3)
-            durationPill.textColor = UIColor.black.withAlphaComponent(0.4)
+            titleLabel.textColor = UITheme.Colors.textSecondary
+            subLabel.textColor = UITheme.Colors.textMuted
+            durationPill.textColor = UITheme.Colors.textSecondary
             durationPill.backgroundColor = UITheme.Colors.neutralFill
             statusPill.text = "Locked"
-            statusPill.textColor = UIColor.black.withAlphaComponent(0.5)
+            statusPill.textColor = UITheme.Colors.textSecondary
             statusPill.backgroundColor = UITheme.Colors.neutralFill
             chevron.alpha = 0.3
         } else if completed {
             statusBadge.image = UIImage(systemName: "checkmark.circle.fill")
-            statusBadge.tintColor = UIColor(hex: "22C55E")
+            statusBadge.tintColor = .systemGreen
+            statusPill.text = "Completed"
             playOverlay.image = UIImage(systemName: "checkmark")
-            playOverlay.tintColor = UIColor(hex: "22C55E")
+            playOverlay.tintColor = .systemGreen
             thumbImageView.alpha = 1
             titleLabel.textColor = UITheme.Colors.textPrimary
             subLabel.textColor = UITheme.Colors.textSecondary
-            durationPill.textColor = UIColor(hex: "1C7B3B")
-            durationPill.backgroundColor = UIColor(hex: "E7F5ED")
-            statusPill.text = "Done"
-            statusPill.textColor = UIColor(hex: "1C7B3B")
-            statusPill.backgroundColor = UIColor(hex: "E7F5ED")
+            durationPill.textColor = .systemGreen
+            durationPill.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.15)
+            
+            statusPill.textColor = .systemGreen
+            statusPill.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.15)
             chevron.alpha = 1
         } else {
             statusBadge.image = UIImage(systemName: "play.circle.fill")
@@ -128,7 +129,7 @@ final class ProgramExerciseCell: UITableViewCell {
         playOverlay.translatesAutoresizingMaskIntoConstraints = false
         playOverlay.image = UIImage(systemName: "play.fill")
         playOverlay.tintColor = UITheme.Colors.accent
-        playOverlay.backgroundColor = UIColor.white
+        playOverlay.backgroundColor = UITheme.Colors.surface
         playOverlay.layer.cornerRadius = 16
         playOverlay.layer.masksToBounds = true
         playOverlay.contentMode = .center

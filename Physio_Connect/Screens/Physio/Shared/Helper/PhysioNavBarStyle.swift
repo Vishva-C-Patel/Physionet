@@ -20,10 +20,24 @@ enum PhysioNavBarStyle {
         viewController.navigationController?.setNavigationBarHidden(false, animated: false)
         viewController.navigationController?.navigationBar.prefersLargeTitles = false
 
+        // Transparent nav bar at rest, frosted glass when scrolled
+        let standard = UITheme.makeGlassNavBarAppearance()
+        let scrollEdge = UINavigationBarAppearance()
+        scrollEdge.configureWithTransparentBackground()
+        scrollEdge.shadowColor = .clear
+        scrollEdge.titleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        
+        viewController.navigationController?.navigationBar.standardAppearance = standard
+        viewController.navigationController?.navigationBar.scrollEdgeAppearance = scrollEdge
+        viewController.navigationController?.navigationBar.compactAppearance = standard
+
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textColor = UIColor(hex: "0F172A")
+        titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         viewController.navigationItem.titleView = titleLabel
 
@@ -89,8 +103,8 @@ enum PhysioNavBarStyle {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.imageView?.contentMode = .scaleAspectFill
-        button.tintColor = UIColor(hex: "1E6EF7")
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.75)
+        button.tintColor = UITheme.Colors.accent
+        button.backgroundColor = UIColor.tertiarySystemFill
         button.layer.cornerRadius = size / 2
         button.clipsToBounds = true
         button.adjustsImageWhenHighlighted = false

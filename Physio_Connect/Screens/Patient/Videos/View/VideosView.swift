@@ -9,8 +9,7 @@ import UIKit
 
 final class VideosView: UIView {
 
-    private let topBar = UIView()
-    let titleLabel = UILabel()
+    // MARK: - UI
     let profileButton = UIButton(type: .system)
     let segmented = UISegmentedControl(items: ["Free Exercises", "My Program"])
     let searchBar = UISearchBar()
@@ -34,6 +33,9 @@ final class VideosView: UIView {
     let redeemButton = UIButton(type: .system)
 
     private let refreshControl = UIRefreshControl()
+    
+    private let segBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+    private let searchBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
 
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
@@ -42,7 +44,7 @@ final class VideosView: UIView {
         layout.minimumLineSpacing = 10
         filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -93,23 +95,22 @@ final class VideosView: UIView {
     }
 
     private func build() {
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Exercises"
-        titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textColor = UIColor.black
-        titleLabel.textAlignment = .center
-
         profileButton.translatesAutoresizingMaskIntoConstraints = false
-        let profileConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
-        profileButton.setImage(UIImage(systemName: "person.circle", withConfiguration: profileConfig), for: .normal)
-        profileButton.tintColor = UIColor.black.withAlphaComponent(0.65)
+        let profileConfig = UIImage.SymbolConfiguration(pointSize: 36, weight: .light)
+        profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)
+        profileButton.tintColor = .secondaryLabel
 
         segmented.selectedSegmentIndex = 0
         segmented.translatesAutoresizingMaskIntoConstraints = false
-        segmented.selectedSegmentTintColor = UIColor(hex: "1E6EF7")
-        segmented.backgroundColor = .white
+        segmented.selectedSegmentTintColor = UITheme.Colors.accent.withAlphaComponent(0.6)
+        segmented.backgroundColor = .clear
+        
+        segBlur.translatesAutoresizingMaskIntoConstraints = false
+        segBlur.isUserInteractionEnabled = false
+        segBlur.layer.cornerRadius = 16
+        segBlur.clipsToBounds = true
+        segBlur.layer.borderWidth = 0.5
+        segBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
         segmented.layer.cornerRadius = 16
         segmented.layer.masksToBounds = true
         segmented.setTitleTextAttributes(
@@ -117,7 +118,7 @@ final class VideosView: UIView {
             for: .selected
         )
         segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.black.withAlphaComponent(0.65), .font: UITheme.Typography.buttonSmall],
+            [.foregroundColor: UIColor.secondaryLabel, .font: UITheme.Typography.buttonSmall],
             for: .normal
         )
 
@@ -125,45 +126,44 @@ final class VideosView: UIView {
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.backgroundImage = UIImage()
-        searchBar.searchTextField.backgroundColor = .white
-        searchBar.searchTextField.layer.cornerRadius = 16
-        searchBar.searchTextField.layer.masksToBounds = true
+        searchBar.searchTextField.backgroundColor = .clear
+
+        searchBlur.translatesAutoresizingMaskIntoConstraints = false
+        searchBlur.isUserInteractionEnabled = false
+        searchBlur.layer.cornerRadius = 12
+        searchBlur.clipsToBounds = true
+        searchBlur.layer.borderWidth = 0.5
+        searchBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
+        searchBar.searchTextField.insertSubview(searchBlur, at: 0)
 
         filterCollectionView.translatesAutoresizingMaskIntoConstraints = false
         filterCollectionView.backgroundColor = .clear
         filterCollectionView.showsHorizontalScrollIndicator = false
 
         programRedeemCard.translatesAutoresizingMaskIntoConstraints = false
-        programRedeemCard.backgroundColor = UIColor(hex: "F7FAFF")
-        programRedeemCard.layer.cornerRadius = 18
-        programRedeemCard.layer.borderWidth = 1
-        programRedeemCard.layer.borderColor = UIColor(hex: "D7E6FF").cgColor
-        programRedeemCard.layer.shadowColor = UIColor.black.cgColor
-        programRedeemCard.layer.shadowOpacity = 0.05
-        programRedeemCard.layer.shadowRadius = 12
-        programRedeemCard.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(programRedeemCard)
         programRedeemCard.isHidden = true
 
         redeemIcon.translatesAutoresizingMaskIntoConstraints = false
         redeemIcon.image = UIImage(systemName: "ticket.fill")
-        redeemIcon.tintColor = UIColor(hex: "1E6EF7")
+        redeemIcon.tintColor = UITheme.Colors.accent
         redeemIcon.contentMode = .scaleAspectFit
 
         redeemTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         redeemTitleLabel.text = "Have a program code?"
         redeemTitleLabel.font = UITheme.Typography.cardTitle
-        redeemTitleLabel.textColor = UIColor(hex: "153E75")
+        redeemTitleLabel.textColor = .label
 
         redeemSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         redeemSubtitleLabel.text = "Paste it here to unlock your assigned plan."
         redeemSubtitleLabel.font = UITheme.Typography.caption
-        redeemSubtitleLabel.textColor = UIColor(hex: "5E7394")
+        redeemSubtitleLabel.textColor = .secondaryLabel
 
         redeemInputContainer.translatesAutoresizingMaskIntoConstraints = false
-        redeemInputContainer.backgroundColor = .white
-        redeemInputContainer.layer.cornerRadius = 12
-        redeemInputContainer.layer.borderWidth = 1
-        redeemInputContainer.layer.borderColor = UIColor(hex: "D5E3FB").cgColor
+        redeemInputContainer.backgroundColor = UITheme.Colors.neutralFill
+        redeemInputContainer.layer.cornerRadius = 14
+        redeemInputContainer.layer.borderWidth = 0.5
+        redeemInputContainer.layer.borderColor = UITheme.Colors.border.cgColor
 
         redeemCodeField.translatesAutoresizingMaskIntoConstraints = false
         redeemCodeField.placeholder = "Enter code (e.g. PROG-AB12CD)"
@@ -172,12 +172,12 @@ final class VideosView: UIView {
         redeemCodeField.autocorrectionType = .no
         redeemCodeField.spellCheckingType = .no
         redeemCodeField.borderStyle = .none
-        redeemCodeField.textColor = UIColor(hex: "1A3256")
+        redeemCodeField.textColor = .label
 
         redeemInlineButton.translatesAutoresizingMaskIntoConstraints = false
         redeemInlineButton.setTitle("Redeem", for: .normal)
         redeemInlineButton.titleLabel?.font = UITheme.Typography.buttonSmall
-        redeemInlineButton.backgroundColor = UIColor(hex: "1E6EF7")
+        redeemInlineButton.backgroundColor = UITheme.Colors.accent
         redeemInlineButton.setTitleColor(.white, for: .normal)
         redeemInlineButton.layer.cornerRadius = 10
         redeemInlineButton.contentEdgeInsets = UIEdgeInsets(top: 9, left: 14, bottom: 9, right: 14)
@@ -188,36 +188,32 @@ final class VideosView: UIView {
         tableView.refreshControl = refreshControl
 
         emptyCard.translatesAutoresizingMaskIntoConstraints = false
-        emptyCard.backgroundColor = .white
-        emptyCard.layer.cornerRadius = 22
-        emptyCard.layer.shadowColor = UIColor.black.cgColor
-        emptyCard.layer.shadowOpacity = 0.08
-        emptyCard.layer.shadowRadius = 10
-        emptyCard.layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(emptyCard)
         emptyCard.isHidden = true
 
         emptyTitle.translatesAutoresizingMaskIntoConstraints = false
         emptyTitle.text = "No Program Yet"
         emptyTitle.font = UITheme.Typography.sectionTitle
-        emptyTitle.textColor = .black
+        emptyTitle.textColor = .label
 
         emptySub.translatesAutoresizingMaskIntoConstraints = false
         emptySub.text = "Redeem your physiotherapist's code to unlock your personalized program."
         emptySub.font = UITheme.Typography.bodySmall
-        emptySub.textColor = .darkGray
+        emptySub.textColor = UITheme.Colors.textSecondary
         emptySub.numberOfLines = 0
 
         redeemButton.translatesAutoresizingMaskIntoConstraints = false
         redeemButton.setTitle("Redeem Code", for: .normal)
         redeemButton.titleLabel?.font = UITheme.Typography.button
-        redeemButton.backgroundColor = UIColor(hex: "1E6EF7")
+        redeemButton.backgroundColor = UITheme.Colors.accent
         redeemButton.setTitleColor(.white, for: .normal)
         redeemButton.layer.cornerRadius = 14
         redeemButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
 
-        addSubview(topBar)
-        topBar.addSubview(titleLabel)
-        topBar.addSubview(profileButton)
+        // addSubview(topBar)
+        // topBar.addSubview(titleLabel)
+        // topBar.addSubview(profileButton)
+        addSubview(segBlur)
         addSubview(segmented)
         addSubview(searchBar)
         addSubview(filterCollectionView)
@@ -235,32 +231,32 @@ final class VideosView: UIView {
         emptyCard.addSubview(emptySub)
         emptyCard.addSubview(redeemButton)
 
+
+
         searchHeightConstraint = searchBar.heightAnchor.constraint(equalToConstant: 44)
         filterHeightConstraint = filterCollectionView.heightAnchor.constraint(equalToConstant: 40)
         redeemCardHeightConstraint = programRedeemCard.heightAnchor.constraint(equalToConstant: 0)
 
+
         NSLayoutConstraint.activate([
-            topBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
-            topBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
+            segBlur.topAnchor.constraint(equalTo: segmented.topAnchor),
+            segBlur.bottomAnchor.constraint(equalTo: segmented.bottomAnchor),
+            segBlur.leadingAnchor.constraint(equalTo: segmented.leadingAnchor),
+            segBlur.trailingAnchor.constraint(equalTo: segmented.trailingAnchor),
 
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            profileButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            profileButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            profileButton.widthAnchor.constraint(equalToConstant: 40),
-            profileButton.heightAnchor.constraint(equalToConstant: 40),
-
-            segmented.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
+            segmented.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10),
             segmented.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             segmented.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            segmented.heightAnchor.constraint(equalToConstant: 44),
+            segmented.heightAnchor.constraint(equalToConstant: 32),
 
             searchBar.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 10),
             searchBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+
+            searchBlur.topAnchor.constraint(equalTo: searchBar.searchTextField.topAnchor),
+            searchBlur.bottomAnchor.constraint(equalTo: searchBar.searchTextField.bottomAnchor),
+            searchBlur.leadingAnchor.constraint(equalTo: searchBar.searchTextField.leadingAnchor),
+            searchBlur.trailingAnchor.constraint(equalTo: searchBar.searchTextField.trailingAnchor),
 
             filterCollectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
             filterCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),

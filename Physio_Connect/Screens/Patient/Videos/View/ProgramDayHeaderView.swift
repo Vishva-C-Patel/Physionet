@@ -25,7 +25,7 @@ final class ProgramDayHeaderView: UIView {
 
     func configure(day: Int, title: String, subtitle: String, completedCount: Int, totalCount: Int, isComplete: Bool) {
         dayCircle.text = "\(day)"
-        dayCircle.backgroundColor = isComplete ? UIColor(hex: "22C55E") : UIColor(hex: "E5E7EB")
+        dayCircle.backgroundColor = isComplete ? .systemGreen : .tertiarySystemFill
         dayCircle.textColor = isComplete ? .white : UIColor.black.withAlphaComponent(0.6)
         titleLabel.text = title
         subtitleLabel.text = subtitle

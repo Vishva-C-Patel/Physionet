@@ -11,7 +11,7 @@ final class PhysioHomePlaceholderViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Physio Dashboard"
-        view.backgroundColor = UIColor(hex: "E3F0FF")
+        view.backgroundColor = UITheme.Colors.background
 
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false

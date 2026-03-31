@@ -51,8 +51,8 @@ final class PhysioReviewCell: UITableViewCell {
         ratingPill.font = .systemFont(ofSize: 13, weight: .semibold)
         ratingPill.textAlignment = .center
         ratingPill.textColor = .black
-        ratingPill.backgroundColor = UIColor(hex: "FFF3D6")
-        ratingPill.layer.cornerRadius = 12
+        ratingPill.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.2)
+        ratingPill.layer.cornerRadius = 14
         ratingPill.clipsToBounds = true
         ratingPill.setContentCompressionResistancePriority(.required, for: .horizontal)
 

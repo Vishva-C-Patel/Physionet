@@ -16,7 +16,7 @@ final class PhysioRoleChoiceView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = UITheme.Colors.background
         build()
     }
 
@@ -41,17 +41,17 @@ final class PhysioRoleChoiceView: UIView {
         loginButton.translatesAutoresizingMaskIntoConstraints = false
         signupButton.translatesAutoresizingMaskIntoConstraints = false
 
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)), for: .normal)
         backButton.tintColor = UIColor.black.withAlphaComponent(0.8)
 
         titleLabel.text = "Physiotherapist Access"
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
         titleLabel.textAlignment = .center
 
         subtitleLabel.text = "Login to your account or create a new one to continue."
         subtitleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = 0
 
@@ -113,8 +113,8 @@ final class PhysioRoleChoiceView: UIView {
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        button.backgroundColor = UIColor(hex: "1E6EF7")
-        button.layer.cornerRadius = 14
+        button.backgroundColor = UITheme.Colors.accent
+        button.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.10
         button.layer.shadowRadius = 10

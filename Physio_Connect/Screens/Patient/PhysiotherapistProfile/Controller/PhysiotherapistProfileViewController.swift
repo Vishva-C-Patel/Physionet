@@ -33,14 +33,12 @@ final class PhysiotherapistProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.hidesBackButton = true
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Physiotherapist")
 
         // Remove automatic top inset (fixes unwanted gap)
         profileView.scrollView.contentInsetAdjustmentBehavior = .never
 
         // Targets
-        profileView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         profileView.bookButton.addTarget(self, action: #selector(bookAppointmentTapped), for: .touchUpInside)
         profileView.seeAllButton.addTarget(self, action: #selector(seeAllTapped), for: .touchUpInside)
 
@@ -107,10 +105,6 @@ final class PhysiotherapistProfileViewController: UIViewController {
         }
     }
 
-    @objc private func backTapped() {
-        navigationController?.popViewController(animated: true)
-    }
-    
     @objc private func aboutMoreTapped() {
         profileView.toggleAbout()
         profileView.updateReviewsTableHeight() // keeps scroll layout stable

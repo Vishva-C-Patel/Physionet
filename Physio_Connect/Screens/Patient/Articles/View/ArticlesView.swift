@@ -9,8 +9,7 @@ import UIKit
 
 final class ArticlesView: UIView {
 
-    private let topBar = UIView()
-    let titleLabel = UILabel()
+    // MARK: - UI
     let profileButton = UIButton(type: .system)
 
     let searchBar = UISearchBar()
@@ -40,7 +39,7 @@ final class ArticlesView: UIView {
         layout.minimumLineSpacing = 10
         filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "EAF2FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -83,28 +82,20 @@ final class ArticlesView: UIView {
     }
 
     private func build() {
-        topBar.translatesAutoresizingMaskIntoConstraints = false
         headerContainer.translatesAutoresizingMaskIntoConstraints = true
         headerContainer.backgroundColor = .clear
-        headerContainer.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 10, right: 16)
+        headerContainer.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
 
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Articles"
-        titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textColor = UITheme.Colors.textPrimary
-        titleLabel.textAlignment = .center
-
-        profileButton.translatesAutoresizingMaskIntoConstraints = false
-        let profileConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
-        profileButton.setImage(UIImage(systemName: "person.circle", withConfiguration: profileConfig), for: .normal)
-        profileButton.tintColor = UIColor.black.withAlphaComponent(0.65)
+        let profileConfig = UIImage.SymbolConfiguration(pointSize: 36, weight: .light)
+        profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)
+        profileButton.tintColor = .secondaryLabel
 
         searchBar.placeholder = "Search articles, topics, conditions..."
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.backgroundImage = UIImage()
-        searchBar.searchTextField.backgroundColor = .white
-        searchBar.searchTextField.layer.cornerRadius = 20
+        searchBar.searchTextField.backgroundColor = UIColor.tertiarySystemFill
+        searchBar.searchTextField.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
         searchBar.searchTextField.layer.masksToBounds = true
 
         segmentScrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -131,12 +122,12 @@ final class ArticlesView: UIView {
 
         recentTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         recentTitleLabel.font = UITheme.Typography.sectionTitle
-        recentTitleLabel.textColor = .black
+        recentTitleLabel.textColor = .label
         recentTitleLabel.text = "Recent Articles"
 
         resultsLabel.translatesAutoresizingMaskIntoConstraints = false
         resultsLabel.font = UITheme.Typography.bodySmallMedium
-        resultsLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        resultsLabel.textColor = UITheme.Colors.textSecondary
         resultsLabel.text = "0 articles"
 
         let spacer = UIView()
@@ -162,10 +153,10 @@ final class ArticlesView: UIView {
         tableView.tableHeaderView = headerContainer
         tableView.contentInset = .zero
         tableView.contentInsetAdjustmentBehavior = .always
-
-        headerContainer.addSubview(topBar)
-        topBar.addSubview(titleLabel)
-        topBar.addSubview(profileButton)
+        
+        // headerContainer.addSubview(topBar)
+        // topBar.addSubview(titleLabel)
+        // topBar.addSubview(profileButton)
 
         headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segmentScrollView)
@@ -183,22 +174,7 @@ final class ArticlesView: UIView {
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            topBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 6),
-            topBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
-            topBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
-
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: topBar.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: topBar.trailingAnchor, constant: -16),
-
-            profileButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            profileButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            profileButton.widthAnchor.constraint(equalToConstant: 40),
-            profileButton.heightAnchor.constraint(equalToConstant: 40),
-
-            searchBar.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
+            searchBar.topAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.topAnchor),
             searchBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             searchBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 
@@ -247,13 +223,13 @@ final class ArticlesView: UIView {
 
     private func applySegmentStyle(_ button: UIButton, selected: Bool) {
         if selected {
-            button.backgroundColor = UIColor(hex: "1E6EF7")
+            button.backgroundColor = UITheme.Colors.accent
             button.setTitleColor(.white, for: .normal)
             button.tintColor = .white
         } else {
-            button.backgroundColor = .white
-            button.setTitleColor(UIColor.black.withAlphaComponent(0.7), for: .normal)
-            button.tintColor = UIColor.black.withAlphaComponent(0.6)
+            button.backgroundColor = UITheme.Colors.surface
+            button.setTitleColor(UITheme.Colors.textSecondary, for: .normal)
+            button.tintColor = UITheme.Colors.textSecondary
         }
     }
 

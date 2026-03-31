@@ -27,13 +27,8 @@ final class PhysioPatientReportViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        contentView.backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
+        UITheme.applyNativeNavBar(to: self, title: "Patient Report")
         Task { await loadDetail() }
-    }
-
-    @objc private func backTapped() {
-        navigationController?.popViewController(animated: true)
     }
 
     private func loadDetail() async {

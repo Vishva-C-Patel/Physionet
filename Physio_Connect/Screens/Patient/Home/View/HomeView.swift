@@ -12,13 +12,6 @@ final class HomeView: UIView {
     private let scrollView = UIScrollView()
     private let contentView = UIView()
 
-    private let topBar = UIView()
-    private let locationIcon = UIImageView()
-    private let locationLabel = UILabel()
-    let profileButton = UIButton(type: .system)
-
-    private let titleLabel = UILabel()
-
     let carousel = HomeCardsCarouselView()
 
     private let videosHeader = SectionHeaderView(title: "Free Exercise Videos", actionTitle: "View All")
@@ -56,7 +49,7 @@ final class HomeView: UIView {
         layout.minimumInteritemSpacing = 12
         videosCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = UIColor(hex: "E3F0FF")
+        backgroundColor = .systemGroupedBackground
         build()
     }
 
@@ -77,32 +70,6 @@ final class HomeView: UIView {
         addSubview(scrollView)
         scrollView.addSubview(contentView)
 
-        locationIcon.image = UIImage(systemName: "location")
-        locationIcon.tintColor = UIColor(hex: "1E6EF7")
-        locationIcon.translatesAutoresizingMaskIntoConstraints = false
-
-        locationLabel.text = "Locating..."
-        locationLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        locationLabel.textColor = UIColor.black.withAlphaComponent(0.7)
-        locationLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let profileConfig = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
-        profileButton.setImage(UIImage(systemName: "person.circle", withConfiguration: profileConfig), for: .normal)
-        profileButton.tintColor = UIColor.black.withAlphaComponent(0.7)
-        profileButton.translatesAutoresizingMaskIntoConstraints = false
-
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(topBar)
-        topBar.addSubview(locationIcon)
-        topBar.addSubview(locationLabel)
-        topBar.addSubview(profileButton)
-
-        titleLabel.text = "Home"
-        titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        topBar.addSubview(titleLabel)
-
         carousel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(carousel)
 
@@ -118,7 +85,7 @@ final class HomeView: UIView {
         progressTitle.translatesAutoresizingMaskIntoConstraints = false
         progressTitle.text = "Progress Tracker"
         progressTitle.font = sectionTitleFont
-        progressTitle.textColor = .black
+        progressTitle.textColor = .label
         contentView.addSubview(progressTitle)
 
         painCard.translatesAutoresizingMaskIntoConstraints = false
@@ -129,7 +96,7 @@ final class HomeView: UIView {
         upNextTitle.translatesAutoresizingMaskIntoConstraints = false
         upNextTitle.text = "Up Next"
         upNextTitle.font = sectionTitleFont
-        upNextTitle.textColor = .black
+        upNextTitle.textColor = .label
         contentView.addSubview(upNextTitle)
 
         upNextCard.translatesAutoresizingMaskIntoConstraints = false
@@ -138,19 +105,19 @@ final class HomeView: UIView {
         articlesTitle.translatesAutoresizingMaskIntoConstraints = false
         articlesTitle.text = "Articles & Tips"
         articlesTitle.font = sectionTitleFont
-        articlesTitle.textColor = .black
+        articlesTitle.textColor = .label
         contentView.addSubview(articlesTitle)
 
         articlesSegmented.translatesAutoresizingMaskIntoConstraints = false
         articlesSegmented.selectedSegmentIndex = 0
-        articlesSegmented.selectedSegmentTintColor = .white
-        articlesSegmented.backgroundColor = UIColor(hex: "EEF3FA")
+        articlesSegmented.selectedSegmentTintColor = UITheme.Colors.accent
+        articlesSegmented.backgroundColor = UIColor.tertiarySystemFill
         articlesSegmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.black.withAlphaComponent(0.55), .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
             for: .normal
         )
         articlesSegmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.black, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
+            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
             for: .selected
         )
         contentView.addSubview(articlesSegmented)
@@ -173,28 +140,7 @@ final class HomeView: UIView {
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
 
-            topBar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            topBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
-
-            locationIcon.leadingAnchor.constraint(equalTo: topBar.leadingAnchor),
-            locationIcon.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            locationIcon.widthAnchor.constraint(equalToConstant: 18),
-            locationIcon.heightAnchor.constraint(equalToConstant: 18),
-
-            locationLabel.leadingAnchor.constraint(equalTo: locationIcon.trailingAnchor, constant: 6),
-            locationLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            profileButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            profileButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            profileButton.widthAnchor.constraint(equalToConstant: 40),
-            profileButton.heightAnchor.constraint(equalToConstant: 40),
-
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            carousel.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 14),
+            carousel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             carousel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             carousel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
 
@@ -271,9 +217,6 @@ final class HomeView: UIView {
         carousel.setUpcoming(appts)
     }
 
-    func setLocationText(_ text: String) {
-        locationLabel.text = text
-    }
 
     func updateVideosHeight(rows: Int) {
         let rowCount = max(rows, 1)
@@ -352,10 +295,10 @@ private final class SectionHeaderView: UIView {
     private func build() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UITheme.Typography.sectionTitle
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
 
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        actionButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        actionButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         actionButton.titleLabel?.font = UITheme.Typography.buttonSmall
 
         addSubview(titleLabel)

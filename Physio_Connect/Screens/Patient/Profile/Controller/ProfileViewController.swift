@@ -20,7 +20,15 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Profile")
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Edit",
+            style: .plain,
+            target: self,
+            action: #selector(editTapped)
+        )
+        
         bind()
         profileView.preloadAvatar(urlString: ProfileModel.cachedAvatarURL())
         Task { await refreshProfile() }
@@ -43,14 +51,6 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
     }
 
     private func bind() {
-        profileView.onBack = { [weak self] in
-            self?.navigationController?.popViewController(animated: true)
-        }
-
-        profileView.onEdit = { [weak self] in
-            self?.openEditProfile()
-        }
-
         profileView.onPrivacyTapped = { [weak self] in
             self?.showAlert(title: "Privacy Policy", message: "Add your privacy policy URL here.")
         }
@@ -132,12 +132,18 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
             await MainActor.run {
                 self.currentProfile = data
                 self.profileView.apply(data)
+                self.updateEditButtonVisibility(true)
             }
         } catch {
             await MainActor.run {
                 self.showAlert(title: "Profile Error", message: error.localizedDescription)
+                self.updateEditButtonVisibility(false)
             }
         }
+    }
+
+    private func updateEditButtonVisibility(_ isVisible: Bool) {
+        navigationItem.rightBarButtonItem?.isHidden = !isVisible
     }
 
     private func signOut() {
@@ -147,6 +153,7 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
                 ProfileModel.clearCachedAvatarURL()
                 await MainActor.run {
                     self.profileView.applyLoggedOut()
+                    self.updateEditButtonVisibility(false)
                 }
             } catch {
                 await MainActor.run {
@@ -193,6 +200,10 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+    }
+
+    @objc private func editTapped() {
+        openEditProfile()
     }
 
     private func openEditProfile() {

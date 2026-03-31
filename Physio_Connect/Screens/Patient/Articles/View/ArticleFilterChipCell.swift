@@ -28,12 +28,10 @@ final class ArticleFilterChipCell: UICollectionViewCell {
     }
 
     private func build() {
-        contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 16
-        contentView.layer.shadowColor = UIColor.black.cgColor
-        contentView.layer.shadowOpacity = 0.08
-        contentView.layer.shadowRadius = 6
-        contentView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        contentView.layer.masksToBounds = true
+        contentView.layer.borderWidth = 1
+        contentView.layer.borderColor = UITheme.Colors.border.cgColor
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
@@ -51,11 +49,13 @@ final class ArticleFilterChipCell: UICollectionViewCell {
 
     private func applySelectionState(_ selected: Bool) {
         if selected {
-            contentView.backgroundColor = UIColor(hex: "1E6EF7")
+            contentView.backgroundColor = UITheme.Colors.accent
             titleLabel.textColor = .white
+            contentView.layer.borderColor = UITheme.Colors.accent.cgColor
         } else {
-            contentView.backgroundColor = .white
-            titleLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+            contentView.backgroundColor = UITheme.Colors.surface
+            titleLabel.textColor = UITheme.Colors.textPrimary
+            contentView.layer.borderColor = UITheme.Colors.border.cgColor
         }
     }
 

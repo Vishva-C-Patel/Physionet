@@ -13,7 +13,7 @@ final class EditProfileViewController: UIViewController {
     private let model = ProfileModel()
     private let profile: ProfileViewData
     private var isSaving = false
-
+    
     var onSave: (() -> Void)?
 
     init(profile: ProfileViewData) {
@@ -29,35 +29,33 @@ final class EditProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        UITheme.applyNativeNavBar(to: self, title: "Edit Profile")
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Save",
+            style: .done,
+            target: self,
+            action: #selector(saveProfile)
+        )
         editView.apply(profile)
-
-        editView.onBack = { [weak self] in
-            self?.navigationController?.popViewController(animated: true)
-        }
-        editView.onSave = { [weak self] in
-            self?.saveProfile()
-        }
     }
 
-    private func saveProfile() {
+    @objc private func saveProfile() {
         if isSaving { return }
         isSaving = true
-        editView.setSaving(true)
+        navigationItem.rightBarButtonItem?.isEnabled = false
         let input = editView.currentInput()
         Task {
             do {
                 try await model.updateProfile(input)
                 await MainActor.run {
                     self.isSaving = false
-                    self.editView.setSaving(false)
                     self.onSave?()
                     self.navigationController?.popViewController(animated: true)
                 }
             } catch {
                 await MainActor.run {
                     self.isSaving = false
-                    self.editView.setSaving(false)
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
                     self.showAlert(title: "Save Failed", message: error.localizedDescription)
                 }
             }

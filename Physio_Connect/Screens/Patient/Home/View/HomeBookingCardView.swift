@@ -67,7 +67,7 @@ final class HomeBookingCardView: UIView {
 
         actionButton.translatesAutoresizingMaskIntoConstraints = false
         actionButton.setTitle("Book Appointment", for: .normal)
-        actionButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+        actionButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         actionButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         actionButton.backgroundColor = .white
         actionButton.layer.cornerRadius = 18

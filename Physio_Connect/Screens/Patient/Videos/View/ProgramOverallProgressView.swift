@@ -43,11 +43,11 @@ final class ProgramOverallProgressView: UIView {
 
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         countLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        countLabel.textColor = UIColor(hex: "1E6EF7")
+        countLabel.textColor = UITheme.Colors.accent
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
         progressBar.trackTintColor = UIColor.black.withAlphaComponent(0.08)
-        progressBar.progressTintColor = UIColor(hex: "1E6EF7")
+        progressBar.progressTintColor = UITheme.Colors.accent
         progressBar.layer.cornerRadius = 4
         progressBar.clipsToBounds = true
 

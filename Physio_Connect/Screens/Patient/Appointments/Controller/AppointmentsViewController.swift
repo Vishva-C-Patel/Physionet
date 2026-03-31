@@ -24,8 +24,10 @@ final class AppointmentsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        
+        UITheme.applyNativeNavBar(to: self, title: "Appointments")
+        let profileItem = UIBarButtonItem(customView: apptView.profileButton)
+        navigationItem.rightBarButtonItem = profileItem
 
         bind()
         Task { await refreshAll() }

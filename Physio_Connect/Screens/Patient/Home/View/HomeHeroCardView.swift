@@ -77,7 +77,7 @@ final class HomeHeroCardView: UIView {
 
         // Container
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.backgroundColor = .white
+        container.backgroundColor = UITheme.Colors.surface
         container.layer.cornerRadius = 22
         container.layer.shadowColor = UIColor.black.cgColor
         container.layer.shadowOpacity = 0.08
@@ -145,12 +145,12 @@ final class HomeHeroCardView: UIView {
         topRow.translatesAutoresizingMaskIntoConstraints = false
 
         badgeIconWrap.translatesAutoresizingMaskIntoConstraints = false
-        badgeIconWrap.backgroundColor = UIColor(hex: "1E6EF7").withAlphaComponent(0.12)
+        badgeIconWrap.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
         badgeIconWrap.layer.cornerRadius = 18
 
         badgeIcon.translatesAutoresizingMaskIntoConstraints = false
         badgeIcon.image = UIImage(systemName: "calendar")
-        badgeIcon.tintColor = UIColor(hex: "1E6EF7")
+        badgeIcon.tintColor = UITheme.Colors.accent
         badgeIcon.contentMode = .scaleAspectFit
 
         badgeIconWrap.addSubview(badgeIcon)
@@ -204,13 +204,13 @@ final class HomeHeroCardView: UIView {
         contentRow.translatesAutoresizingMaskIntoConstraints = false
 
         avatarWrap.translatesAutoresizingMaskIntoConstraints = false
-        avatarWrap.backgroundColor = UIColor(hex: "1E6EF7").withAlphaComponent(0.16)
+        avatarWrap.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.16)
         avatarWrap.layer.cornerRadius = 30
         avatarWrap.clipsToBounds = true
 
         avatarIcon.translatesAutoresizingMaskIntoConstraints = false
         avatarIcon.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-        avatarIcon.tintColor = UIColor(hex: "1E6EF7")
+        avatarIcon.tintColor = UITheme.Colors.accent
         avatarIcon.contentMode = .scaleAspectFill
         avatarIcon.clipsToBounds = true
 
@@ -231,11 +231,11 @@ final class HomeHeroCardView: UIView {
         textStack.translatesAutoresizingMaskIntoConstraints = false
 
         nameLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        nameLabel.textColor = .black
+        nameLabel.textColor = .label
         nameLabel.numberOfLines = 2
 
         subtitleLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.numberOfLines = 2
 
         // Meta stack
@@ -391,7 +391,7 @@ final class HomeHeroCardView: UIView {
             buttonTopConstraint?.constant = 8
 
             primaryButton.setTitle("Book Appointment", for: .normal)
-            primaryButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+            primaryButton.setTitleColor(UITheme.Colors.accent, for: .normal)
             primaryButton.layer.shadowColor = UIColor.black.cgColor
             primaryButton.layer.shadowOpacity = 0.12
             primaryButton.layer.shadowRadius = 8
@@ -448,7 +448,7 @@ final class HomeHeroCardView: UIView {
             timeRow.setText(df2.string(from: appt.startTime))
 
             primaryButton.setTitle("View Details", for: .normal)
-            primaryButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
+            primaryButton.setTitleColor(UITheme.Colors.accent, for: .normal)
             primaryButton.layer.shadowColor = UIColor.black.cgColor
             primaryButton.layer.shadowOpacity = 0.12
             primaryButton.layer.shadowRadius = 8
@@ -468,7 +468,7 @@ final class HomeHeroCardView: UIView {
             avatarIcon.tintColor = .clear
         } else {
             avatarIcon.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-            avatarIcon.tintColor = UIColor(hex: "1E6EF7")
+            avatarIcon.tintColor = UITheme.Colors.accent
         }
     }
 
@@ -505,7 +505,7 @@ private final class MetaRow: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         iconView.image = UIImage(systemName: icon)
-        iconView.tintColor = UIColor(hex: "1E6EF7")
+        iconView.tintColor = UITheme.Colors.accent
         iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -516,7 +516,7 @@ private final class MetaRow: UIView {
 
         label.text = text
         label.font = .systemFont(ofSize: 15, weight: .semibold)
-        label.textColor = UIColor.black.withAlphaComponent(0.75)
+        label.textColor = .secondaryLabel
 
         stack.axis = .horizontal
         stack.alignment = .center
