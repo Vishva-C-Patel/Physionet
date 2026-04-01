@@ -84,7 +84,7 @@ final class HomeUpNextCardView: UIView {
         primaryButton.backgroundColor = .white
         primaryButton.setTitleColor(UIColor(hex: "6D5BFF"), for: .normal)
         primaryButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        primaryButton.layer.cornerRadius = 18
+        primaryButton.layer.cornerRadius = 27
         primaryButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
 
 

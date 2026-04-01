@@ -85,7 +85,7 @@ final class FeaturedArticleCardView: UIView {
         readButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         readButton.setTitleColor(.white, for: .normal)
         readButton.backgroundColor = UIColor(hex: "1E6EF7")
-        readButton.layer.cornerRadius = 18
+        readButton.layer.cornerRadius = 27
         readButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         readButton.addTarget(self, action: #selector(readTapped), for: .touchUpInside)
 

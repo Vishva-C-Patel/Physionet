@@ -18,6 +18,7 @@ final class PhysiotherapistListView: UIView {
 
     // MARK: - Table Header (content)
     private let headerContentView = UIView()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     let locationIcon = UIImageView()
     let cityLabel: UILabel = {
@@ -45,9 +46,20 @@ final class PhysiotherapistListView: UIView {
     // MARK: - INIT
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         setupTable()
         setupTableHeaderContents()
+
+        NSLayoutConstraint.activate([
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
 
     required init?(coder: NSCoder) {
@@ -64,11 +76,12 @@ final class PhysiotherapistListView: UIView {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 180
+        tableView.contentInsetAdjustmentBehavior = .always
 
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
+            tableView.topAnchor.constraint(equalTo: topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
@@ -87,21 +100,23 @@ final class PhysiotherapistListView: UIView {
 
         // Search bar
         searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = "name, neck, back.."
-
-        // REMOVE SYSTEM BACKGROUND (VERY IMPORTANT)
+        searchBar.placeholder = "name, neck, back..."
         searchBar.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
         searchBar.backgroundColor = .clear
 
-        // CUSTOMIZE INNER TEXT FIELD
-        let textField = searchBar.searchTextField
-        textField.backgroundColor = UITheme.Colors.neutralFill
-        textField.layer.borderWidth = 1
-        textField.layer.borderColor = UITheme.Colors.border.cgColor
-        textField.layer.cornerRadius = 12
-        textField.clipsToBounds = true
+        let searchField = searchBar.searchTextField
+        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
+        searchField.layer.cornerRadius = 20
+        searchField.layer.masksToBounds = true
+        
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = searchField.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurView.isUserInteractionEnabled = false
+        searchField.insertSubview(blurView, at: 0)
 
-        textField.attributedPlaceholder = NSAttributedString(
+        searchField.attributedPlaceholder = NSAttributedString(
             string: "name, neck, back...",
             attributes: [.foregroundColor: UIColor.systemGray]
         )
@@ -122,6 +137,8 @@ final class PhysiotherapistListView: UIView {
             $0.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
             $0.layer.cornerRadius = 8
             $0.layer.masksToBounds = true
+            $0.layer.borderWidth = 1
+            $0.layer.borderColor = UITheme.Colors.border.cgColor
         }
         datePill.setTitle("13 Nov 2025", for: .normal)
         timePill.setTitle("10:35 AM", for: .normal)

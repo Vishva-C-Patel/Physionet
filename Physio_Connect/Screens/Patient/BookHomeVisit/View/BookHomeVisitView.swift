@@ -18,6 +18,7 @@ final class BookHomeVisitView: UIView {
     let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stack = UIStackView()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     // MARK: - Banner
     private let bannerCard = UIView()
@@ -116,24 +117,33 @@ final class BookHomeVisitView: UIView {
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = bg
+        backgroundColor = .clear
         build()
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         // ========== SCROLL ==========
         addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
 
         scrollView.addSubview(contentView)
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -433,6 +443,10 @@ final class BookHomeVisitView: UIView {
         [datePill, timePill, UIView(), calendarButton].forEach { pillsRow.addArrangedSubview($0) }
 
         datePickerContainer.translatesAutoresizingMaskIntoConstraints = false
+        datePickerContainer.backgroundColor = UITheme.Colors.surface
+        datePickerContainer.layer.cornerRadius = 14
+        datePickerContainer.clipsToBounds = true
+
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         datePicker.preferredDatePickerStyle = .inline
         datePicker.datePickerMode = .date
@@ -440,10 +454,10 @@ final class BookHomeVisitView: UIView {
 
         datePickerContainer.addSubview(datePicker)
         NSLayoutConstraint.activate([
-            datePicker.topAnchor.constraint(equalTo: datePickerContainer.topAnchor),
-            datePicker.leadingAnchor.constraint(equalTo: datePickerContainer.leadingAnchor),
-            datePicker.trailingAnchor.constraint(equalTo: datePickerContainer.trailingAnchor),
-            datePicker.bottomAnchor.constraint(equalTo: datePickerContainer.bottomAnchor)
+            datePicker.topAnchor.constraint(equalTo: datePickerContainer.topAnchor, constant: 8),
+            datePicker.leadingAnchor.constraint(equalTo: datePickerContainer.leadingAnchor, constant: 8),
+            datePicker.trailingAnchor.constraint(equalTo: datePickerContainer.trailingAnchor, constant: -8),
+            datePicker.bottomAnchor.constraint(equalTo: datePickerContainer.bottomAnchor, constant: -8)
         ])
 
         datePickerHeight = datePickerContainer.heightAnchor.constraint(equalToConstant: 0)
@@ -650,7 +664,7 @@ final class BookHomeVisitView: UIView {
         confirmButton.setTitleColor(.white, for: .normal)
         confirmButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         confirmButton.backgroundColor = primaryBlue
-        confirmButton.layer.cornerRadius = 18
+        confirmButton.layer.cornerRadius = 27
         confirmButton.clipsToBounds = true
         confirmButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
 
@@ -728,14 +742,14 @@ final class BookHomeVisitView: UIView {
 
             if s.isBooked {
                 b.isEnabled = false
-                b.backgroundColor = UIColor.black.withAlphaComponent(0.05)
-                b.setTitleColor(.lightGray, for: .normal)
-                b.layer.borderColor = UIColor.black.withAlphaComponent(0.08).cgColor
+                b.backgroundColor = UIColor.quaternarySystemFill
+                b.setTitleColor(.tertiaryLabel, for: .normal)
+                b.layer.borderColor = UIColor.separator.cgColor
             } else {
                 b.isEnabled = true
-                b.backgroundColor = isSelected ? primaryBlue : .white
-                b.setTitleColor(isSelected ? .white : .black, for: .normal)
-                b.layer.borderColor = isSelected ? primaryBlue.cgColor : UIColor.black.withAlphaComponent(0.12).cgColor
+                b.backgroundColor = isSelected ? primaryBlue : UITheme.Colors.surface
+                b.setTitleColor(isSelected ? .white : .label, for: .normal)
+                b.layer.borderColor = isSelected ? primaryBlue.cgColor : UIColor.separator.cgColor
                 b.addAction(UIAction(handler: { _ in onTap(s.id) }), for: .touchUpInside)
             }
 
@@ -774,12 +788,14 @@ final class BookHomeVisitView: UIView {
 
     private func stylePill(_ l: UILabel) {
         l.translatesAutoresizingMaskIntoConstraints = false
-        l.backgroundColor = UIColor(hex: "F2F3F6")
+        l.backgroundColor = UITheme.Colors.surface
         l.textAlignment = .center
-        l.textColor = .black
+        l.textColor = .label
         l.font = .systemFont(ofSize: 14, weight: .medium)
         l.layer.cornerRadius = 16
         l.layer.masksToBounds = true
+        l.layer.borderWidth = 1
+        l.layer.borderColor = UITheme.Colors.border.cgColor
         l.heightAnchor.constraint(equalToConstant: 34).isActive = true
     }
 

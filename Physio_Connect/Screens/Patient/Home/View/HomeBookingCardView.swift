@@ -32,6 +32,31 @@ final class HomeBookingCardView: UIView {
         gradientLayer.frame = bounds
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateBackgroundGradient()
+        }
+    }
+
+    private func updateBackgroundGradient() {
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let lightColors = [
+            UIColor(hex: "19C5F7").cgColor,
+            UIColor(hex: "2C6BFF").cgColor
+        ]
+        let darkColors = [
+            UIColor(hex: "0E5B99").cgColor,
+            UIColor(hex: "163A85").cgColor
+        ]
+        
+        CATransaction.begin()
+        // No animation for trait changes
+        CATransaction.setDisableActions(true)
+        gradientLayer.colors = isDark ? darkColors : lightColors
+        CATransaction.commit()
+    }
+
     func configure(title: String, subtitle: String) {
         titleLabel.text = title
         subtitleLabel.text = subtitle
@@ -40,10 +65,7 @@ final class HomeBookingCardView: UIView {
     private func build() {
         layer.cornerRadius = 26
         layer.masksToBounds = true
-        gradientLayer.colors = [
-            UIColor(hex: "19C5F7").cgColor,
-            UIColor(hex: "2C6BFF").cgColor
-        ]
+        updateBackgroundGradient()
         gradientLayer.startPoint = CGPoint(x: 0, y: 0.2)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         layer.insertSublayer(gradientLayer, at: 0)
@@ -70,7 +92,7 @@ final class HomeBookingCardView: UIView {
         actionButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         actionButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         actionButton.backgroundColor = .white
-        actionButton.layer.cornerRadius = 18
+        actionButton.layer.cornerRadius = 27
         actionButton.layer.shadowColor = UIColor.black.cgColor
         actionButton.layer.shadowOpacity = 0.12
         actionButton.layer.shadowRadius = 8

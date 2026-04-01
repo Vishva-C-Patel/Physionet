@@ -9,7 +9,6 @@ import UIKit
 
 final class PhysioLabeledTextField: UIView {
 
-    private let titleLabel = UILabel()
     let textField = UITextField()
 
     // Public API used by the view
@@ -30,34 +29,29 @@ final class PhysioLabeledTextField: UIView {
     private func build(title: String, placeholder: String) {
         translatesAutoresizingMaskIntoConstraints = false
 
-        // Title label styling
-        titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.75)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
         // Text field styling
-        textField.placeholder = placeholder
+        textField.placeholder = title.isEmpty ? placeholder : "\(title) • \(placeholder)"
         textField.borderStyle = .none
-        textField.backgroundColor = UIColor(hex: "F4F7FE")
+        textField.backgroundColor = .secondarySystemGroupedBackground
         textField.clearButtonMode = .whileEditing
         textField.layer.cornerRadius = 14
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.heightAnchor.constraint(equalToConstant: 48).isActive = true
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 48))
+        textField.heightAnchor.constraint(equalToConstant: 54).isActive = true
+        
+        // Add left padding
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 54))
         textField.leftViewMode = .always
+        
+        // Add right padding for clear button
+        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 54))
+        textField.rightViewMode = .unlessEditing
 
-        let stack = UIStackView(arrangedSubviews: [titleLabel, textField])
-        stack.axis = .vertical
-        stack.spacing = 6
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        addSubview(stack)
+        addSubview(textField)
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: topAnchor),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor)
+            textField.topAnchor.constraint(equalTo: topAnchor),
+            textField.leadingAnchor.constraint(equalTo: leadingAnchor),
+            textField.trailingAnchor.constraint(equalTo: trailingAnchor),
+            textField.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 }

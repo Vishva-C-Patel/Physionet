@@ -11,7 +11,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     var onProgramCreated: ((String?) -> Void)?
 
-    private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    private let tableView = UITableView(frame: .zero, style: .plain)
     private let bottomBar = UIView()
     private let cancelButton = UIButton(type: .system)
     private let createButton = UIButton(type: .system)
@@ -34,7 +34,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Create New Program"
+        UITheme.applyNativeNavBar(to: self, title: "Create New Program")
         view.backgroundColor = UITheme.Colors.background
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
@@ -56,9 +56,9 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
         tableView.backgroundColor = .clear
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.register(ProgramInfoCell.self, forCellReuseIdentifier: ProgramInfoCell.reuseID)
+        tableView.register(ProgramInfoCardCell.self, forCellReuseIdentifier: ProgramInfoCardCell.reuseID)
         tableView.register(ProgramDayCell.self, forCellReuseIdentifier: ProgramDayCell.reuseID)
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "BasicCell")
+        tableView.register(ProgramEmptyScheduleCell.self, forCellReuseIdentifier: ProgramEmptyScheduleCell.reuseID)
         tableView.keyboardDismissMode = .interactive
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
@@ -108,21 +108,23 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     private func buildBottomBar() {
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
-        bottomBar.backgroundColor = UIColor(hex: "E6F1FF")
+        bottomBar.backgroundColor = .secondarySystemGroupedBackground
 
-        cancelButton.setTitle("Cancel", for: .normal)
-        cancelButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        cancelButton.backgroundColor = UIColor(hex: "EDEFF3")
-        cancelButton.setTitleColor(UIColor.black.withAlphaComponent(0.7), for: .normal)
-        cancelButton.layer.cornerRadius = 16
+        var cancelConfig = UIButton.Configuration.tinted()
+        cancelConfig.title = "Cancel"
+        cancelConfig.baseForegroundColor = .label
+        cancelConfig.baseBackgroundColor = .secondarySystemFill
+        cancelConfig.cornerStyle = .capsule
+        cancelButton.configuration = cancelConfig
         cancelButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
 
-        createButton.setTitle("Create Program", for: .normal)
-        createButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        createButton.backgroundColor = UIColor(hex: "1E6EF7")
-        createButton.setTitleColor(.white, for: .normal)
-        createButton.layer.cornerRadius = 16
+        var createConfig = UIButton.Configuration.filled()
+        createConfig.title = "Create Program"
+        createConfig.baseBackgroundColor = UITheme.Colors.accent
+        createConfig.baseForegroundColor = .white
+        createConfig.cornerStyle = .capsule
+        createButton.configuration = createConfig
         createButton.addTarget(self, action: #selector(createTapped), for: .touchUpInside)
         createButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -209,7 +211,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {
         case .info:
-            return 3
+            return 1
         case .schedule:
             return dayPlans.isEmpty ? 1 : dayPlans.count
         case .none:
@@ -231,25 +233,16 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch Section(rawValue: indexPath.section) {
         case .info:
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: ProgramInfoCell.reuseID, for: indexPath) as? ProgramInfoCell else {
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: ProgramInfoCardCell.reuseID, for: indexPath) as? ProgramInfoCardCell else {
                 return UITableViewCell()
             }
-            cell.selectionStyle = .none
-            if indexPath.row == 0 {
-                cell.configure(title: "Program Name *", textField: nameField)
-            } else if indexPath.row == 1 {
-                cell.configure(title: "Program Duration (days)", textField: durationField)
-            } else {
-                cell.configure(title: "Exercises Per Day", textField: perDayField)
-            }
+            cell.configure(nameField: nameField, durationField: durationField, perDayField: perDayField)
             return cell
         case .schedule:
             if dayPlans.isEmpty {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "BasicCell", for: indexPath)
-                cell.textLabel?.text = "Set program duration and exercises per day to build each day."
-                cell.textLabel?.textColor = UIColor.black.withAlphaComponent(0.5)
-                cell.textLabel?.numberOfLines = 0
-                cell.selectionStyle = .none
+                guard let cell = tableView.dequeueReusableCell(withIdentifier: ProgramEmptyScheduleCell.reuseID, for: indexPath) as? ProgramEmptyScheduleCell else {
+                    return UITableViewCell()
+                }
                 return cell
             }
             guard let cell = tableView.dequeueReusableCell(withIdentifier: ProgramDayCell.reuseID, for: indexPath) as? ProgramDayCell else {
@@ -298,26 +291,31 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard let sectionType = Section(rawValue: section) else { return nil }
+        
+        let container = UIView()
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        label.textColor = .secondaryLabel
+        
+        container.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8)
+        ])
+        
         switch sectionType {
-        case .schedule:
-            return nil
         case .info:
-            let header = UILabel()
-            header.text = "Program Details"
-            header.font = .systemFont(ofSize: 14, weight: .semibold)
-            header.textColor = UIColor.black.withAlphaComponent(0.7)
-            return header
+            label.text = "PROGRAM DETAILS"
+            return container
+        case .schedule:
+            label.text = "DAILY EXERCISES"
+            return container
         }
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        guard let sectionType = Section(rawValue: section) else { return 0 }
-        switch sectionType {
-        case .schedule:
-            return 40
-        default:
-            return 40
-        }
+        return 44
     }
 
     @objc private func inputsChanged() {
@@ -385,58 +383,90 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
     }
 }
 
-final class ProgramInfoCell: UITableViewCell {
-    static let reuseID = "ProgramInfoCell"
-    private let titleLabel = UILabel()
-    private let textFieldContainer = UIView()
+final class ProgramInfoCardCell: UITableViewCell {
+    static let reuseID = "ProgramInfoCardCell"
+    private let card = UIView()
+    private let stack = UIStackView()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         build()
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    required init?(coder: NSCoder) { fatalError() }
 
-    func configure(title: String, textField: UITextField) {
-        titleLabel.text = title
-        textFieldContainer.subviews.forEach { $0.removeFromSuperview() }
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textFieldContainer.addSubview(textField)
+    private func makeFieldRow(title: String, field: UITextField) -> UIView {
+        let container = UIView()
+        let label = UILabel()
+        label.text = title
+        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        let fieldBg = UIView()
+        fieldBg.translatesAutoresizingMaskIntoConstraints = false
+        fieldBg.backgroundColor = .secondarySystemFill
+        fieldBg.layer.cornerRadius = 10
+        fieldBg.layer.masksToBounds = true
+        fieldBg.layer.borderWidth = 0.5
+        fieldBg.layer.borderColor = UIColor.separator.withAlphaComponent(0.2).cgColor
+        
+        field.translatesAutoresizingMaskIntoConstraints = false
+        
+        container.addSubview(label)
+        container.addSubview(fieldBg)
+        fieldBg.addSubview(field)
+        
         NSLayoutConstraint.activate([
-            textField.leadingAnchor.constraint(equalTo: textFieldContainer.leadingAnchor, constant: 12),
-            textField.trailingAnchor.constraint(equalTo: textFieldContainer.trailingAnchor, constant: -12),
-            textField.topAnchor.constraint(equalTo: textFieldContainer.topAnchor, constant: 12),
-            textField.bottomAnchor.constraint(equalTo: textFieldContainer.bottomAnchor, constant: -12),
-            textField.heightAnchor.constraint(equalToConstant: 32)
+            label.topAnchor.constraint(equalTo: container.topAnchor),
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            
+            fieldBg.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 8),
+            fieldBg.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            fieldBg.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            fieldBg.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            fieldBg.heightAnchor.constraint(equalToConstant: 44),
+            
+            field.leadingAnchor.constraint(equalTo: fieldBg.leadingAnchor, constant: 12),
+            field.trailingAnchor.constraint(equalTo: fieldBg.trailingAnchor, constant: -12),
+            field.centerYAnchor.constraint(equalTo: fieldBg.centerYAnchor)
         ])
+        return container
     }
 
     private func build() {
         selectionStyle = .none
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        titleLabel.textColor = .secondaryLabel
-
-        textFieldContainer.translatesAutoresizingMaskIntoConstraints = false
-        textFieldContainer.backgroundColor = .secondarySystemGroupedBackground
-        textFieldContainer.layer.cornerRadius = 12
-        textFieldContainer.layer.masksToBounds = true
-
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(textFieldContainer)
-
+        backgroundColor = .clear
+        
+        card.translatesAutoresizingMaskIntoConstraints = false
+        UITheme.applyCardStyle(card)
+        
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.spacing = 20
+        
+        contentView.addSubview(card)
+        card.addSubview(stack)
+        
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-
-            textFieldContainer.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
-            textFieldContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
-            textFieldContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-            textFieldContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            
+            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 20),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -20),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -20)
         ])
+    }
+
+    func configure(nameField: UITextField, durationField: UITextField, perDayField: UITextField) {
+        stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        stack.addArrangedSubview(makeFieldRow(title: "Program Name *", field: nameField))
+        stack.addArrangedSubview(makeFieldRow(title: "Program Duration (days)", field: durationField))
+        stack.addArrangedSubview(makeFieldRow(title: "Exercises Per Day", field: perDayField))
     }
 }
 
@@ -480,7 +510,7 @@ final class ProgramDayCell: UITableViewCell {
                 guard let exercise = exerciseLookup[id] else { continue }
                 let label = UILabel()
                 label.font = .systemFont(ofSize: 15, weight: .semibold)
-                label.textColor = UIColor.black.withAlphaComponent(0.85)
+                label.textColor = .label
                 let mins = max(1, (exercise.duration_seconds ?? 0) / 60)
                 label.text = "\(exercise.title) • \(mins) min"
                 stack.addArrangedSubview(label)
@@ -494,17 +524,12 @@ final class ProgramDayCell: UITableViewCell {
 
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 16
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = 0.04
-        card.layer.shadowRadius = 6
-        card.layer.shadowOffset = CGSize(width: 0, height: 2)
+        UITheme.applyCardStyle(card)
         contentView.addSubview(card)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.85)
+        titleLabel.textColor = .label
 
         addButton.translatesAutoresizingMaskIntoConstraints = false
         addButton.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
@@ -523,7 +548,7 @@ final class ProgramDayCell: UITableViewCell {
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyLabel.text = "Select exercises for this day."
         emptyLabel.font = .systemFont(ofSize: 14, weight: .regular)
-        emptyLabel.textColor = UIColor.black.withAlphaComponent(0.5)
+        emptyLabel.textColor = .secondaryLabel
 
         card.addSubview(titleLabel)
         card.addSubview(addButton)
@@ -570,6 +595,44 @@ final class ProgramDayCell: UITableViewCell {
     }
 }
 
+final class ProgramEmptyScheduleCell: UITableViewCell {
+    static let reuseID = "ProgramEmptyScheduleCell"
+    private let card = UIView()
+    private let label = UILabel()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        backgroundColor = .clear
+        selectionStyle = .none
+        
+        card.translatesAutoresizingMaskIntoConstraints = false
+        UITheme.applyCardStyle(card)
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Set program duration and exercises per day to build each day."
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.textAlignment = .center
+        
+        contentView.addSubview(card)
+        card.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            
+            label.topAnchor.constraint(equalTo: card.topAnchor, constant: 24),
+            label.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -24),
+            label.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16)
+        ])
+    }
+    required init?(coder: NSCoder) { fatalError() }
+}
+
 final class ExercisePickerViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     var onSelected: ((ExerciseVideoRow) -> Void)?
 
@@ -601,9 +664,6 @@ final class ExercisePickerViewController: UIViewController, UITableViewDataSourc
 
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search videos"
-        searchBar.searchTextField.backgroundColor = .white
-        searchBar.searchTextField.layer.cornerRadius = 14
-        searchBar.searchTextField.layer.masksToBounds = true
         searchBar.delegate = self
 
         tableView.translatesAutoresizingMaskIntoConstraints = false

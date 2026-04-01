@@ -13,6 +13,8 @@ final class PhysioProgramsView: UIView {
     let tableView = UITableView(frame: .zero, style: .plain)
     private let emptyLabel = UILabel()
     private let refreshControl = UIRefreshControl()
+    private let headerContainer = UIView()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,23 +44,38 @@ final class PhysioProgramsView: UIView {
     }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+        sendSubviewToBack(backgroundGlow)
+
+        // Fix layout: Make the create button the table header
+        // so the table can be pinned to topAnchor allowing the native scrollEdgeAppearance.
+        headerContainer.translatesAutoresizingMaskIntoConstraints = false
+        headerContainer.backgroundColor = .clear
+
         createButton.translatesAutoresizingMaskIntoConstraints = false
-        createButton.setTitle("Create Program", for: .normal)
-        createButton.setImage(UIImage(systemName: "plus"), for: .normal)
-        createButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        createButton.tintColor = .white
-        createButton.backgroundColor = UITheme.Colors.accent
-        createButton.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
-        createButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
-        createButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -6, bottom: 0, right: 0)
+        var createConfig = UIButton.Configuration.filled()
+        createConfig.title = "Create Program"
+        createConfig.image = UIImage(systemName: "plus")
+        createConfig.imagePadding = 6
+        createConfig.baseBackgroundColor = UITheme.Colors.accent
+        createConfig.baseForegroundColor = .white
+        createConfig.cornerStyle = .capsule
+        createConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 15, weight: .bold)
+            return out
+        }
+        createButton.configuration = createConfig
+        createButton.heightAnchor.constraint(equalToConstant: 48).isActive = true
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 220
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 110, right: 0)
-        tableView.scrollIndicatorInsets = UIEdgeInsets(top: 12, left: 0, bottom: 110, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
+        tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
         tableView.refreshControl = refreshControl
 
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -68,19 +85,31 @@ final class PhysioProgramsView: UIView {
         emptyLabel.textAlignment = .center
         emptyLabel.isHidden = true
 
-        addSubview(createButton)
         addSubview(tableView)
         addSubview(emptyLabel)
 
+        // Set as header - button takes full width with 16px side padding to match cards
+        headerContainer.addSubview(createButton)
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 74) // 12 + 50 + 12 = 74
         NSLayoutConstraint.activate([
-            createButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12),
-            createButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            createButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            createButton.heightAnchor.constraint(equalToConstant: 50),
+            createButton.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 12),
+            createButton.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 16),
+            createButton.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -16),
+            createButton.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -12)
+        ])
+        tableView.tableHeaderView = headerContainer
 
-            tableView.topAnchor.constraint(equalTo: createButton.bottomAnchor, constant: 12),
-            tableView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+        NSLayoutConstraint.activate([
+            headerContainer.widthAnchor.constraint(equalTo: widthAnchor),
+
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            tableView.topAnchor.constraint(equalTo: topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             emptyLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
@@ -157,12 +186,7 @@ final class ProgramCardCell: UITableViewCell {
 
     private func build() {
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .secondarySystemGroupedBackground
-        card.layer.cornerRadius = UITheme.Metrics.cardCornerRadius
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = UITheme.Metrics.cardShadowOpacity
-        card.layer.shadowRadius = UITheme.Metrics.cardShadowRadius
-        card.layer.shadowOffset = UITheme.Metrics.cardShadowOffset
+        UITheme.applyCardStyle(card)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 17, weight: .bold)
@@ -200,27 +224,30 @@ final class ProgramCardCell: UITableViewCell {
         topButtonsRow.distribution = .fillEqually
 
         assignButton.translatesAutoresizingMaskIntoConstraints = false
-        assignButton.setTitle("Assign to Patients", for: .normal)
-        assignButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        assignButton.setTitleColor(UITheme.Colors.accent, for: .normal)
-        assignButton.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.1)
-        assignButton.layer.cornerRadius = 12
+        var assignConfig = UIButton.Configuration.tinted()
+        assignConfig.title = "Assign to Patients"
+        assignConfig.baseForegroundColor = UITheme.Colors.accent
+        assignConfig.baseBackgroundColor = UITheme.Colors.accent
+        assignConfig.cornerStyle = .capsule
+        assignButton.configuration = assignConfig
         assignButton.addTarget(self, action: #selector(assignTapped), for: .touchUpInside)
 
         detailsButton.translatesAutoresizingMaskIntoConstraints = false
-        detailsButton.setTitle("View Details", for: .normal)
-        detailsButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        detailsButton.setTitleColor(.secondaryLabel, for: .normal)
-        detailsButton.backgroundColor = UIColor.tertiarySystemFill
-        detailsButton.layer.cornerRadius = 12
+        var detailsConfig = UIButton.Configuration.tinted()
+        detailsConfig.title = "View Details"
+        detailsConfig.baseForegroundColor = .secondaryLabel
+        detailsConfig.baseBackgroundColor = .secondarySystemFill
+        detailsConfig.cornerStyle = .capsule
+        detailsButton.configuration = detailsConfig
         detailsButton.addTarget(self, action: #selector(detailsTapped), for: .touchUpInside)
 
         deleteButton.translatesAutoresizingMaskIntoConstraints = false
-        deleteButton.setTitle("Delete Program", for: .normal)
-        deleteButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        deleteButton.setTitleColor(.white, for: .normal)
-        deleteButton.backgroundColor = .systemRed
-        deleteButton.layer.cornerRadius = 12
+        var deleteConfig = UIButton.Configuration.tinted()
+        deleteConfig.title = "Delete Program"
+        deleteConfig.baseForegroundColor = .systemRed
+        deleteConfig.baseBackgroundColor = .systemRed
+        deleteConfig.cornerStyle = .capsule
+        deleteButton.configuration = deleteConfig
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
 
         topButtonsRow.addArrangedSubview(assignButton)
@@ -239,8 +266,8 @@ final class ProgramCardCell: UITableViewCell {
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
             titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),

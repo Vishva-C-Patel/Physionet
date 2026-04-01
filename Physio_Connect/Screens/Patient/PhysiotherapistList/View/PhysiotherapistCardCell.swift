@@ -22,6 +22,7 @@ final class PhysiotherapistCardCell: UITableViewCell {
     private let distanceLabel = UILabel()
     private let specializationLabel = UILabel()
     private let feeLabel = UILabel()
+    private let initialsLabel = UILabel()
     var avatarPath: String?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -57,6 +58,13 @@ final class PhysiotherapistCardCell: UITableViewCell {
         
         avatarImage.tintColor = .gray
         card.addSubview(avatarImage)
+
+        initialsLabel.translatesAutoresizingMaskIntoConstraints = false
+        initialsLabel.font = .systemFont(ofSize: 32, weight: .bold)
+        initialsLabel.textColor = UITheme.Colors.accent
+        initialsLabel.textAlignment = .center
+        initialsLabel.isHidden = true
+        card.addSubview(initialsLabel)
 
         // ---------------- LABELS (MATCH FONT SIZES) ----------------
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -96,6 +104,9 @@ final class PhysiotherapistCardCell: UITableViewCell {
             avatarImage.widthAnchor.constraint(equalToConstant: 110),
             avatarImage.heightAnchor.constraint(equalToConstant: 110),
 
+            initialsLabel.centerXAnchor.constraint(equalTo: avatarImage.centerXAnchor),
+            initialsLabel.centerYAnchor.constraint(equalTo: avatarImage.centerYAnchor),
+
             nameLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: avatarImage.trailingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
@@ -125,18 +136,30 @@ final class PhysiotherapistCardCell: UITableViewCell {
         distanceLabel.text = model.distanceText
         feeLabel.text = model.feeText
 
-        // Placeholder (until you add image_url column)
-        avatarImage.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-        avatarImage.tintColor = .gray
+        // Placeholder initials
+        avatarImage.image = nil
+        avatarImage.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+        initialsLabel.text = UITheme.getInitials(from: model.name)
+        initialsLabel.isHidden = false
     }
 
-    func setAvatarImage(_ image: UIImage?) {
+    func setAvatarImage(_ image: UIImage?, name: String? = nil) {
         if let image {
             avatarImage.image = image
+            avatarImage.backgroundColor = .clear
             avatarImage.tintColor = .clear
+            initialsLabel.isHidden = true
         } else {
-            avatarImage.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-            avatarImage.tintColor = .gray
+            avatarImage.image = nil
+            avatarImage.backgroundColor = UITheme.Colors.accent.withAlphaComponent(0.12)
+            if let name {
+                initialsLabel.text = UITheme.getInitials(from: name)
+                initialsLabel.isHidden = false
+            } else {
+                avatarImage.image = UIImage(systemName: "person.fill")
+                avatarImage.tintColor = .gray
+                initialsLabel.isHidden = true
+            }
         }
     }
 }

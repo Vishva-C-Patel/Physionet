@@ -127,7 +127,7 @@ final class RoleSelectionView: UIView {
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         button.backgroundColor = UITheme.Colors.accent
-        button.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
+        button.layer.cornerRadius = 27
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = 0.10
         button.layer.shadowRadius = 10

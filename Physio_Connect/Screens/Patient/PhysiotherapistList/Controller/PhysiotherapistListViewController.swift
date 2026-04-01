@@ -311,7 +311,7 @@ extension PhysiotherapistListViewController: UITableViewDataSource, UITableViewD
         let model = filtered[indexPath.row]
         cell.configure(with: model)
         cell.avatarPath = model.profileImagePath
-        cell.setAvatarImage(nil)
+        cell.setAvatarImage(nil, name: model.name)
         loadAvatar(path: model.profileImagePath, version: model.profileImageVersion, into: cell)
         return cell
     }

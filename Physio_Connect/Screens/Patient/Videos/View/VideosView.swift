@@ -32,10 +32,13 @@ final class VideosView: UIView {
     private let emptySub = UILabel()
     let redeemButton = UIButton(type: .system)
 
+    let programSummaryContainer = UIView()
+
     private let refreshControl = UIRefreshControl()
     
-    private let segBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     private let searchBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
@@ -44,13 +47,15 @@ final class VideosView: UIView {
         layout.minimumLineSpacing = 10
         filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
         build()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    private let headerContainer = UIView()
 
     func showEmptyState(_ show: Bool) {
         emptyCard.isHidden = !show
@@ -71,7 +76,9 @@ final class VideosView: UIView {
         if !enabled {
             setProgramRedeemVisible(false)
         }
-        layoutIfNeeded()
+        UIView.performWithoutAnimation {
+            updateHeaderLayout()
+        }
     }
 
     func setProgramRedeemVisible(_ visible: Bool) {
@@ -95,46 +102,56 @@ final class VideosView: UIView {
     }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
+        // Header container approach (like ArticlesView) for liquid glass nav bar
+        headerContainer.translatesAutoresizingMaskIntoConstraints = true
+        headerContainer.backgroundColor = .clear
+        headerContainer.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 170)
+
         profileButton.translatesAutoresizingMaskIntoConstraints = false
-        let profileConfig = UIImage.SymbolConfiguration(pointSize: 36, weight: .light)
+        let profileConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .regular)
         profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)
-        profileButton.tintColor = .secondaryLabel
+        profileButton.tintColor = UITheme.Colors.textSecondary
+        profileButton.imageView?.contentMode = .scaleAspectFill
+        profileButton.layer.cornerRadius = 16
+        profileButton.clipsToBounds = true
+        NSLayoutConstraint.activate([
+            profileButton.widthAnchor.constraint(equalToConstant: 32),
+            profileButton.heightAnchor.constraint(equalToConstant: 32)
+        ])
 
-        segmented.selectedSegmentIndex = 0
         segmented.translatesAutoresizingMaskIntoConstraints = false
-        segmented.selectedSegmentTintColor = UITheme.Colors.accent.withAlphaComponent(0.6)
-        segmented.backgroundColor = .clear
+        segmented.selectedSegmentIndex = 0
+        UITheme.applySegmentedStyle(segmented)
         
-        segBlur.translatesAutoresizingMaskIntoConstraints = false
-        segBlur.isUserInteractionEnabled = false
-        segBlur.layer.cornerRadius = 16
-        segBlur.clipsToBounds = true
-        segBlur.layer.borderWidth = 0.5
-        segBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
-        segmented.layer.cornerRadius = 16
-        segmented.layer.masksToBounds = true
-        segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UITheme.Typography.buttonSmall],
-            for: .selected
-        )
-        segmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.secondaryLabel, .font: UITheme.Typography.buttonSmall],
-            for: .normal
-        )
-
         searchBar.placeholder = "Search exercises"
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.backgroundImage = UIImage()
-        searchBar.searchTextField.backgroundColor = .clear
-
-        searchBlur.translatesAutoresizingMaskIntoConstraints = false
-        searchBlur.isUserInteractionEnabled = false
-        searchBlur.layer.cornerRadius = 12
-        searchBlur.clipsToBounds = true
-        searchBlur.layer.borderWidth = 0.5
-        searchBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
-        searchBar.searchTextField.insertSubview(searchBlur, at: 0)
+        
+        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
+            textField.backgroundColor = .clear
+            textField.layer.cornerRadius = 22
+            textField.layer.masksToBounds = true
+            
+            searchBlur.translatesAutoresizingMaskIntoConstraints = false
+            searchBlur.isUserInteractionEnabled = false
+            searchBlur.layer.cornerRadius = 22
+            searchBlur.clipsToBounds = true
+            searchBlur.layer.borderWidth = 0.5
+            searchBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
+            textField.insertSubview(searchBlur, at: 0)
+            
+            NSLayoutConstraint.activate([
+                searchBlur.topAnchor.constraint(equalTo: textField.topAnchor),
+                searchBlur.bottomAnchor.constraint(equalTo: textField.bottomAnchor),
+                searchBlur.leadingAnchor.constraint(equalTo: textField.leadingAnchor),
+                searchBlur.trailingAnchor.constraint(equalTo: textField.trailingAnchor)
+            ])
+        }
 
         filterCollectionView.translatesAutoresizingMaskIntoConstraints = false
         filterCollectionView.backgroundColor = .clear
@@ -186,6 +203,7 @@ final class VideosView: UIView {
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.refreshControl = refreshControl
+        tableView.contentInsetAdjustmentBehavior = .always
 
         emptyCard.translatesAutoresizingMaskIntoConstraints = false
         UITheme.applyCardStyle(emptyCard)
@@ -207,19 +225,24 @@ final class VideosView: UIView {
         redeemButton.titleLabel?.font = UITheme.Typography.button
         redeemButton.backgroundColor = UITheme.Colors.accent
         redeemButton.setTitleColor(.white, for: .normal)
-        redeemButton.layer.cornerRadius = 14
+        redeemButton.layer.cornerRadius = 27
         redeemButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
 
-        // addSubview(topBar)
-        // topBar.addSubview(titleLabel)
-        // topBar.addSubview(profileButton)
-        addSubview(segBlur)
-        addSubview(segmented)
-        addSubview(searchBar)
-        addSubview(filterCollectionView)
-        addSubview(programRedeemCard)
+        // Table view with header container (liquid glass scrolling)
         addSubview(tableView)
         addSubview(emptyCard)
+        tableView.tableHeaderView = headerContainer
+        tableView.contentInset = .zero
+
+        // Header subviews
+        headerContainer.addSubview(segmented)
+        headerContainer.addSubview(searchBar)
+        headerContainer.addSubview(filterCollectionView)
+        headerContainer.addSubview(programRedeemCard)
+        headerContainer.addSubview(programSummaryContainer)
+        
+        programSummaryContainer.translatesAutoresizingMaskIntoConstraints = false
+        
         programRedeemCard.addSubview(redeemIcon)
         programRedeemCard.addSubview(redeemTitleLabel)
         programRedeemCard.addSubview(redeemSubtitleLabel)
@@ -231,40 +254,43 @@ final class VideosView: UIView {
         emptyCard.addSubview(emptySub)
         emptyCard.addSubview(redeemButton)
 
-
-
         searchHeightConstraint = searchBar.heightAnchor.constraint(equalToConstant: 44)
         filterHeightConstraint = filterCollectionView.heightAnchor.constraint(equalToConstant: 40)
         redeemCardHeightConstraint = programRedeemCard.heightAnchor.constraint(equalToConstant: 0)
 
-
         NSLayoutConstraint.activate([
-            segBlur.topAnchor.constraint(equalTo: segmented.topAnchor),
-            segBlur.bottomAnchor.constraint(equalTo: segmented.bottomAnchor),
-            segBlur.leadingAnchor.constraint(equalTo: segmented.leadingAnchor),
-            segBlur.trailingAnchor.constraint(equalTo: segmented.trailingAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            segmented.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10),
-            segmented.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            segmented.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            segmented.heightAnchor.constraint(equalToConstant: 32),
+            tableView.topAnchor.constraint(equalTo: topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            searchBar.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 10),
-            searchBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            // Header internal layout
+            segmented.topAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.topAnchor),
+            segmented.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            segmented.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+            segmented.heightAnchor.constraint(equalToConstant: 36),
 
-            searchBlur.topAnchor.constraint(equalTo: searchBar.searchTextField.topAnchor),
-            searchBlur.bottomAnchor.constraint(equalTo: searchBar.searchTextField.bottomAnchor),
-            searchBlur.leadingAnchor.constraint(equalTo: searchBar.searchTextField.leadingAnchor),
-            searchBlur.trailingAnchor.constraint(equalTo: searchBar.searchTextField.trailingAnchor),
+            searchBar.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 12),
+            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 8),
+            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -8),
 
             filterCollectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
-            filterCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            filterCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            filterCollectionView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            filterCollectionView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 
             programRedeemCard.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 8),
-            programRedeemCard.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            programRedeemCard.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            programRedeemCard.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            programRedeemCard.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+            
+            programSummaryContainer.topAnchor.constraint(equalTo: programRedeemCard.bottomAnchor, constant: 8),
+            programSummaryContainer.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
+            programSummaryContainer.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor),
+            programSummaryContainer.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -10),
 
             redeemIcon.leadingAnchor.constraint(equalTo: programRedeemCard.leadingAnchor, constant: 14),
             redeemIcon.topAnchor.constraint(equalTo: programRedeemCard.topAnchor, constant: 12),
@@ -293,11 +319,6 @@ final class VideosView: UIView {
             redeemInlineButton.centerYAnchor.constraint(equalTo: redeemInputContainer.centerYAnchor),
             redeemInlineButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 86),
 
-            tableView.topAnchor.constraint(equalTo: programRedeemCard.bottomAnchor, constant: 8),
-            tableView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
             emptyCard.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
             emptyCard.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             emptyCard.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
@@ -319,5 +340,43 @@ final class VideosView: UIView {
         searchHeightConstraint?.isActive = true
         filterHeightConstraint?.isActive = true
         redeemCardHeightConstraint?.isActive = true
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateHeaderLayout()
+    }
+
+    func updateHeaderLayout() {
+        guard let headerView = tableView.tableHeaderView else { return }
+        let headerWidth = tableView.bounds.width
+        if headerWidth <= 0 { return }
+        headerView.frame.size.width = headerWidth
+        headerView.layoutIfNeeded()
+        let targetSize = CGSize(width: headerWidth, height: UIView.layoutFittingCompressedSize.height)
+        let height = headerView.systemLayoutSizeFitting(
+            targetSize,
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        ).height
+        if headerView.frame.size.height != height || headerView.frame.size.width != headerWidth {
+            headerView.frame = CGRect(x: 0, y: 0, width: headerWidth, height: height)
+            tableView.tableHeaderView = headerView
+        }
+    }
+
+    func setProgramSummaryView(_ view: UIView?) {
+        programSummaryContainer.subviews.forEach { $0.removeFromSuperview() }
+        if let view = view {
+            view.translatesAutoresizingMaskIntoConstraints = false
+            programSummaryContainer.addSubview(view)
+            NSLayoutConstraint.activate([
+                view.topAnchor.constraint(equalTo: programSummaryContainer.topAnchor),
+                view.leadingAnchor.constraint(equalTo: programSummaryContainer.leadingAnchor),
+                view.trailingAnchor.constraint(equalTo: programSummaryContainer.trailingAnchor),
+                view.bottomAnchor.constraint(equalTo: programSummaryContainer.bottomAnchor)
+            ])
+        }
+        updateHeaderLayout()
     }
 }

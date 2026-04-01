@@ -14,7 +14,7 @@ enum PatientNavAvatarStyle {
     private static var signedURLCache: [String: (url: URL, expiry: Date)] = [:]
 
     static func updateProfileButton(_ button: UIButton, urlString: String?) {
-        let placeholder = UIImage(systemName: "person.circle")
+        let placeholder = UIImage(systemName: "person.crop.circle")
         let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         stateLock.lock()
@@ -98,10 +98,26 @@ enum PatientNavAvatarStyle {
     }
 
     private static func configure(_ button: UIButton, image: UIImage?) {
+        let size: CGFloat = 36
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.imageView?.contentMode = .scaleAspectFill
-        button.layer.cornerRadius = button.bounds.width > 0 ? button.bounds.width / 2 : 18
+        button.tintColor = UITheme.Colors.accent
+        button.backgroundColor = UIColor.tertiarySystemFill
+        button.layer.cornerRadius = size / 2
         button.clipsToBounds = true
+        button.adjustsImageWhenHighlighted = false
+        button.contentHorizontalAlignment = .fill
+        button.contentVerticalAlignment = .fill
+        button.contentEdgeInsets = .zero
+        button.imageEdgeInsets = .zero
+
+        if button.constraints.isEmpty {
+            NSLayoutConstraint.activate([
+                button.widthAnchor.constraint(equalToConstant: size),
+                button.heightAnchor.constraint(equalToConstant: size)
+            ])
+        }
     }
 
     private static func applyLoadedImage(_ image: UIImage?, placeholder: UIImage?, raw: String, button: UIButton) {

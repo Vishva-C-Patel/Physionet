@@ -52,7 +52,7 @@ enum UITheme {
     enum Metrics {
         static let cardCornerRadius: CGFloat = 22
         static let chipCornerRadius: CGFloat = 14
-        static let buttonCornerRadius: CGFloat = 20
+        static let buttonCornerRadius: CGFloat = 27
         static let cardShadowOpacity: Float = 0.04
         static let cardShadowRadius: CGFloat = 16
         static let cardShadowOffset = CGSize(width: 0, height: 4)
@@ -96,14 +96,16 @@ enum UITheme {
         return blurView
     }
 
-    /// Classic card style — updated for iOS 26 with larger corner radius and softer shadows.
+    /// Classic card style — updated for iOS 26 with larger corner radius, softer shadows and subtle border.
     static func applyCardStyle(_ view: UIView) {
         view.backgroundColor = Colors.surface
         view.layer.cornerRadius = Metrics.cardCornerRadius
         view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = Metrics.cardShadowOpacity
-        view.layer.shadowRadius = Metrics.cardShadowRadius
-        view.layer.shadowOffset = Metrics.cardShadowOffset
+        view.layer.shadowOpacity = 0.05
+        view.layer.shadowRadius = 16
+        view.layer.shadowOffset = CGSize(width: 0, height: 6)
+        view.layer.borderWidth = 0.5
+        view.layer.borderColor = Colors.glassBorder.cgColor
     }
 
     static func applySecondaryCardStyle(_ view: UIView) {
@@ -133,39 +135,37 @@ enum UITheme {
         selected.titleTextAttributes = [.foregroundColor: Colors.accent]
 
         return appearance
-    }
-
-    static func makeGlassNavBarAppearance() -> UINavigationBarAppearance {
+    };    static func makeGlassNavBarAppearance() -> UINavigationBarAppearance {
         let appearance = UINavigationBarAppearance()
-        // iOS 26: use default background for native Liquid Glass nav bar
+        // iOS 26: Use system ultra thin material for a premium glass feel
         appearance.configureWithDefaultBackground()
-        appearance.titleTextAttributes = [
+        appearance.backgroundEffect = UIBlurEffect(style: .systemThinMaterial)
+        appearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.2)
+        appearance.shadowColor = Colors.glassBorder
+        
+        let titleAttrs: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.label,
-            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+            .font: UIFont.systemFont(ofSize: 18, weight: .bold)
         ]
+        appearance.titleTextAttributes = titleAttrs
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
         return appearance
     }
 
-    /// Applies native iOS 26 navigation bar — fully transparent with no background box.
-    /// The title and bar buttons float cleanly over the content on all screens.
+    /// Applies the refined native iOS navigation bar — transparent on scroll edge, glass when scrolled.
     static func applyNativeNavBar(to vc: UIViewController, title: String) {
-        vc.navigationController?.setNavigationBarHidden(false, animated: false)
-
         let navBar = vc.navigationController?.navigationBar
         navBar?.prefersLargeTitles = false
         navBar?.tintColor = Colors.accent
 
-        // Scrolled state — frosted glass background
         let standard = makeGlassNavBarAppearance()
         
-        // At-rest state — fully transparent
         let scrollEdge = UINavigationBarAppearance()
         scrollEdge.configureWithTransparentBackground()
         scrollEdge.shadowColor = .clear
         scrollEdge.titleTextAttributes = [
             .foregroundColor: UIColor.label,
-            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+            .font: UIFont.systemFont(ofSize: 18, weight: .bold)
         ]
 
         navBar?.standardAppearance = standard
@@ -174,8 +174,43 @@ enum UITheme {
 
         vc.navigationItem.title = title
         vc.navigationItem.backButtonDisplayMode = .minimal
+        
+        // Remove custom title views that might glitch the native hovering behavior
+        vc.navigationItem.titleView = nil
+    }
+
+    /// Applies standardized iOS 26 Liquid Glass styling to a segmented control.
+    static func applySegmentedStyle(_ segmented: UISegmentedControl) {
+        // High contrast selection for immediate visibility
+        segmented.selectedSegmentTintColor = Colors.accent
+        segmented.backgroundColor = UIColor.tertiarySystemFill
+        
+        let normalAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.secondaryLabel,
+            .font: Typography.buttonSmall
+        ]
+        let selectedAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 13, weight: .semibold)
+        ]
+        
+        segmented.setTitleTextAttributes(normalAttrs, for: .normal)
+        segmented.setTitleTextAttributes(selectedAttrs, for: .selected)
+        
+        // Fix for selection not showing at first: force an update
+        let current = segmented.selectedSegmentIndex
+        segmented.selectedSegmentIndex = -1
+        segmented.selectedSegmentIndex = current
+    }
+
+    /// Generates initials from a name (e.g. "John Doe" -> "JD")
+    static func getInitials(from name: String) -> String {
+        let words = name.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        let initials = words.prefix(2).compactMap { $0.first.map(String.init) }
+        return initials.joined().uppercased()
     }
 }
+
 
 final class PillLabel: UILabel {
     var contentInsets = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
@@ -198,3 +233,62 @@ final class PillLabel: UILabel {
         layer.masksToBounds = true
     }
 }
+
+// MARK: - App Background Top Glow View
+
+final class AppBackgroundTopGlowView: UIView {
+    private let gradientLayer = CAGradientLayer()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // Primary neutral background
+        self.backgroundColor = .systemGroupedBackground
+        
+        gradientLayer.type = .radial
+        layer.addSublayer(gradientLayer)
+        updateColors()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Create a large square centered at the top-left (0,0)
+        let size = max(bounds.width, bounds.height) * 1.5
+        gradientLayer.frame = CGRect(x: -size / 2, y: -size / 2, width: size, height: size)
+        
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.5) // Center of the square
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)   // Expand outward
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateColors()
+        }
+    }
+    
+    private func updateColors() {
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        
+        // Light Mode: E3F0FF glowing gently
+        let lightColors = [
+            UIColor(hex: "E3F0FF").withAlphaComponent(1.0).cgColor,
+            UIColor(hex: "E3F0FF").withAlphaComponent(0.0).cgColor
+        ]
+        
+        // Dark Mode: Navy blue glowing gently against dark background
+        let darkColors = [
+            UIColor(hex: "1F4275").withAlphaComponent(0.35).cgColor,
+            UIColor(hex: "060B14").withAlphaComponent(0.0).cgColor
+        ]
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        gradientLayer.colors = isDark ? darkColors : lightColors
+        CATransaction.commit()
+    }
+}
+

@@ -20,6 +20,7 @@ final class PhysioReportsView: UIView {
     let tableView = UITableView(frame: .zero, style: .plain)
     let searchBar = UISearchBar()
     let refreshControl = UIRefreshControl()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     private let emptyLabel = UILabel()
 
@@ -31,12 +32,27 @@ final class PhysioReportsView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func build() {
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
 
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search patients or programs..."
         searchBar.backgroundImage = UIImage()
+        
+        let searchField = searchBar.searchTextField
+        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
+        searchField.layer.cornerRadius = 20
+        searchField.layer.masksToBounds = true
+        
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = searchField.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurView.isUserInteractionEnabled = false
+        searchField.insertSubview(blurView, at: 0)
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
@@ -56,16 +72,32 @@ final class PhysioReportsView: UIView {
         emptyLabel.isHidden = true
         emptyLabel.isUserInteractionEnabled = false
 
-        addSubview(searchBar)
+        // Build table header with search bar so tableView can be
+        // pinned to topAnchor — enabling the native hovering-title glass nav bar.
+        let headerContainer = UIView()
+        headerContainer.backgroundColor = .clear
+        headerContainer.addSubview(searchBar)
+
+        NSLayoutConstraint.activate([
+            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
+            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
+            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
+            searchBar.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -8)
+        ])
+
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 60)
+        tableView.tableHeaderView = headerContainer
+
         addSubview(tableView)
         addSubview(emptyLabel)
 
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12),
-            searchBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            searchBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 8),
+            tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -139,7 +171,7 @@ final class ReportPatientCell: UITableViewCell {
         locationLabel.numberOfLines = 0
 
         divider.translatesAutoresizingMaskIntoConstraints = false
-        divider.backgroundColor = UITheme.Colors.border
+        divider.backgroundColor = UITheme.Colors.glassBorder
 
         adherenceTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         adherenceTitleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
@@ -204,8 +236,8 @@ final class ReportPatientCell: UITableViewCell {
             adherenceBar.topAnchor.constraint(equalTo: adherenceTitleLabel.bottomAnchor, constant: 8),
             adherenceBar.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             adherenceBar.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            adherenceBar.heightAnchor.constraint(equalToConstant: 6),
-            adherenceBar.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
+            adherenceBar.heightAnchor.constraint(equalToConstant: 8),
+            adherenceBar.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -16)
         ])
     }
 

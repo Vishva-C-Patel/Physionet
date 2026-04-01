@@ -45,11 +45,10 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         articlesView.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
 
         articlesView.setRefreshTarget(self, action: #selector(refreshPulled))
-
-        for (index, button) in articlesView.segmentButtons.enumerated() {
-            button.tag = index
-            button.addTarget(self, action: #selector(segmentTapped(_:)), for: .touchUpInside)
-        }
+        articlesView.segmented.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        
+        // Ensure initial segment selection is rendered
+        articlesView.layoutIfNeeded()
 
         articlesView.featuredCard.onReadTapped = { [weak self] in
             guard let self, let featuredArticle = self.featuredArticle else { return }
@@ -77,9 +76,8 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         articlesView.updateHeaderLayout()
     }
 
-    @objc private func segmentTapped(_ sender: UIButton) {
-        selectedSegmentIndex = sender.tag
-        articlesView.setSegmentSelection(selectedSegmentIndex)
+    @objc private func segmentChanged() {
+        selectedSegmentIndex = articlesView.segmented.selectedSegmentIndex
         Task { await reload() }
     }
 
@@ -204,8 +202,8 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         let title = filterOptions[indexPath.item]
         let font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        let width = title.size(withAttributes: [.font: font]).width + 28
-        return CGSize(width: max(60, width), height: 32)
+        let titleWidth = ceil(title.size(withAttributes: [.font: font]).width)
+        return CGSize(width: max(60, titleWidth + 40), height: 32)
     }
 
     private func showBookmarkToast(_ isBookmarked: Bool) {

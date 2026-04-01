@@ -55,25 +55,40 @@ final class PhysioAppointmentsView: UIView {
     let segmentControl = UISegmentedControl(items: ["All", "Upcoming", "Completed"])
     let tableView = UITableView(frame: .zero, style: .plain)
 
+    private let backgroundGlow = AppBackgroundTopGlowView()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
+        backgroundColor = .clear
         build()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func build() {
-        backgroundColor = .systemGroupedBackground
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
 
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search patients or sessions..."
+        searchBar.backgroundImage = UIImage()
+        
+        let searchField = searchBar.searchTextField
+        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
+        searchField.layer.cornerRadius = 20
+        searchField.layer.masksToBounds = true
+        
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = searchField.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurView.isUserInteractionEnabled = false
+        searchField.insertSubview(blurView, at: 0)
 
         segmentControl.translatesAutoresizingMaskIntoConstraints = false
         segmentControl.selectedSegmentIndex = 0
-        segmentControl.selectedSegmentTintColor = UITheme.Colors.accent
-        segmentControl.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
-        segmentControl.setTitleTextAttributes([.foregroundColor: UIColor.secondaryLabel], for: .normal)
+        UITheme.applySegmentedStyle(segmentControl)
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
@@ -81,21 +96,42 @@ final class PhysioAppointmentsView: UIView {
         tableView.showsVerticalScrollIndicator = false
         tableView.register(PhysioAppointmentCell.self, forCellReuseIdentifier: "PhysioAppointmentCell")
 
-        addSubview(searchBar)
-        addSubview(segmentControl)
-        addSubview(tableView)
+        // Build table header with search + segment so tableView can be
+        // pinned to topAnchor — enabling the native hovering-title glass nav bar.
+        let headerContainer = UIView()
+        headerContainer.backgroundColor = .clear
+
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        segmentControl.translatesAutoresizingMaskIntoConstraints = false
+
+        headerContainer.addSubview(searchBar)
+        headerContainer.addSubview(segmentControl)
 
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12),
-            searchBar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            searchBar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
+            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
+            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
 
             segmentControl.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
             segmentControl.leadingAnchor.constraint(equalTo: searchBar.leadingAnchor),
             segmentControl.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor),
-            segmentControl.heightAnchor.constraint(equalToConstant: 34),
+            segmentControl.heightAnchor.constraint(equalToConstant: 36),
+            segmentControl.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -8)
+        ])
 
-            tableView.topAnchor.constraint(equalTo: segmentControl.bottomAnchor, constant: 12),
+        // Size the header to fit
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 110)
+        tableView.tableHeaderView = headerContainer
+
+        addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
@@ -133,12 +169,7 @@ final class PhysioAppointmentCell: UITableViewCell {
         backgroundColor = .clear
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .secondarySystemGroupedBackground
-        card.layer.cornerRadius = UITheme.Metrics.cardCornerRadius
-        card.layer.shadowColor = UIColor.black.cgColor
-        card.layer.shadowOpacity = UITheme.Metrics.cardShadowOpacity
-        card.layer.shadowRadius = UITheme.Metrics.cardShadowRadius
-        card.layer.shadowOffset = UITheme.Metrics.cardShadowOffset
+        UITheme.applyCardStyle(card)
         contentView.addSubview(card)
 
         statusPill.translatesAutoresizingMaskIntoConstraints = false
@@ -173,19 +204,21 @@ final class PhysioAppointmentCell: UITableViewCell {
         locationLabel.numberOfLines = 0
 
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("Cancel", for: .normal)
-        cancelButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-        cancelButton.backgroundColor = UIColor(hex: "FCE4E4")
-        cancelButton.setTitleColor(UIColor(hex: "E53935"), for: .normal)
-        cancelButton.layer.cornerRadius = 12
+        var cancelConfig = UIButton.Configuration.tinted()
+        cancelConfig.title = "Cancel"
+        cancelConfig.baseForegroundColor = UIColor(hex: "E53935")
+        cancelConfig.baseBackgroundColor = UIColor(hex: "E53935")
+        cancelConfig.cornerStyle = .capsule
+        cancelButton.configuration = cancelConfig
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
 
         completeButton.translatesAutoresizingMaskIntoConstraints = false
-        completeButton.setTitle("Completed", for: .normal)
-        completeButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-        completeButton.backgroundColor = UIColor(hex: "E6F1FF")
-        completeButton.setTitleColor(UIColor(hex: "1E6EF7"), for: .normal)
-        completeButton.layer.cornerRadius = 12
+        var completeConfig = UIButton.Configuration.filled()
+        completeConfig.title = "Completed"
+        completeConfig.baseForegroundColor = .white
+        completeConfig.baseBackgroundColor = UITheme.Colors.accent
+        completeConfig.cornerStyle = .capsule
+        completeButton.configuration = completeConfig
         completeButton.addTarget(self, action: #selector(completeTapped), for: .touchUpInside)
 
         buttonStack.axis = .horizontal

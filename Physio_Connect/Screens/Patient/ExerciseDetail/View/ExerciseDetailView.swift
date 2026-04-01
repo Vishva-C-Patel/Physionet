@@ -263,8 +263,8 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
 
         playButton.translatesAutoresizingMaskIntoConstraints = false
         playButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
-        playButton.tintColor = UIColor(hex: "1E6EF7")
-        playButton.backgroundColor = .white
+        playButton.tintColor = UITheme.Colors.accent
+        playButton.backgroundColor = UITheme.Colors.surface
         playButton.layer.cornerRadius = 32
         playButton.layer.shadowColor = UIColor.black.cgColor
         playButton.layer.shadowOpacity = 0.12
@@ -355,7 +355,7 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         completeLabel.translatesAutoresizingMaskIntoConstraints = false
         completeLabel.text = "Mark as Completed"
         completeLabel.font = .systemFont(ofSize: 15, weight: .semibold)
-        completeLabel.textColor = UIColor.black.withAlphaComponent(0.75)
+        completeLabel.textColor = .label
 
         completeCard.addSubview(completeButton)
         completeCard.addSubview(completeLabel)
@@ -564,19 +564,19 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         notesTitle.translatesAutoresizingMaskIntoConstraints = false
         notesTitle.text = "Discomfort Notes"
         notesTitle.font = .systemFont(ofSize: 15, weight: .bold)
-        notesTitle.textColor = UIColor(hex: "1E2A44")
+        notesTitle.textColor = .label
 
         notesTextView.translatesAutoresizingMaskIntoConstraints = false
         notesTextView.font = .systemFont(ofSize: 14, weight: .regular)
-        notesTextView.textColor = UIColor.black.withAlphaComponent(0.8)
-        notesTextView.backgroundColor = UIColor(hex: "F2F6FF")
+        notesTextView.textColor = .label
+        notesTextView.backgroundColor = .secondarySystemBackground
         notesTextView.layer.cornerRadius = 14
         notesTextView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
 
         notesPlaceholder.translatesAutoresizingMaskIntoConstraints = false
         notesPlaceholder.text = "e.g. felt a slight twinge in my lower back."
         notesPlaceholder.font = .systemFont(ofSize: 14, weight: .regular)
-        notesPlaceholder.textColor = UIColor.black.withAlphaComponent(0.35)
+        notesPlaceholder.textColor = .secondaryLabel
 
         notesTextView.addSubview(notesPlaceholder)
         notesCard.addSubview(notesTitle)
@@ -605,7 +605,7 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         saveButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         saveButton.backgroundColor = UITheme.Colors.accent
         saveButton.setTitleColor(.white, for: .normal)
-        saveButton.layer.cornerRadius = 18
+        saveButton.layer.cornerRadius = 27
         saveButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         saveButton.layer.shadowColor = UIColor.black.cgColor
         saveButton.layer.shadowOpacity = 0.12
@@ -628,7 +628,7 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         continueButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         continueButton.backgroundColor = UITheme.Colors.accent
         continueButton.setTitleColor(.white, for: .normal)
-        continueButton.layer.cornerRadius = 18
+        continueButton.layer.cornerRadius = 27
         continueButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         continueButton.layer.shadowColor = UIColor.black.cgColor
         continueButton.layer.shadowOpacity = 0.12

@@ -27,6 +27,7 @@ final class ProfileView: UIView {
     private let contentView = UIView()
     private let stackView = UIStackView()
     private let refreshControl = UIRefreshControl()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     private var isLoggedInState = true
 
@@ -67,7 +68,7 @@ final class ProfileView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
         build()
     }
 
@@ -122,6 +123,9 @@ final class ProfileView: UIView {
     }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -135,7 +139,12 @@ final class ProfileView: UIView {
         contentView.addSubview(stackView)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -408,7 +417,7 @@ final class ProfileView: UIView {
         availabilitySaveButton.setTitleColor(.white, for: .normal)
         availabilitySaveButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         availabilitySaveButton.backgroundColor = UITheme.Colors.accent
-        availabilitySaveButton.layer.cornerRadius = 16
+        availabilitySaveButton.layer.cornerRadius = 24
         availabilitySaveButton.layer.shadowColor = UIColor.black.cgColor
         availabilitySaveButton.layer.shadowOpacity = 0.05
         availabilitySaveButton.layer.shadowRadius = 10
@@ -510,7 +519,7 @@ final class ProfileView: UIView {
         signOutButton.setTitleColor(.systemRed, for: .normal)
         signOutButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         signOutButton.backgroundColor = UITheme.Colors.surface
-        signOutButton.layer.cornerRadius = 16
+        signOutButton.layer.cornerRadius = 26
         signOutButton.layer.shadowColor = UIColor.black.cgColor
         signOutButton.layer.shadowOpacity = 0.05
         signOutButton.layer.shadowRadius = 10
@@ -522,7 +531,7 @@ final class ProfileView: UIView {
         loginButton.setTitleColor(.white, for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         loginButton.backgroundColor = UITheme.Colors.accent
-        loginButton.layer.cornerRadius = 16
+        loginButton.layer.cornerRadius = 26
         loginButton.layer.shadowColor = UIColor.black.cgColor
         loginButton.layer.shadowOpacity = 0.05
         loginButton.layer.shadowRadius = 10
@@ -534,7 +543,7 @@ final class ProfileView: UIView {
         signUpButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         signUpButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         signUpButton.backgroundColor = UITheme.Colors.surface
-        signUpButton.layer.cornerRadius = 16
+        signUpButton.layer.cornerRadius = 26
         signUpButton.layer.shadowColor = UIColor.black.cgColor
         signUpButton.layer.shadowOpacity = 0.05
         signUpButton.layer.shadowRadius = 10
@@ -547,7 +556,7 @@ final class ProfileView: UIView {
         switchRoleButton.setTitleColor(UITheme.Colors.accent, for: .normal)
         switchRoleButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         switchRoleButton.backgroundColor = UITheme.Colors.surface
-        switchRoleButton.layer.cornerRadius = 16
+        switchRoleButton.layer.cornerRadius = 26
         switchRoleButton.layer.shadowColor = UIColor.black.cgColor
         switchRoleButton.layer.shadowOpacity = 0.05
         switchRoleButton.layer.shadowRadius = 10

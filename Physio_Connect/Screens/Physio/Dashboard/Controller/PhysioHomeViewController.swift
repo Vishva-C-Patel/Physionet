@@ -31,12 +31,6 @@ final class PhysioHomeViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        PhysioNavBarStyle.apply(
-            to: self,
-            title: "Dashboard",
-            profileButton: profileButton,
-            profileAction: #selector(profileTapped)
-        )
         loadProfileAvatar()
         Task { await loadDashboard() }
     }

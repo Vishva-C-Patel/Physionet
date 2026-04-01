@@ -13,13 +13,8 @@ final class ArticlesView: UIView {
     let profileButton = UIButton(type: .system)
 
     let searchBar = UISearchBar()
-    private let segmentScrollView = UIScrollView()
-    let segmentStack = UIStackView()
-    let segmentButtons: [UIButton] = [
-        UIButton(type: .system),
-        UIButton(type: .system),
-        UIButton(type: .system)
-    ]
+    let segmented = UISegmentedControl(items: ["All", "For You", "Bookmarks"])
+    private let segBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
 
     let featuredCard = FeaturedArticleCardView()
     private let recentHeaderStack = UIStackView()
@@ -31,6 +26,7 @@ final class ArticlesView: UIView {
     private let refreshControl = UIRefreshControl()
     private let headerContainer = UIView()
     private var featuredHeightConstraint: NSLayoutConstraint?
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
@@ -39,7 +35,7 @@ final class ArticlesView: UIView {
         layout.minimumLineSpacing = 10
         filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
         build()
     }
 
@@ -48,13 +44,13 @@ final class ArticlesView: UIView {
     }
 
     func setSegmentSelection(_ index: Int) {
-        for (idx, button) in segmentButtons.enumerated() {
-            applySegmentStyle(button, selected: idx == index)
-        }
+        segmented.selectedSegmentIndex = index
     }
 
     func setBookmarksVisible(_ visible: Bool) {
-        segmentButtons[2].isHidden = !visible
+        // UISegmentedControl doesn't easily hide segments normally, 
+        // but we can either remove it or just leave it. 
+        // The requirement is "uniform", so we'll just keep all 3 segments.
     }
 
     func updateResults(count: Int) {
@@ -82,6 +78,9 @@ final class ArticlesView: UIView {
     }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         headerContainer.translatesAutoresizingMaskIntoConstraints = true
         headerContainer.backgroundColor = .clear
         headerContainer.layoutMargins = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
@@ -94,26 +93,29 @@ final class ArticlesView: UIView {
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.backgroundImage = UIImage()
-        searchBar.searchTextField.backgroundColor = UIColor.tertiarySystemFill
-        searchBar.searchTextField.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
-        searchBar.searchTextField.layer.masksToBounds = true
+        
+        let searchField = searchBar.searchTextField
+        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
+        searchField.layer.cornerRadius = 20
+        searchField.layer.masksToBounds = true
+        
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = searchField.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        blurView.isUserInteractionEnabled = false
+        searchField.insertSubview(blurView, at: 0)
 
-        segmentScrollView.translatesAutoresizingMaskIntoConstraints = false
-        segmentScrollView.showsHorizontalScrollIndicator = false
-        segmentScrollView.alwaysBounceHorizontal = true
+        segmented.translatesAutoresizingMaskIntoConstraints = false
+        UITheme.applySegmentedStyle(segmented)
+        segmented.selectedSegmentIndex = 0
 
-        segmentStack.axis = .horizontal
-        segmentStack.spacing = 10
-        segmentStack.translatesAutoresizingMaskIntoConstraints = false
-
-        let segmentTitles = ["All", "For You", "Bookmarks"]
-        let segmentIcons = ["drop.fill", "sparkles", "bookmark.fill"]
-        for (index, button) in segmentButtons.enumerated() {
-            configureSegmentButton(button, title: segmentTitles[index], icon: segmentIcons[index])
-            segmentStack.addArrangedSubview(button)
-        }
-        setSegmentSelection(0)
-        setBookmarksVisible(false)
+        segBlur.translatesAutoresizingMaskIntoConstraints = false
+        segBlur.isUserInteractionEnabled = false
+        segBlur.layer.cornerRadius = 18
+        segBlur.clipsToBounds = true
+        segBlur.layer.borderWidth = 0.5
+        segBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
 
         recentHeaderStack.axis = .horizontal
         recentHeaderStack.alignment = .center
@@ -154,13 +156,9 @@ final class ArticlesView: UIView {
         tableView.contentInset = .zero
         tableView.contentInsetAdjustmentBehavior = .always
         
-        // headerContainer.addSubview(topBar)
-        // topBar.addSubview(titleLabel)
-        // topBar.addSubview(profileButton)
-
         headerContainer.addSubview(searchBar)
-        headerContainer.addSubview(segmentScrollView)
-        segmentScrollView.addSubview(segmentStack)
+        headerContainer.addSubview(segBlur)
+        headerContainer.addSubview(segmented)
         headerContainer.addSubview(filterCollectionView)
         headerContainer.addSubview(featuredCard)
         headerContainer.addSubview(recentHeaderStack)
@@ -169,7 +167,12 @@ final class ArticlesView: UIView {
         featuredHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -178,18 +181,17 @@ final class ArticlesView: UIView {
             searchBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             searchBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 
-            segmentScrollView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 12),
-            segmentScrollView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
-            segmentScrollView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
-            segmentScrollView.heightAnchor.constraint(equalToConstant: 44),
+            segBlur.topAnchor.constraint(equalTo: segmented.topAnchor),
+            segBlur.bottomAnchor.constraint(equalTo: segmented.bottomAnchor),
+            segBlur.leadingAnchor.constraint(equalTo: segmented.leadingAnchor),
+            segBlur.trailingAnchor.constraint(equalTo: segmented.trailingAnchor),
 
-            segmentStack.topAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.topAnchor),
-            segmentStack.bottomAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.bottomAnchor),
-            segmentStack.leadingAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.leadingAnchor),
-            segmentStack.trailingAnchor.constraint(equalTo: segmentScrollView.contentLayoutGuide.trailingAnchor),
-            segmentStack.heightAnchor.constraint(equalTo: segmentScrollView.frameLayoutGuide.heightAnchor),
+            segmented.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 12),
+            segmented.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            segmented.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+            segmented.heightAnchor.constraint(equalToConstant: 36),
 
-            filterCollectionView.topAnchor.constraint(equalTo: segmentScrollView.bottomAnchor, constant: 12),
+            filterCollectionView.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 12),
             filterCollectionView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             filterCollectionView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             filterCollectionView.heightAnchor.constraint(equalToConstant: 40),
@@ -207,13 +209,9 @@ final class ArticlesView: UIView {
 
     private func configureSegmentButton(_ button: UIButton, title: String, icon: String) {
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 20
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = 0.08
-        button.layer.shadowRadius = 6
-        button.layer.shadowOffset = CGSize(width: 0, height: 4)
-        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
+        button.layer.cornerRadius = 27
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
 
         let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
         let image = UIImage(systemName: icon, withConfiguration: config)

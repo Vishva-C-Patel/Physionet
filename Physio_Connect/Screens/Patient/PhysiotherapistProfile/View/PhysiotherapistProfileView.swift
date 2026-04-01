@@ -14,6 +14,7 @@ final class PhysiotherapistProfileView: UIView {
     private let primaryBlue = UITheme.Colors.accent
 
     // MARK: Scroll
+    private let backgroundGlow = AppBackgroundTopGlowView()
     let scrollView = UIScrollView()
     private let contentView = UIView()
 
@@ -71,7 +72,7 @@ final class PhysiotherapistProfileView: UIView {
     // MARK: Init
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = bg
+        backgroundColor = .clear // Let the background glow show through
         build()
     }
 
@@ -129,6 +130,8 @@ final class PhysiotherapistProfileView: UIView {
 
     // MARK: Build UI
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
 
         // Scroll
         addSubview(scrollView)
@@ -139,6 +142,11 @@ final class PhysiotherapistProfileView: UIView {
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
             scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -389,7 +397,7 @@ final class PhysiotherapistProfileView: UIView {
         bookButton.setTitleColor(.white, for: .disabled)
         bookButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         bookButton.backgroundColor = UITheme.Colors.accent
-        bookButton.layer.cornerRadius = 26
+        bookButton.layer.cornerRadius = 28
         bookButton.clipsToBounds = true
 
         contentView.addSubview(bookButton)

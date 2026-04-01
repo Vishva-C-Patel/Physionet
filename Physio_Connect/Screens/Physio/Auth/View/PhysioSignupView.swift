@@ -256,7 +256,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         createAccountButton.setTitleColor(.white, for: .normal)
         createAccountButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
         createAccountButton.backgroundColor = primaryBlue
-        createAccountButton.layer.cornerRadius = 18
+        createAccountButton.layer.cornerRadius = 28
         createAccountButton.heightAnchor.constraint(equalToConstant: 56).isActive = true
         createAccountButton.layer.shadowColor = UIColor.black.cgColor
         createAccountButton.layer.shadowOpacity = 0.12

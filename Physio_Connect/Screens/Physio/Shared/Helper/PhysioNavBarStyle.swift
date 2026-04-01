@@ -18,28 +18,7 @@ enum PhysioNavBarStyle {
                       profileButton: UIButton,
                       profileAction: Selector) {
         viewController.navigationController?.setNavigationBarHidden(false, animated: false)
-        viewController.navigationController?.navigationBar.prefersLargeTitles = false
-
-        // Transparent nav bar at rest, frosted glass when scrolled
-        let standard = UITheme.makeGlassNavBarAppearance()
-        let scrollEdge = UINavigationBarAppearance()
-        scrollEdge.configureWithTransparentBackground()
-        scrollEdge.shadowColor = .clear
-        scrollEdge.titleTextAttributes = [
-            .foregroundColor: UIColor.label,
-            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
-        ]
-        
-        viewController.navigationController?.navigationBar.standardAppearance = standard
-        viewController.navigationController?.navigationBar.scrollEdgeAppearance = scrollEdge
-        viewController.navigationController?.navigationBar.compactAppearance = standard
-
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = UITheme.Typography.screenTitle
-        titleLabel.textColor = .label
-        titleLabel.textAlignment = .center
-        viewController.navigationItem.titleView = titleLabel
+        UITheme.applyNativeNavBar(to: viewController, title: title)
 
         configureProfileButton(profileButton, image: UIImage(systemName: "person.crop.circle"))
         profileButton.addTarget(viewController, action: profileAction, for: .touchUpInside)

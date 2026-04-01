@@ -57,12 +57,12 @@ final class ProgramTrendsView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
         titleLabel.text = "Pain & Progress Trends"
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.font = .systemFont(ofSize: 12, weight: .regular)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.text = "Your recovery is trending positively"
 
         legendStack.translatesAutoresizingMaskIntoConstraints = false
@@ -182,7 +182,7 @@ final class ProgramTrendsView: UIView {
         let label = UILabel()
         label.text = text
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = UIColor.black.withAlphaComponent(0.4)
+        label.textColor = .secondaryLabel
         return label
     }
 
@@ -222,7 +222,7 @@ private final class LegendDotView: UIView {
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 12, weight: .semibold)
-        label.textColor = UIColor.black.withAlphaComponent(0.7)
+        label.textColor = .secondaryLabel
 
         addSubview(dot)
         addSubview(label)
@@ -285,7 +285,6 @@ private final class TrendChartView: UIView {
     }
 
     private func setupLayers() {
-        gridLayer.strokeColor = UIColor.black.withAlphaComponent(0.35).cgColor
         gridLayer.lineWidth = 0.8
         gridLayer.lineDashPattern = [2, 4]
         gridLayer.fillColor = UIColor.clear.cgColor
@@ -325,7 +324,6 @@ private final class TrendChartView: UIView {
     }
 
     private func setupIndicator() {
-        indicatorLine.strokeColor = UIColor.black.withAlphaComponent(0.15).cgColor
         indicatorLine.lineWidth = 1
         indicatorLine.lineDashPattern = [3, 3]
         indicatorLine.isHidden = true
@@ -345,8 +343,8 @@ private final class TrendChartView: UIView {
 
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        valueLabel.textColor = .white
-        valueLabel.backgroundColor = UIColor.black.withAlphaComponent(0.78)
+        valueLabel.textColor = .systemBackground
+        valueLabel.backgroundColor = UIColor.label.withAlphaComponent(0.78)
         valueLabel.layer.cornerRadius = 10
         valueLabel.layer.masksToBounds = true
         valueLabel.textAlignment = .center
@@ -367,6 +365,7 @@ private final class TrendChartView: UIView {
 
     private func updateChart() {
         guard pain.count == adherence.count, pain.count >= 1 else { return }
+        gridLayer.strokeColor = UIColor.label.withAlphaComponent(0.15).resolvedColor(with: traitCollection).cgColor
 
         let chartRect = bounds.insetBy(dx: chartInset, dy: chartInset)
         let stepX = chartRect.width / CGFloat(max(pain.count - 1, 1))
@@ -516,6 +515,7 @@ private final class TrendChartView: UIView {
         linePath.move(to: CGPoint(x: painPoint.x, y: chartRect.minY))
         linePath.addLine(to: CGPoint(x: painPoint.x, y: chartRect.maxY))
         indicatorLine.path = linePath.cgPath
+        indicatorLine.strokeColor = UIColor.label.withAlphaComponent(0.15).resolvedColor(with: traitCollection).cgColor
         indicatorLine.isHidden = false
 
         indicatorDotPain.path = UIBezierPath(ovalIn: CGRect(x: painPoint.x - 5, y: painPoint.y - 5, width: 10, height: 10)).cgPath

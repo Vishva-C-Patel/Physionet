@@ -35,6 +35,9 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         contentView.tableView.estimatedRowHeight = 220
         contentView.searchBar.delegate = self
         contentView.segmentControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        
+        // Ensure initial segment selection is rendered
+        contentView.layoutIfNeeded()
 
         Task { await loadAppointments() }
     }

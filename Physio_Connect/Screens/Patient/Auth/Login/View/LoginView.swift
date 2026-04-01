@@ -90,7 +90,7 @@ final class LoginView: UIView {
         loginButton.setTitleColor(.white, for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         loginButton.backgroundColor = primaryBlue
-        loginButton.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
+        loginButton.layer.cornerRadius = 27
         loginButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
         stack.addArrangedSubview(loginButton)
 

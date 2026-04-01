@@ -9,17 +9,13 @@ import UIKit
 
 final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegate {
 
-    var onBack: (() -> Void)?
-    var onSave: (() -> Void)?
+    // Replaced top bar with native navigation 
 
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stackView = UIStackView()
 
-    private let topBar = UIView()
-    private let backButton = UIButton(type: .system)
-    private let titleLabel = UILabel()
-    private let saveButton = UIButton(type: .system)
+
 
     private let nameField = PhysioLabeledTextField(title: "Full Name", placeholder: "User")
     private let phoneField = PhysioLabeledTextField(title: "Phone", placeholder: "Phone number")
@@ -95,8 +91,7 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     }
 
     func setSaving(_ saving: Bool) {
-        saveButton.isEnabled = !saving
-        saveButton.alpha = saving ? 0.6 : 1
+        // Saving state handled by view controller's navigation item
     }
 
     func setCoordinates(latitude: Double, longitude: Double) {
@@ -123,12 +118,13 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
         scrollView.alwaysBounceVertical = true
+        scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
         scrollView.addSubview(contentView)
         contentView.addSubview(stackView)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -151,54 +147,12 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
 
-        buildTopBar()
         buildForm()
     }
 
-    private func buildTopBar() {
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-        topBar.layer.cornerRadius = 0
-        topBar.backgroundColor = .clear
-
-        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)), for: .normal)
-        backButton.tintColor = UITheme.Colors.accent
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-
-        titleLabel.text = "Edit Profile"
-        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        titleLabel.textColor = UIColor.black
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        saveButton.setTitle("Save", for: .normal)
-        saveButton.setTitleColor(UITheme.Colors.accent, for: .normal)
-        saveButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
-        saveButton.translatesAutoresizingMaskIntoConstraints = false
-
-        topBar.addSubview(backButton)
-        topBar.addSubview(titleLabel)
-        topBar.addSubview(saveButton)
-
-        NSLayoutConstraint.activate([
-            backButton.leadingAnchor.constraint(equalTo: topBar.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-            backButton.heightAnchor.constraint(equalToConstant: 32),
-            backButton.widthAnchor.constraint(equalToConstant: 32),
-
-            titleLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
-
-            saveButton.trailingAnchor.constraint(equalTo: topBar.trailingAnchor),
-            saveButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor)
-        ])
-
-        topBar.heightAnchor.constraint(equalToConstant: 52).isActive = true
-        stackView.addArrangedSubview(topBar)
-    }
-
     private func buildForm() {
-        let card = makeCardView()
+        let card = UIView()
+        card.translatesAutoresizingMaskIntoConstraints = false
         let formStack = UIStackView()
         formStack.axis = .vertical
         formStack.spacing = 14
@@ -240,19 +194,6 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         stackView.addArrangedSubview(card)
     }
 
-    private func makeCardView() -> UIView {
-        let view = UIView()
-        view.backgroundColor = UIColor.white
-        view.layer.cornerRadius = 18
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = 0.05
-        view.layer.shadowRadius = 10
-        view.layer.shadowOffset = CGSize(width: 0, height: 6)
-        return view
-    }
-
-    @objc private func backTapped() { onBack?() }
-    @objc private func saveTapped() { onSave?() }
     @objc private func dobChanged() {
         dobField.text = Self.dateFormatter.string(from: dobPicker.date)
     }

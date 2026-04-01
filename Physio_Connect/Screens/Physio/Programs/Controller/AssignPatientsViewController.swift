@@ -74,21 +74,23 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
 
     private func setupFooter() {
         footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.backgroundColor = UIColor(hex: "E6F1FF")
+        footerView.backgroundColor = .secondarySystemGroupedBackground
         view.addSubview(footerView)
 
-        cancelButton.setTitle("Cancel", for: .normal)
-        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        cancelButton.backgroundColor = UIColor(hex: "EEF2F7")
-        cancelButton.setTitleColor(UIColor(hex: "2B2B2B"), for: .normal)
-        cancelButton.layer.cornerRadius = 18
+        var cancelConfig = UIButton.Configuration.tinted()
+        cancelConfig.title = "Cancel"
+        cancelConfig.baseForegroundColor = .label
+        cancelConfig.baseBackgroundColor = .secondarySystemFill
+        cancelConfig.cornerStyle = .capsule
+        cancelButton.configuration = cancelConfig
         cancelButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
-        assignButton.setTitle("Assign", for: .normal)
-        assignButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        assignButton.backgroundColor = UIColor(hex: "2D6BFF")
-        assignButton.setTitleColor(.white, for: .normal)
-        assignButton.layer.cornerRadius = 18
+        var assignConfig = UIButton.Configuration.filled()
+        assignConfig.title = "Assign"
+        assignConfig.baseBackgroundColor = UITheme.Colors.accent
+        assignConfig.baseForegroundColor = .white
+        assignConfig.cornerStyle = .capsule
+        assignButton.configuration = assignConfig
         assignButton.addTarget(self, action: #selector(assignTapped), for: .touchUpInside)
 
         let stack = UIStackView(arrangedSubviews: [cancelButton, assignButton])
@@ -202,7 +204,7 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
         cell.textLabel?.text = patient.full_name
         cell.textLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         cell.detailTextLabel?.text = patient.location ?? patient.email ?? ""
-        cell.detailTextLabel?.textColor = UIColor.black.withAlphaComponent(0.6)
+        cell.detailTextLabel?.textColor = .secondaryLabel
         cell.backgroundColor = .clear
         cell.accessoryType = selectedIDs.contains(patient.id) ? .checkmark : .none
         return cell

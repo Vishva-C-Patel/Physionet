@@ -60,7 +60,7 @@ final class RepeatSelectionViewController: UIViewController {
         onlyThisDateButton.translatesAutoresizingMaskIntoConstraints = false
         onlyThisDateButton.setTitle("Only this date", for: .normal)
         onlyThisDateButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        onlyThisDateButton.layer.cornerRadius = 12
+        onlyThisDateButton.layer.cornerRadius = 20
         onlyThisDateButton.layer.borderWidth = 1
         onlyThisDateButton.addTarget(self, action: #selector(onlyThisDateTapped), for: .touchUpInside)
 
@@ -145,7 +145,7 @@ final class RepeatSelectionViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 27
         button.layer.borderWidth = 1
         button.addTarget(self, action: #selector(dayTapped(_:)), for: .touchUpInside)
         return button
@@ -155,7 +155,7 @@ final class RepeatSelectionViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        button.layer.cornerRadius = 14
+        button.layer.cornerRadius = 27
         button.layer.borderWidth = 1
         if filled {
             button.backgroundColor = UITheme.Colors.accent

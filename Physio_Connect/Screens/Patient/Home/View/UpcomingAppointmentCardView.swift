@@ -23,6 +23,7 @@ final class UpcomingAppointmentCardView: UIView {
 
     private let avatarCircle = UIView()
     private let avatarIcon = UIImageView()
+    private let initialsLabel = UILabel()
     private var avatarImagePath: String?
 
     private let nameLabel = UILabel()
@@ -60,14 +61,24 @@ final class UpcomingAppointmentCardView: UIView {
         actionButton.setTitle(vm.buttonTitle, for: .normal)
     }
 
-    func setAvatarImage(_ image: UIImage?, path: String?) {
+    func setAvatarImage(_ image: UIImage?, path: String?, name: String? = nil) {
         avatarImagePath = path
         if let image {
             avatarIcon.image = image
+            avatarIcon.backgroundColor = .clear
             avatarIcon.tintColor = .clear
+            initialsLabel.isHidden = true
         } else {
-            avatarIcon.image = UIImage(named: "doctor_placeholder") ?? UIImage(systemName: "person.fill")
-            avatarIcon.tintColor = UIColor.systemBlue
+            avatarIcon.image = nil
+            avatarIcon.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.12)
+            if let name = name {
+                initialsLabel.text = UITheme.getInitials(from: name)
+                initialsLabel.isHidden = false
+            } else {
+                avatarIcon.image = UIImage(systemName: "person.fill")
+                avatarIcon.tintColor = UIColor.systemBlue
+                initialsLabel.isHidden = true
+            }
         }
     }
 
@@ -168,8 +179,18 @@ final class UpcomingAppointmentCardView: UIView {
             avatarIcon.topAnchor.constraint(equalTo: avatarCircle.topAnchor),
             avatarIcon.leadingAnchor.constraint(equalTo: avatarCircle.leadingAnchor),
             avatarIcon.trailingAnchor.constraint(equalTo: avatarCircle.trailingAnchor),
-            avatarIcon.bottomAnchor.constraint(equalTo: avatarCircle.bottomAnchor)
+            avatarIcon.bottomAnchor.constraint(equalTo: avatarCircle.bottomAnchor),
+
+            initialsLabel.centerXAnchor.constraint(equalTo: avatarCircle.centerXAnchor),
+            initialsLabel.centerYAnchor.constraint(equalTo: avatarCircle.centerYAnchor)
         ])
+
+        initialsLabel.translatesAutoresizingMaskIntoConstraints = false
+        initialsLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        initialsLabel.textColor = UIColor.systemBlue
+        initialsLabel.textAlignment = .center
+        initialsLabel.isHidden = true
+        avatarCircle.addSubview(initialsLabel)
 
         // Right stack (name, subtitle, meta)
         let rightStack = UIStackView()
@@ -202,7 +223,7 @@ final class UpcomingAppointmentCardView: UIView {
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         actionButton.backgroundColor = UIColor.systemBlue
-        actionButton.layer.cornerRadius = 14
+        actionButton.layer.cornerRadius = 26
 
         let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
         chevron.tintColor = .white

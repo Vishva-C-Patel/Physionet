@@ -182,14 +182,14 @@ final class FiltersOverlayViewController: UIViewController {
         cancel.setTitle("Cancel", for: .normal)
         cancel.backgroundColor = UITheme.Colors.surface
         cancel.setTitleColor(.label, for: .normal)
-        cancel.layer.cornerRadius = 22
+        cancel.layer.cornerRadius = 27
         cancel.addTarget(self, action: #selector(close), for: .touchUpInside)
 
         let apply = UIButton(type: .system)
         apply.setTitle("Apply", for: .normal)
         apply.backgroundColor = UITheme.Colors.accent
         apply.setTitleColor(.white, for: .normal)
-        apply.layer.cornerRadius = 22
+        apply.layer.cornerRadius = 27
         apply.addTarget(self, action: #selector(applyFiltersTapped), for: .touchUpInside)
 
         bottomButtons.addArrangedSubview(cancel)

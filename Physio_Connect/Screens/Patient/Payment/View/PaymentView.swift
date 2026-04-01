@@ -19,6 +19,8 @@ final class PaymentView: UIView {
     private let summaryLabel = UILabel()
     private let paymentLabel = UILabel()
 
+    private let backgroundGlow = AppBackgroundTopGlowView()
+
     // Cards
     private let savedCard = UIView()
     private let savedIconBg = UIView()
@@ -71,6 +73,9 @@ final class PaymentView: UIView {
         scrollView.addSubview(contentView)
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        insertSubview(backgroundGlow, at: 0)
+
         // Bottom Container
         addSubview(bottomContainer)
         bottomContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -89,7 +94,12 @@ final class PaymentView: UIView {
             bottomContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
             bottomContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomContainer.topAnchor),
@@ -222,12 +232,12 @@ final class PaymentView: UIView {
         priceStack.translatesAutoresizingMaskIntoConstraints = false
 
         totalLeft.text = "Total"
-        totalLeft.font = .systemFont(ofSize: 15, weight: .semibold)
+        totalLeft.font = .systemFont(ofSize: 18, weight: .semibold)
         totalLeft.textColor = UIColor.label
 
         totalRight.text = "₹0"
-        totalRight.font = .systemFont(ofSize: 17, weight: .bold)
-        totalRight.textColor = UIColor.systemGreen
+        totalRight.font = .systemFont(ofSize: 28, weight: .heavy)
+        totalRight.textColor = UITheme.Colors.accent
         totalRight.textAlignment = .right
 
         totalRow.translatesAutoresizingMaskIntoConstraints = false
@@ -238,11 +248,12 @@ final class PaymentView: UIView {
         totalRight.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
+            totalLeft.topAnchor.constraint(equalTo: totalRow.topAnchor, constant: 4),
             totalLeft.leadingAnchor.constraint(equalTo: totalRow.leadingAnchor),
-            totalLeft.centerYAnchor.constraint(equalTo: totalRow.centerYAnchor),
+            totalLeft.bottomAnchor.constraint(equalTo: totalRow.bottomAnchor, constant: -4),
 
             totalRight.trailingAnchor.constraint(equalTo: totalRow.trailingAnchor),
-            totalRight.centerYAnchor.constraint(equalTo: totalRow.centerYAnchor)
+            totalRight.centerYAnchor.constraint(equalTo: totalLeft.centerYAnchor)
         ])
 
         let priceContainer = UIStackView(arrangedSubviews: [priceTitle, priceStack, UIView(), totalRow])
@@ -362,7 +373,7 @@ final class PaymentView: UIView {
         payGradient.cornerRadius = 22
         payButton.layer.insertSublayer(payGradient, at: 0)
         
-        payButton.layer.cornerRadius = 22
+        payButton.layer.cornerRadius = 27
         payButton.layer.shadowColor = UITheme.Colors.accent.cgColor
         payButton.layer.shadowOpacity = 0.3
         payButton.layer.shadowRadius = 12
@@ -461,11 +472,12 @@ final class PaymentView: UIView {
         row.addSubview(r)
 
         NSLayoutConstraint.activate([
+            l.topAnchor.constraint(equalTo: row.topAnchor, constant: 4),
             l.leadingAnchor.constraint(equalTo: row.leadingAnchor),
-            l.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            l.bottomAnchor.constraint(equalTo: row.bottomAnchor, constant: -4),
 
             r.trailingAnchor.constraint(equalTo: row.trailingAnchor),
-            r.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            r.centerYAnchor.constraint(equalTo: l.centerYAnchor),
 
             l.trailingAnchor.constraint(lessThanOrEqualTo: r.leadingAnchor, constant: -10)
         ])

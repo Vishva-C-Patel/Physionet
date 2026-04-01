@@ -94,11 +94,15 @@ final class ExerciseCell: UITableViewCell {
 
         levelBadge.translatesAutoresizingMaskIntoConstraints = false
         levelBadge.font = UITheme.Typography.caption
-        levelBadge.textColor = .systemGreen
-        levelBadge.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.15)
+        levelBadge.textColor = .white
+        levelBadge.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.85)
         levelBadge.textAlignment = .center
         levelBadge.contentInsets = UIEdgeInsets(top: 4, left: 12, bottom: 4, right: 12)
         levelBadge.setContentHuggingPriority(.required, for: .horizontal)
+        levelBadge.layer.shadowColor = UIColor.black.cgColor
+        levelBadge.layer.shadowOpacity = 0.2
+        levelBadge.layer.shadowRadius = 4
+        levelBadge.layer.shadowOffset = CGSize(width: 0, height: 2)
 
         durationPill.translatesAutoresizingMaskIntoConstraints = false
         durationPill.font = UITheme.Typography.caption
@@ -135,8 +139,8 @@ final class ExerciseCell: UITableViewCell {
         NSLayoutConstraint.activate([
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             heroImageView.topAnchor.constraint(equalTo: card.topAnchor),
             heroImageView.leadingAnchor.constraint(equalTo: card.leadingAnchor),

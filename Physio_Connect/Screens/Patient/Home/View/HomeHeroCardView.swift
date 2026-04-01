@@ -267,7 +267,7 @@ final class HomeHeroCardView: UIView {
         primaryButton.setTitle("View Details", for: .normal)
         primaryButton.setTitleColor(.white, for: .normal)
         primaryButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        primaryButton.layer.cornerRadius = 14
+        primaryButton.layer.cornerRadius = 24
         primaryButton.clipsToBounds = true
         primaryButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
 
@@ -329,6 +329,31 @@ final class HomeHeroCardView: UIView {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateBackgroundGradient()
+        }
+    }
+
+    private func updateBackgroundGradient() {
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let lightColors = [
+            UIColor(hex: "19C5F7").cgColor,
+            UIColor(hex: "2C6BFF").cgColor
+        ]
+        let darkColors = [
+            UIColor(hex: "0E5B99").cgColor,
+            UIColor(hex: "163A85").cgColor
+        ]
+        
+        CATransaction.begin()
+        // No animation for trait changes
+        CATransaction.setDisableActions(true)
+        backgroundGradient.colors = isDark ? darkColors : lightColors
+        CATransaction.commit()
+    }
+
     private func applyButtonGradient() {
         gradientLayer?.removeFromSuperlayer()
 
@@ -374,10 +399,7 @@ final class HomeHeroCardView: UIView {
             bubbleSmall.isHidden = false
             featureCircle.isHidden = false
             container.backgroundColor = .clear
-            backgroundGradient.colors = [
-                UIColor(hex: "19C5F7").cgColor,
-                UIColor(hex: "2C6BFF").cgColor
-            ]
+            updateBackgroundGradient()
             backgroundGradient.startPoint = CGPoint(x: 0, y: 0.2)
             backgroundGradient.endPoint = CGPoint(x: 1, y: 1)
             if backgroundGradient.superlayer == nil {
@@ -415,10 +437,7 @@ final class HomeHeroCardView: UIView {
             bubbleSmall.isHidden = false
             featureCircle.isHidden = false
             container.backgroundColor = .clear
-            backgroundGradient.colors = [
-                UIColor(hex: "19C5F7").cgColor,
-                UIColor(hex: "2C6BFF").cgColor
-            ]
+            updateBackgroundGradient()
             backgroundGradient.startPoint = CGPoint(x: 0, y: 0.2)
             backgroundGradient.endPoint = CGPoint(x: 1, y: 1)
             if backgroundGradient.superlayer == nil {

@@ -32,6 +32,7 @@ final class PhysioAuthView: UIView {
         super.init(frame: frame)
         backgroundColor = .systemGroupedBackground
         build()
+        self.layoutIfNeeded()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -56,9 +57,7 @@ final class PhysioAuthView: UIView {
         subtitleLabel.numberOfLines = 0
 
         modeControl.selectedSegmentIndex = 0
-        modeControl.selectedSegmentTintColor = UITheme.Colors.accent
-        modeControl.setTitleTextAttributes([.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)], for: .selected)
-        modeControl.setTitleTextAttributes([.foregroundColor: UIColor.black.withAlphaComponent(0.7), .font: UIFont.systemFont(ofSize: 14, weight: .semibold)], for: .normal)
+        UITheme.applySegmentedStyle(modeControl)
 
         [headerLabel, subtitleLabel, modeControl, nameField, emailField, passwordField, actionButton, activity, statusLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -76,7 +75,7 @@ final class PhysioAuthView: UIView {
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         actionButton.backgroundColor = UITheme.Colors.accent
-        actionButton.layer.cornerRadius = 14
+        actionButton.layer.cornerRadius = 26
         actionButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         actionButton.layer.shadowColor = UIColor.black.cgColor
         actionButton.layer.shadowOpacity = 0.1

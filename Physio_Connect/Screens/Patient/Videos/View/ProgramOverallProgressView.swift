@@ -30,23 +30,18 @@ final class ProgramOverallProgressView: UIView {
     }
 
     private func build() {
-        backgroundColor = .white
-        layer.cornerRadius = 18
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.05
-        layer.shadowRadius = 10
-        layer.shadowOffset = CGSize(width: 0, height: 6)
+        UITheme.applyCardStyle(self)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        titleLabel.textColor = UIColor.black.withAlphaComponent(0.7)
+        titleLabel.textColor = UITheme.Colors.textPrimary
 
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         countLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         countLabel.textColor = UITheme.Colors.accent
 
         progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.trackTintColor = UIColor.black.withAlphaComponent(0.08)
+        progressBar.trackTintColor = UITheme.Colors.neutralFill
         progressBar.progressTintColor = UITheme.Colors.accent
         progressBar.layer.cornerRadius = 4
         progressBar.clipsToBounds = true

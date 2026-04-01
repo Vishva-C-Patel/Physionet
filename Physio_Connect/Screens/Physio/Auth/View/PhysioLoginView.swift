@@ -118,7 +118,7 @@ final class PhysioLoginView: UIView {
         loginButton.setTitleColor(.white, for: .normal)
         loginButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
         loginButton.backgroundColor = primaryBlue
-        loginButton.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
+        loginButton.layer.cornerRadius = 28
         loginButton.heightAnchor.constraint(equalToConstant: 56).isActive = true
         loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
         stack.addArrangedSubview(loginButton)

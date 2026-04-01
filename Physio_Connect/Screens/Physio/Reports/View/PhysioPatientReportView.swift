@@ -34,6 +34,7 @@ final class PhysioPatientReportView: UIView {
 
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
+    private let backgroundGlow = AppBackgroundTopGlowView()
 
     private let headerCard = UIView()
     private let nameLabel = UILabel()
@@ -82,9 +83,8 @@ final class PhysioPatientReportView: UIView {
 
         notesStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         if vm.sessionNotes.isEmpty {
-            emptyNotesLabel.isHidden = false
+            notesStack.addArrangedSubview(emptyNotesLabel)
         } else {
-            emptyNotesLabel.isHidden = true
             for note in vm.sessionNotes {
                 notesStack.addArrangedSubview(SessionNoteCard(note: note))
             }
@@ -92,7 +92,10 @@ final class PhysioPatientReportView: UIView {
     }
 
     private func build() {
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
@@ -186,11 +189,10 @@ final class PhysioPatientReportView: UIView {
         emptyNotesLabel.font = .systemFont(ofSize: 14, weight: .medium)
         emptyNotesLabel.textColor = UITheme.Colors.textSecondary
         emptyNotesLabel.text = "No session notes yet."
-        emptyNotesLabel.isHidden = true
+        emptyNotesLabel.textAlignment = .center
 
         notesCard.addSubview(notesTitle)
         notesCard.addSubview(notesStack)
-        notesCard.addSubview(emptyNotesLabel)
 
         addSubview(scrollView)
         scrollView.addSubview(contentStack)
@@ -200,8 +202,15 @@ final class PhysioPatientReportView: UIView {
         contentStack.addArrangedSubview(chartCard)
         contentStack.addArrangedSubview(notesCard)
 
+        scrollView.contentInsetAdjustmentBehavior = .always
+
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 6),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -262,10 +271,7 @@ final class PhysioPatientReportView: UIView {
             notesStack.topAnchor.constraint(equalTo: notesTitle.bottomAnchor, constant: 12),
             notesStack.leadingAnchor.constraint(equalTo: notesTitle.leadingAnchor),
             notesStack.trailingAnchor.constraint(equalTo: notesTitle.trailingAnchor),
-            notesStack.bottomAnchor.constraint(equalTo: notesCard.bottomAnchor, constant: -16),
-
-            emptyNotesLabel.centerXAnchor.constraint(equalTo: notesCard.centerXAnchor),
-            emptyNotesLabel.centerYAnchor.constraint(equalTo: notesCard.centerYAnchor)
+            notesStack.bottomAnchor.constraint(equalTo: notesCard.bottomAnchor, constant: -16)
         ])
     }
 }

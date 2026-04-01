@@ -42,6 +42,8 @@ final class HomeView: UIView {
     let articlesTableView = UITableView(frame: .zero, style: .plain)
     private var articlesHeightConstraint: NSLayoutConstraint?
 
+    private let backgroundGlow = AppBackgroundTopGlowView()
+
     override init(frame: CGRect) {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -49,7 +51,7 @@ final class HomeView: UIView {
         layout.minimumInteritemSpacing = 12
         videosCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
         build()
     }
 
@@ -65,6 +67,9 @@ final class HomeView: UIView {
     }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(scrollView)
@@ -110,16 +115,7 @@ final class HomeView: UIView {
 
         articlesSegmented.translatesAutoresizingMaskIntoConstraints = false
         articlesSegmented.selectedSegmentIndex = 0
-        articlesSegmented.selectedSegmentTintColor = UITheme.Colors.accent
-        articlesSegmented.backgroundColor = UIColor.tertiarySystemFill
-        articlesSegmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.secondaryLabel, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
-            for: .normal
-        )
-        articlesSegmented.setTitleTextAttributes(
-            [.foregroundColor: UIColor.white, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
-            for: .selected
-        )
+        UITheme.applySegmentedStyle(articlesSegmented)
         contentView.addSubview(articlesSegmented)
 
         articlesTableView.translatesAutoresizingMaskIntoConstraints = false
@@ -129,7 +125,12 @@ final class HomeView: UIView {
         contentView.addSubview(articlesTableView)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),

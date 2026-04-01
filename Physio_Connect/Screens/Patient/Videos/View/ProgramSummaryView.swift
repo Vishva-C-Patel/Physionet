@@ -35,6 +35,31 @@ final class ProgramSummaryView: UIView {
         gradientLayer.frame = contentView.bounds
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateBackgroundGradient()
+        }
+    }
+
+    private func updateBackgroundGradient() {
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let lightColors = [
+            UITheme.Colors.accent.cgColor,
+            UITheme.Colors.accent.withAlphaComponent(0.8).cgColor
+        ]
+        let darkColors = [
+            UIColor(hex: "103B8C").cgColor,
+            UIColor(hex: "0C2B63").cgColor
+        ]
+        
+        CATransaction.begin()
+        // No animation for trait changes
+        CATransaction.setDisableActions(true)
+        gradientLayer.colors = isDark ? darkColors : lightColors
+        CATransaction.commit()
+    }
+
     func configure(programTitle: String, subtitle: String, adherenceText: String, completedText: String, timeText: String) {
         titleLabel.text = programTitle
         subtitleLabel.text = subtitle
@@ -55,7 +80,7 @@ final class ProgramSummaryView: UIView {
         contentView.layer.masksToBounds = true
         addSubview(contentView)
 
-        gradientLayer.colors = [UITheme.Colors.accent.cgColor, UITheme.Colors.accent.withAlphaComponent(0.8).cgColor]
+        updateBackgroundGradient()
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         contentView.layer.insertSublayer(gradientLayer, at: 0)

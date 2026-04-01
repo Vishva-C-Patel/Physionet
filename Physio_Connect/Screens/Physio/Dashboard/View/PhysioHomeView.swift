@@ -25,17 +25,23 @@ final class PhysioHomeView: UIView {
     private let patientsStack = UIStackView()
     private let patientsEmptyLabel = UILabel()
 
+    private let backgroundGlow = AppBackgroundTopGlowView()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .systemGroupedBackground
+        backgroundColor = .clear
         build()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func build() {
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundGlow)
+
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
 
         contentStack.translatesAutoresizingMaskIntoConstraints = false
@@ -87,15 +93,20 @@ final class PhysioHomeView: UIView {
         patientsStack.addArrangedSubview(patientsEmptyLabel)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 12),
+            contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 16),
             contentStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 16),
             contentStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -16),
-            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -24),
+            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -100),
             contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32)
         ])
     }
@@ -172,11 +183,11 @@ private final class StatCardView: UIView {
         UITheme.applyCardStyle(self)
 
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
-        valueLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        valueLabel.font = .systemFont(ofSize: 28, weight: .bold)
         valueLabel.textColor = UITheme.Colors.accent
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
         titleLabel.textColor = UITheme.Colors.textSecondary
         titleLabel.numberOfLines = 2
         titleLabel.lineBreakMode = .byWordWrapping
@@ -185,14 +196,14 @@ private final class StatCardView: UIView {
         addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            valueLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            valueLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            valueLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            valueLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 8),
+            titleLabel.topAnchor.constraint(equalTo: valueLabel.bottomAnchor, constant: 10),
             titleLabel.leadingAnchor.constraint(equalTo: valueLabel.leadingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: valueLabel.trailingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 
@@ -233,22 +244,22 @@ private final class UpcomingSessionCard: UIView {
         locationLabel.textColor = UITheme.Colors.textSecondary
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 14),
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            patientLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            patientLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             patientLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             patientLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
 
-            timeLabel.topAnchor.constraint(equalTo: patientLabel.bottomAnchor, constant: 8),
+            timeLabel.topAnchor.constraint(equalTo: patientLabel.bottomAnchor, constant: 10),
             timeLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             timeLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
 
-            locationLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 6),
+            locationLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 8),
             locationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             locationLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14)
+            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 
@@ -287,18 +298,18 @@ private final class PatientCardView: UIView {
         locationLabel.textColor = UITheme.Colors.textMuted
 
         NSLayoutConstraint.activate([
-            nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            nameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            nameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            nameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            nameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            contactLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
+            contactLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 10),
             contactLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             contactLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
 
-            locationLabel.topAnchor.constraint(equalTo: contactLabel.bottomAnchor, constant: 6),
+            locationLabel.topAnchor.constraint(equalTo: contactLabel.bottomAnchor, constant: 8),
             locationLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             locationLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 

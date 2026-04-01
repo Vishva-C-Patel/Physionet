@@ -20,14 +20,19 @@ final class PhysioEditProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.hidesBackButton = true
+        UITheme.applyNativeNavBar(to: self, title: "Edit Profile")
+        let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
+        navigationItem.rightBarButtonItem = saveItem
         bind()
         loadProfile()
     }
 
+    @objc private func saveTapped() {
+        saveProfile()
+    }
+
     private func bind() {
-        editView.onBack = { [weak self] in self?.navigationController?.popViewController(animated: true) }
-        editView.onSave = { [weak self] in self?.saveProfile() }
+        // Form events are handled natively or internally now
     }
 
     private func loadProfile() {
@@ -45,6 +50,7 @@ final class PhysioEditProfileViewController: UIViewController {
     }
 
     private func saveProfile() {
+        navigationItem.rightBarButtonItem?.isEnabled = false
         editView.setSaving(true)
         Task {
             do {
@@ -57,6 +63,7 @@ final class PhysioEditProfileViewController: UIViewController {
                 let input = editView.currentInput()
                 try await model.updateProfile(input)
                 await MainActor.run {
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
                     self.editView.setSaving(false)
                     self.onProfileUpdated?()
                     self.navigationController?.popViewController(animated: true)
@@ -64,6 +71,7 @@ final class PhysioEditProfileViewController: UIViewController {
             } catch {
                 print("❌ Physio profile save error:", error)
                 await MainActor.run {
+                    self.navigationItem.rightBarButtonItem?.isEnabled = true
                     self.editView.setSaving(false)
                     self.showError(error.localizedDescription)
                 }

@@ -70,6 +70,9 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         videosView.filterCollectionView.selectItem(at: IndexPath(item: selectedFilterIndex, section: 0), animated: false, scrollPosition: [])
 
         videosView.segmented.addTarget(self, action: #selector(tabChanged), for: .valueChanged)
+        
+        // Ensure initial segment selection is rendered
+        videosView.layoutIfNeeded()
         videosView.redeemButton.addTarget(self, action: #selector(redeemTapped), for: .touchUpInside)
         videosView.redeemInlineButton.addTarget(self, action: #selector(redeemInlineTapped), for: .touchUpInside)
         videosView.setRefreshTarget(self, action: #selector(refreshPulled))
@@ -93,12 +96,14 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        videosView.updateHeaderLayout()
         updateHeaderLayout()
         updateFooterLayout()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        videosView.updateHeaderLayout()
         updateHeaderLayout()
         updateFooterLayout()
     }
@@ -190,7 +195,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     await MainActor.run {
                         self.programHeaderView = nil
                         self.programFooterView = nil
-                        self.videosView.tableView.tableHeaderView = nil
+                        self.videosView.setProgramSummaryView(nil)
                         self.videosView.tableView.tableFooterView = nil
                     }
                 } else if let programID = rows.first?.program_id {
@@ -219,7 +224,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                         if programCompleted {
                             self.programHeaderView = nil
                             self.programFooterView = nil
-                            self.videosView.tableView.tableHeaderView = nil
+                            self.videosView.setProgramSummaryView(nil)
                             self.videosView.tableView.tableFooterView = nil
                         } else {
                             self.applyProgramHeader(
@@ -238,7 +243,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     await MainActor.run {
                         self.programHeaderView = nil
                         self.programFooterView = nil
-                        self.videosView.tableView.tableHeaderView = nil
+                        self.videosView.setProgramSummaryView(nil)
                         self.videosView.tableView.tableFooterView = nil
                     }
                 }
@@ -269,7 +274,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     self.videosView.setProgramRedeemVisible(false)
                     self.programHeaderView = nil
                     self.programFooterView = nil
-                    self.videosView.tableView.tableHeaderView = nil
+                    self.videosView.setProgramSummaryView(nil)
                     self.videosView.tableView.tableFooterView = nil
                 }
                 programStartDate = nil
@@ -551,8 +556,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         let title = filterOptions[indexPath.item]
         let font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        let width = title.size(withAttributes: [.font: font]).width + 32
-        return CGSize(width: max(64, width), height: 32)
+        let titleWidth = ceil(title.size(withAttributes: [.font: font]).width)
+        return CGSize(width: max(60, titleWidth + 40), height: 32)
     }
 
     private func loadThumbnail(for path: String?, in cell: ExerciseCell) {
@@ -754,8 +759,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
         NSLayoutConstraint.activate([
             progressView.topAnchor.constraint(equalTo: footerContainer.topAnchor, constant: 12),
-            progressView.leadingAnchor.constraint(equalTo: footerContainer.leadingAnchor),
-            progressView.trailingAnchor.constraint(equalTo: footerContainer.trailingAnchor),
+            progressView.leadingAnchor.constraint(equalTo: footerContainer.leadingAnchor, constant: 16),
+            progressView.trailingAnchor.constraint(equalTo: footerContainer.trailingAnchor, constant: -16),
             progressView.bottomAnchor.constraint(equalTo: footerContainer.bottomAnchor, constant: -24)
         ])
 
@@ -765,28 +770,11 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     private func setTableHeaderView(_ header: UIView) {
-        let width = videosView.tableView.bounds.width > 0 ? videosView.tableView.bounds.width : view.bounds.width
-        header.bounds.size.width = width
-        header.bounds.size.height = 1
-        videosView.tableView.layoutIfNeeded()
-        header.setNeedsLayout()
-        header.layoutIfNeeded()
-
-        let targetSize = CGSize(width: width, height: UIView.layoutFittingCompressedSize.height)
-        let height = header.systemLayoutSizeFitting(
-            targetSize,
-            withHorizontalFittingPriority: .required,
-            verticalFittingPriority: .fittingSizeLevel
-        ).height
-
-        header.frame = CGRect(x: 0, y: 0, width: width, height: height)
-        videosView.tableView.tableHeaderView = header
+        videosView.setProgramSummaryView(header)
     }
 
     private func updateHeaderLayout() {
         guard let header = programHeaderView else { return }
-        let width = videosView.tableView.bounds.width > 0 ? videosView.tableView.bounds.width : view.bounds.width
-        guard width > 0 else { return }
         setTableHeaderView(header)
     }
 

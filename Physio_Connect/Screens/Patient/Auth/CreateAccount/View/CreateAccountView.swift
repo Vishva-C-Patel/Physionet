@@ -310,7 +310,7 @@ final class CreateAccountView: UIView {
         createAccountButton.setTitleColor(.white, for: .normal)
         createAccountButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .bold)
         createAccountButton.backgroundColor = primaryBlue
-        createAccountButton.layer.cornerRadius = UITheme.Metrics.buttonCornerRadius
+        createAccountButton.layer.cornerRadius = 27
         createAccountButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
         createAccountButton.layer.shadowColor = UIColor.black.cgColor
         createAccountButton.layer.shadowOpacity = 0.12
