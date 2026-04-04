@@ -12,9 +12,8 @@ final class VideosView: UIView {
     // MARK: - UI
     let profileButton = UIButton(type: .system)
     let segmented = UISegmentedControl(items: ["Free Exercises", "My Program"])
-    let searchBar = UISearchBar()
     let filterCollectionView: UICollectionView
-    let tableView = UITableView(frame: .zero, style: .plain)
+    let tableView = UITableView(frame: .zero, style: .grouped)
     let programRedeemCard = UIView()
     private let redeemIcon = UIImageView()
     private let redeemTitleLabel = UILabel()
@@ -23,7 +22,6 @@ final class VideosView: UIView {
     let redeemCodeField = UITextField()
     let redeemInlineButton = UIButton(type: .system)
 
-    private var searchHeightConstraint: NSLayoutConstraint?
     private var filterHeightConstraint: NSLayoutConstraint?
     private var redeemCardHeightConstraint: NSLayoutConstraint?
 
@@ -36,8 +34,6 @@ final class VideosView: UIView {
 
     private let refreshControl = UIRefreshControl()
     
-    private let searchBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
-
     private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
@@ -69,9 +65,7 @@ final class VideosView: UIView {
     }
 
     func setProgramMode(_ enabled: Bool) {
-        searchBar.isHidden = enabled
         filterCollectionView.isHidden = enabled
-        searchHeightConstraint?.constant = enabled ? 0 : 44
         filterHeightConstraint?.constant = enabled ? 0 : 40
         if !enabled {
             setProgramRedeemVisible(false)
@@ -102,8 +96,6 @@ final class VideosView: UIView {
     }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
 
         // Header container approach (like ArticlesView) for liquid glass nav bar
         headerContainer.translatesAutoresizingMaskIntoConstraints = true
@@ -126,32 +118,6 @@ final class VideosView: UIView {
         segmented.translatesAutoresizingMaskIntoConstraints = false
         segmented.selectedSegmentIndex = 0
         UITheme.applySegmentedStyle(segmented)
-        
-        searchBar.placeholder = "Search exercises"
-        searchBar.searchBarStyle = .minimal
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.backgroundImage = UIImage()
-        
-        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
-            textField.backgroundColor = .clear
-            textField.layer.cornerRadius = 22
-            textField.layer.masksToBounds = true
-            
-            searchBlur.translatesAutoresizingMaskIntoConstraints = false
-            searchBlur.isUserInteractionEnabled = false
-            searchBlur.layer.cornerRadius = 22
-            searchBlur.clipsToBounds = true
-            searchBlur.layer.borderWidth = 0.5
-            searchBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
-            textField.insertSubview(searchBlur, at: 0)
-            
-            NSLayoutConstraint.activate([
-                searchBlur.topAnchor.constraint(equalTo: textField.topAnchor),
-                searchBlur.bottomAnchor.constraint(equalTo: textField.bottomAnchor),
-                searchBlur.leadingAnchor.constraint(equalTo: textField.leadingAnchor),
-                searchBlur.trailingAnchor.constraint(equalTo: textField.trailingAnchor)
-            ])
-        }
 
         filterCollectionView.translatesAutoresizingMaskIntoConstraints = false
         filterCollectionView.backgroundColor = .clear
@@ -204,6 +170,12 @@ final class VideosView: UIView {
         tableView.separatorStyle = .none
         tableView.refreshControl = refreshControl
         tableView.contentInsetAdjustmentBehavior = .always
+        tableView.backgroundView = backgroundGlow
+        
+        if #available(iOS 15.0, *) {
+            tableView.sectionHeaderTopPadding = 0
+        }
+        tableView.sectionFooterHeight = 0
 
         emptyCard.translatesAutoresizingMaskIntoConstraints = false
         UITheme.applyCardStyle(emptyCard)
@@ -236,7 +208,6 @@ final class VideosView: UIView {
 
         // Header subviews
         headerContainer.addSubview(segmented)
-        headerContainer.addSubview(searchBar)
         headerContainer.addSubview(filterCollectionView)
         headerContainer.addSubview(programRedeemCard)
         headerContainer.addSubview(programSummaryContainer)
@@ -254,15 +225,11 @@ final class VideosView: UIView {
         emptyCard.addSubview(emptySub)
         emptyCard.addSubview(redeemButton)
 
-        searchHeightConstraint = searchBar.heightAnchor.constraint(equalToConstant: 44)
         filterHeightConstraint = filterCollectionView.heightAnchor.constraint(equalToConstant: 40)
         redeemCardHeightConstraint = programRedeemCard.heightAnchor.constraint(equalToConstant: 0)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
 
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -275,11 +242,7 @@ final class VideosView: UIView {
             segmented.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             segmented.heightAnchor.constraint(equalToConstant: 36),
 
-            searchBar.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 12),
-            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 8),
-            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -8),
-
-            filterCollectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
+            filterCollectionView.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 14),
             filterCollectionView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             filterCollectionView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 
@@ -337,7 +300,6 @@ final class VideosView: UIView {
             redeemButton.bottomAnchor.constraint(equalTo: emptyCard.bottomAnchor, constant: -18)
         ])
 
-        searchHeightConstraint?.isActive = true
         filterHeightConstraint?.isActive = true
         redeemCardHeightConstraint?.isActive = true
     }

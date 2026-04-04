@@ -18,7 +18,6 @@ final class PhysioReportsView: UIView {
     }
 
     let tableView = UITableView(frame: .zero, style: .plain)
-    let searchBar = UISearchBar()
     let refreshControl = UIRefreshControl()
     private let backgroundGlow = AppBackgroundTopGlowView()
 
@@ -34,26 +33,6 @@ final class PhysioReportsView: UIView {
     private func build() {
         backgroundColor = .clear
 
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = "Search patients or programs..."
-        searchBar.backgroundImage = UIImage()
-        
-        let searchField = searchBar.searchTextField
-        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
-        searchField.layer.cornerRadius = 20
-        searchField.layer.masksToBounds = true
-        
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.frame = searchField.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        blurView.isUserInteractionEnabled = false
-        searchField.insertSubview(blurView, at: 0)
-
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
@@ -62,6 +41,8 @@ final class PhysioReportsView: UIView {
         tableView.estimatedRowHeight = 220
         tableView.register(ReportPatientCell.self, forCellReuseIdentifier: ReportPatientCell.reuseID)
         tableView.refreshControl = refreshControl
+        tableView.contentInsetAdjustmentBehavior = .always
+        tableView.backgroundView = backgroundGlow
 
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyLabel.text = "No program assignments yet.\nShare a program code to see patient reports."
@@ -72,31 +53,12 @@ final class PhysioReportsView: UIView {
         emptyLabel.isHidden = true
         emptyLabel.isUserInteractionEnabled = false
 
-        // Build table header with search bar so tableView can be
-        // pinned to topAnchor — enabling the native hovering-title glass nav bar.
-        let headerContainer = UIView()
-        headerContainer.backgroundColor = .clear
-        headerContainer.addSubview(searchBar)
-
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
-            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
-            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
-            searchBar.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -8)
-        ])
-
-        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 60)
-        tableView.tableHeaderView = headerContainer
+        tableView.tableHeaderView = nil
 
         addSubview(tableView)
         addSubview(emptyLabel)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
-
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -125,8 +87,7 @@ final class ReportPatientCell: UITableViewCell {
     private let card = UIView()
     private let nameLabel = UILabel()
     private let agePill = UILabel()
-    private let programLabel = UILabel()
-    private let locationLabel = UILabel()
+    private let metricsStack = UIStackView()
     private let divider = UIView()
     private let adherenceTitleLabel = UILabel()
     private let adherenceValueLabel = UILabel()
@@ -160,15 +121,10 @@ final class ReportPatientCell: UITableViewCell {
         agePill.clipsToBounds = true
         agePill.setContentHuggingPriority(.required, for: .horizontal)
 
-        programLabel.translatesAutoresizingMaskIntoConstraints = false
-        programLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        programLabel.textColor = UITheme.Colors.textSecondary
-        programLabel.numberOfLines = 0
-
-        locationLabel.translatesAutoresizingMaskIntoConstraints = false
-        locationLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        locationLabel.textColor = UITheme.Colors.textSecondary
-        locationLabel.numberOfLines = 0
+        metricsStack.translatesAutoresizingMaskIntoConstraints = false
+        metricsStack.axis = .vertical
+        metricsStack.spacing = 6
+        metricsStack.alignment = .leading
 
         divider.translatesAutoresizingMaskIntoConstraints = false
         divider.backgroundColor = UITheme.Colors.glassBorder
@@ -191,8 +147,7 @@ final class ReportPatientCell: UITableViewCell {
 
         card.addSubview(nameLabel)
         card.addSubview(agePill)
-        card.addSubview(programLabel)
-        card.addSubview(locationLabel)
+        card.addSubview(metricsStack)
         card.addSubview(divider)
         card.addSubview(adherenceTitleLabel)
         card.addSubview(adherenceValueLabel)
@@ -213,15 +168,11 @@ final class ReportPatientCell: UITableViewCell {
             agePill.heightAnchor.constraint(equalToConstant: 24),
             agePill.widthAnchor.constraint(greaterThanOrEqualToConstant: 60),
 
-            programLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
-            programLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            programLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
+            metricsStack.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 10),
+            metricsStack.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            metricsStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
 
-            locationLabel.topAnchor.constraint(equalTo: programLabel.bottomAnchor, constant: 6),
-            locationLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            locationLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-
-            divider.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 12),
+            divider.topAnchor.constraint(equalTo: metricsStack.bottomAnchor, constant: 12),
             divider.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             divider.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
             divider.heightAnchor.constraint(equalToConstant: 1),
@@ -251,9 +202,36 @@ final class ReportPatientCell: UITableViewCell {
         agePill.isHidden = ageValue.isEmpty || ageValue == "—"
         agePill.text = ageValue.isEmpty ? nil : "  \(ageValue)  "
 
-        programLabel.text = "Program Assigned: \(vm.programText)"
-        locationLabel.text = "Location: \(vm.location)"
+        metricsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "doc.text.fill", text: "Program: \(vm.programText)", color: .secondaryLabel))
+        if !vm.location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            metricsStack.addArrangedSubview(makeMetricRow(icon: "mappin.and.ellipse", text: vm.location, color: .secondaryLabel))
+        }
+
         adherenceValueLabel.text = "\(vm.adherencePercent)%"
         adherenceBar.setProgress(Float(vm.adherencePercent) / 100.0, animated: false)
+    }
+
+    private func makeMetricRow(icon: String, text: String, color: UIColor) -> UIView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.spacing = 8
+        row.alignment = .center
+
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = color
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        iconView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = color
+        label.text = text
+        label.numberOfLines = 0
+
+        row.addArrangedSubview(iconView)
+        row.addArrangedSubview(label)
+        return row
     }
 }

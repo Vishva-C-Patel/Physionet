@@ -18,7 +18,9 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
     private let genderField = LabeledTextField(title: "Gender", placeholder: "Gender")
     private let customGenderField = LabeledTextField(title: "Custom Gender", placeholder: "Your gender")
     private let dobField = LabeledTextField(title: "Date of Birth", placeholder: "YYYY-MM-DD")
-    private let locationField = LabeledTextField(title: "Location", placeholder: "City")
+    private let addressLine1Field = LabeledTextField(title: "Address Line 1", placeholder: "House No, Street")
+    private let addressLine2Field = LabeledTextField(title: "Address Line 2", placeholder: "Locality, City")
+    private let pincodeField = LabeledTextField(title: "Pincode", placeholder: "Pincode")
     private let dobPicker = UIDatePicker()
     private let genderPicker = UIPickerView()
     private let genderOptions = ["Male", "Female", "Other"]
@@ -40,7 +42,23 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
         let genderText = data.gender == "—" ? "" : data.gender
         applyGenderText(genderText)
         dobField.text = data.dateOfBirth == "—" ? "" : data.dateOfBirth
-        locationField.text = data.location == "—" ? "" : data.location
+        
+        let loc = data.location == "—" ? "" : data.location
+        var parts = loc.components(separatedBy: ", ")
+        if parts.count >= 3 {
+            pincodeField.text = parts.popLast() ?? ""
+            addressLine2Field.text = parts.popLast() ?? ""
+            addressLine1Field.text = parts.joined(separator: ", ")
+        } else if parts.count == 2 {
+            pincodeField.text = parts.popLast() ?? ""
+            addressLine1Field.text = parts.popLast() ?? ""
+            addressLine2Field.text = ""
+        } else {
+            addressLine1Field.text = loc
+            addressLine2Field.text = ""
+            pincodeField.text = ""
+        }
+        
         if let parsed = Self.dateFormatter.date(from: dobField.text) {
             dobPicker.date = parsed
         }
@@ -55,12 +73,17 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
             }
             return selection
         }()
+        let line1 = addressLine1Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line2 = addressLine2Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pin = pincodeField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let combinedLocation = [line1, line2, pin].filter { !$0.isEmpty }.joined(separator: ", ")
+
         return ProfileModel.ProfileUpdateInput(
             name: nameField.text,
             phone: phoneField.text,
             gender: resolvedGender,
             dateOfBirth: dobField.text,
-            location: locationField.text
+            location: combinedLocation
         )
     }
 
@@ -129,7 +152,9 @@ final class EditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegat
         formStack.addArrangedSubview(genderField)
         formStack.addArrangedSubview(customGenderField)
         formStack.addArrangedSubview(dobField)
-        formStack.addArrangedSubview(locationField)
+        formStack.addArrangedSubview(addressLine1Field)
+        formStack.addArrangedSubview(addressLine2Field)
+        formStack.addArrangedSubview(pincodeField)
 
         card.addSubview(formStack)
 

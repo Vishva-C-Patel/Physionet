@@ -37,7 +37,8 @@ final class PhysiotherapistListViewController: UIViewController {
         listView.searchBar.delegate = self
         listView.datePill.addTarget(self, action: #selector(datePillTapped), for: .touchUpInside)
         listView.timePill.addTarget(self, action: #selector(timePillTapped), for: .touchUpInside)
-        listView.filterButton.addTarget(self, action: #selector(openFilters), for: .touchUpInside)
+
+        setupFilterMenu()
 
         setupLocationUpdates()
         setInitialDatePills()
@@ -135,26 +136,93 @@ final class PhysiotherapistListViewController: UIViewController {
         presentDatePicker(mode: .time)
     }
 
-    @objc private func openFilters() {
-        tabBarController?.tabBar.isHidden = true
+    // MARK: - Native Filters Menu
+    
+    private func setupFilterMenu() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: nil,
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            primaryAction: nil,
+            menu: buildFilterMenu()
+        )
+    }
 
-        let vc = FiltersOverlayViewController()
-        vc.selectedFilters = activeFilters
+    private func buildFilterMenu() -> UIMenu {
+        // Specialities
+        let specialitiesOptions = ["Knee Physiotherapy", "Neck Physiotherapy", "Shoulder Physiotherapy"]
+        let specialitiesActions = specialitiesOptions.map { spec in
+            let isSelected = activeFilters.specialities.contains(spec)
+            let action = UIAction(title: spec, state: isSelected ? .on : .off) { [weak self] _ in
+                self?.toggleSpeciality(spec)
+            }
+            if #available(iOS 15.0, *) { action.attributes = .keepsMenuPresented }
+            return action
+        }
+        let specialitiesMenu = UIMenu(title: "Speciality", image: UIImage(systemName: "stethoscope"), children: specialitiesActions)
 
-        vc.onApply = { [weak self] newFilters in
-            guard let self else { return }
-            self.activeFilters = newFilters
-            self.applyFilters()
-            self.tabBarController?.tabBar.isHidden = false
+        // Gender
+        let genderOptions = ["Male", "Female", "Prefer not to say"]
+        let genderActions = genderOptions.map { gender in
+            let isSelected = activeFilters.gender == gender
+            let action = UIAction(title: gender, state: isSelected ? .on : .off) { [weak self] _ in
+                self?.setGender(isSelected ? nil : gender)
+            }
+            if #available(iOS 15.0, *) { action.attributes = .keepsMenuPresented }
+            return action
+        }
+        let genderMenu = UIMenu(title: "Gender", image: UIImage(systemName: "person.2.fill"), children: genderActions)
+
+        // Distance
+        let distanceOptions: [Double] = [5, 10, 15, 25, 50]
+        let distanceActions = distanceOptions.map { dist in
+            let isSelected = activeFilters.maxDistance == dist
+            let action = UIAction(title: "Within \(Int(dist)) km", state: isSelected ? .on : .off) { [weak self] _ in
+                self?.activeFilters.maxDistance = dist
+                self?.applyFiltersAndRebuildMenu()
+            }
+            if #available(iOS 15.0, *) { action.attributes = .keepsMenuPresented }
+            return action
+        }
+        let distanceMenu = UIMenu(title: "Distance", image: UIImage(systemName: "location.fill"), children: distanceActions)
+
+        // Ratings
+        let ratingOptions = [(title: "Any Rating", value: 0), (title: "4+ Stars", value: 4), (title: "3+ Stars", value: 3)]
+        let ratingActions = ratingOptions.map { option in
+            let isSelected = activeFilters.minRating == option.value
+            let action = UIAction(title: option.title, state: isSelected ? .on : .off) { [weak self] _ in
+                self?.activeFilters.minRating = option.value
+                self?.applyFiltersAndRebuildMenu()
+            }
+            if #available(iOS 15.0, *) { action.attributes = .keepsMenuPresented }
+            return action
+        }
+        let ratingMenu = UIMenu(title: "Ratings", image: UIImage(systemName: "star.fill"), children: ratingActions)
+
+        let clearAction = UIAction(title: "Clear Filters", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+            self?.activeFilters = Filters()
+            self?.applyFiltersAndRebuildMenu()
         }
 
-        vc.onDismiss = { [weak self] in
-            self?.tabBarController?.tabBar.isHidden = false
-        }
+        return UIMenu(title: "Filters", children: [specialitiesMenu, genderMenu, distanceMenu, ratingMenu, clearAction])
+    }
 
-        vc.modalPresentationStyle = .overCurrentContext
-        vc.modalTransitionStyle = .crossDissolve
-        present(vc, animated: false)
+    private func toggleSpeciality(_ spec: String) {
+        if let idx = activeFilters.specialities.firstIndex(of: spec) {
+            activeFilters.specialities.remove(at: idx)
+        } else {
+            activeFilters.specialities.append(spec)
+        }
+        applyFiltersAndRebuildMenu()
+    }
+
+    private func setGender(_ gender: String?) {
+        activeFilters.gender = gender
+        applyFiltersAndRebuildMenu()
+    }
+
+    private func applyFiltersAndRebuildMenu() {
+        applyFilters()
+        navigationItem.rightBarButtonItem?.menu = buildFilterMenu()
     }
 
     private func applyAvailabilityFilter() {

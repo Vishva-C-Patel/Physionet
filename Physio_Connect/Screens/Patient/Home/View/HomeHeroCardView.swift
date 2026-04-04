@@ -56,7 +56,6 @@ final class HomeHeroCardView: UIView {
     private var contentTopToTopRowConstraint: NSLayoutConstraint?
     private var contentTopToContainerConstraint: NSLayoutConstraint?
     private var buttonTopConstraint: NSLayoutConstraint?
-    private var usesWhiteButton = false
 
     private var currentState: State = .bookHomeVisit
 
@@ -264,23 +263,14 @@ final class HomeHeroCardView: UIView {
 
         // --- Button ---
         primaryButton.translatesAutoresizingMaskIntoConstraints = false
-        primaryButton.setTitle("View Details", for: .normal)
-        primaryButton.setTitleColor(.white, for: .normal)
-        primaryButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        primaryButton.layer.cornerRadius = 24
-        primaryButton.clipsToBounds = true
-        primaryButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
-
-        buttonChevron.translatesAutoresizingMaskIntoConstraints = false
-        buttonChevron.image = UIImage(systemName: "chevron.right")
-        buttonChevron.tintColor = .white
-
-        primaryButton.addSubview(buttonChevron)
-
-        NSLayoutConstraint.activate([
-            buttonChevron.centerYAnchor.constraint(equalTo: primaryButton.centerYAnchor),
-            buttonChevron.trailingAnchor.constraint(equalTo: primaryButton.trailingAnchor, constant: -16)
-        ])
+        var config = UIButton.Configuration.filled()
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 16, weight: .bold)
+            return out
+        }
+        primaryButton.configuration = config
 
         // Add to container
         container.addSubview(topRow)
@@ -322,7 +312,6 @@ final class HomeHeroCardView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        applyButtonGradient()
         if backgroundGradient.superlayer != nil {
             backgroundGradient.frame = container.bounds
             backgroundGradient.cornerRadius = container.layer.cornerRadius
@@ -354,28 +343,6 @@ final class HomeHeroCardView: UIView {
         CATransaction.commit()
     }
 
-    private func applyButtonGradient() {
-        gradientLayer?.removeFromSuperlayer()
-
-        if usesWhiteButton {
-            primaryButton.backgroundColor = .white
-            primaryButton.layer.borderWidth = 0
-            return
-        }
-
-        let g = CAGradientLayer()
-        g.frame = primaryButton.bounds
-        g.cornerRadius = primaryButton.layer.cornerRadius
-        g.colors = [
-            UIColor(hex: "1E6EF7").cgColor,
-            UIColor(hex: "4E8CFF").cgColor
-        ]
-        g.startPoint = CGPoint(x: 0, y: 0.5)
-        g.endPoint = CGPoint(x: 1, y: 0.5)
-
-        primaryButton.layer.insertSublayer(g, at: 0)
-        gradientLayer = g
-    }
 
     // MARK: - State
 
@@ -385,7 +352,6 @@ final class HomeHeroCardView: UIView {
         switch state {
 
         case .bookHomeVisit:
-            usesWhiteButton = true
             topRow.isHidden = true
             pill.isHidden = true
             setAvatarImage(nil, path: nil)
@@ -412,16 +378,13 @@ final class HomeHeroCardView: UIView {
             contentTopToContainerConstraint?.isActive = true
             buttonTopConstraint?.constant = 8
 
-            primaryButton.setTitle("Book Appointment", for: .normal)
-            primaryButton.setTitleColor(UITheme.Colors.accent, for: .normal)
-            primaryButton.layer.shadowColor = UIColor.black.cgColor
-            primaryButton.layer.shadowOpacity = 0.12
-            primaryButton.layer.shadowRadius = 8
-            primaryButton.layer.shadowOffset = CGSize(width: 0, height: 4)
-            buttonChevron.isHidden = true
+            primaryButton.configuration?.title = "Book Appointment"
+            primaryButton.configuration?.baseBackgroundColor = .white
+            primaryButton.configuration?.baseForegroundColor = UITheme.Colors.accent
+            // shadow handled by configuration's background (default)
+            // or we can add it via layer if needed, but usually filled white is enough
 
         case .upcoming(let appt):
-            usesWhiteButton = true
             topRow.isHidden = false
             pill.isHidden = false
             pillLabel.text = "Upcoming"
@@ -466,16 +429,12 @@ final class HomeHeroCardView: UIView {
             dateRow.setText(df1.string(from: appt.startTime))
             timeRow.setText(df2.string(from: appt.startTime))
 
-            primaryButton.setTitle("View Details", for: .normal)
-            primaryButton.setTitleColor(UITheme.Colors.accent, for: .normal)
-            primaryButton.layer.shadowColor = UIColor.black.cgColor
-            primaryButton.layer.shadowOpacity = 0.12
-            primaryButton.layer.shadowRadius = 8
-            primaryButton.layer.shadowOffset = CGSize(width: 0, height: 4)
-            buttonChevron.isHidden = true
+            primaryButton.configuration?.title = "View Details"
+            primaryButton.configuration?.baseBackgroundColor = .white
+            primaryButton.configuration?.baseForegroundColor = UITheme.Colors.accent
         }
 
-        // ✅ Force refresh so button doesn’t get “stuck”
+        // ✅ Force refresh
         setNeedsLayout()
         layoutIfNeeded()
     }

@@ -41,7 +41,7 @@ final class ProfileView: UIView {
     private let dobRow = ProfileRowView(title: "Date of Birth")
 
     private let addressRow = ProfileRowView(title: "Address")
-    private let locationRow = ProfileRowView(title: "Location")
+    private let pincodeRow = ProfileRowView(title: "Pincode")
     private let notificationRow = ProfileToggleRowView(title: "Notifications")
     
 
@@ -83,8 +83,18 @@ final class ProfileView: UIView {
         phoneRow.setValue(data.phone)
         genderRow.setValue(data.gender)
         dobRow.setValue(data.dateOfBirth)
-        addressRow.setValue(data.address)
-        locationRow.setValue(data.location)
+        let fullLocation = data.location != "—" ? data.location : data.address
+        var parts = fullLocation.components(separatedBy: ", ")
+        if parts.count >= 3 {
+            pincodeRow.setValue(parts.popLast() ?? "")
+            addressRow.setValue(parts.joined(separator: "\n"))
+        } else if parts.count == 2 {
+            pincodeRow.setValue(parts.popLast() ?? "")
+            addressRow.setValue(parts.popLast() ?? "")
+        } else {
+            pincodeRow.setValue("—")
+            addressRow.setValue(fullLocation.isEmpty ? "—" : fullLocation)
+        }
         notificationRow.setOn(data.notificationsEnabled)
         setAvatar(with: data.avatarURL)
     }
@@ -97,7 +107,7 @@ final class ProfileView: UIView {
         genderRow.setValue("—")
         dobRow.setValue("—")
         addressRow.setValue("—")
-        locationRow.setValue("—")
+        pincodeRow.setValue("—")
         notificationRow.setOn(false)
         setAvatar(with: nil)
         avatarEditButton.isHidden = true
@@ -354,7 +364,7 @@ final class ProfileView: UIView {
 
         stack.addArrangedSubview(addressRow)
         stack.addArrangedSubview(makeSeparator())
-        stack.addArrangedSubview(locationRow)
+        stack.addArrangedSubview(pincodeRow)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(notificationRow)
 
@@ -687,7 +697,7 @@ final class ProfileRowView: UIView {
         valueLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         valueLabel.textColor = .label
         valueLabel.textAlignment = .right
-        valueLabel.numberOfLines = 2
+        valueLabel.numberOfLines = 0
 
         let stack = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
         stack.axis = .horizontal

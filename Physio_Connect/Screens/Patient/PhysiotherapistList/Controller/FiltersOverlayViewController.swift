@@ -21,9 +21,6 @@ final class FiltersOverlayViewController: UIViewController {
     private var genderButtons: [(String, UIButton)] = []
     private var ratingButtons: [UIButton] = []
 
-    private let dimView = UIView()
-    private let sheetView = UIView()
-
     private let headerView = UIView()
     private let headerTitle = UILabel()
     private let clearButton = UIButton(type: .system)
@@ -52,41 +49,15 @@ final class FiltersOverlayViewController: UIViewController {
     }
 
     private func buildUI() {
-
-        // ================= Dim Background =================
-        view.addSubview(dimView)
-        dimView.backgroundColor = UIColor.black.withAlphaComponent(0.45)
-        dimView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            dimView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            dimView.topAnchor.constraint(equalTo: view.topAnchor),
-            dimView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        dimView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(close)))
-
-        // ================= Sheet View =================
-        view.addSubview(sheetView)
-        sheetView.backgroundColor = .systemGroupedBackground
-        sheetView.layer.cornerRadius = 32
-        sheetView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        sheetView.clipsToBounds = true
-        sheetView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            sheetView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            sheetView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            sheetView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            sheetView.topAnchor.constraint(equalTo: view.centerYAnchor, constant: -40)
-        ])
+        view.backgroundColor = .systemGroupedBackground
 
         // ================= Header =================
-        sheetView.addSubview(headerView)
+        view.addSubview(headerView)
         headerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            headerView.leadingAnchor.constraint(equalTo: sheetView.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: sheetView.trailingAnchor),
-            headerView.topAnchor.constraint(equalTo: sheetView.topAnchor),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             headerView.heightAnchor.constraint(equalToConstant: 70)
         ])
 
@@ -111,13 +82,13 @@ final class FiltersOverlayViewController: UIViewController {
         ])
 
         // ================= Scroll =================
-        sheetView.addSubview(scrollView)
+        view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: sheetView.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: sheetView.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: sheetView.bottomAnchor, constant: -100)
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100)
         ])
 
         scrollView.addSubview(contentView)
@@ -172,7 +143,7 @@ final class FiltersOverlayViewController: UIViewController {
         ])
 
         // ================= Bottom Buttons =================
-        sheetView.addSubview(bottomButtons)
+        view.addSubview(bottomButtons)
         bottomButtons.axis = .horizontal
         bottomButtons.spacing = 20
         bottomButtons.distribution = .fillEqually
@@ -196,9 +167,9 @@ final class FiltersOverlayViewController: UIViewController {
         bottomButtons.addArrangedSubview(apply)
 
         NSLayoutConstraint.activate([
-            bottomButtons.leadingAnchor.constraint(equalTo: sheetView.leadingAnchor, constant: 20),
-            bottomButtons.trailingAnchor.constraint(equalTo: sheetView.trailingAnchor, constant: -20),
-            bottomButtons.bottomAnchor.constraint(equalTo: sheetView.bottomAnchor, constant: -20),
+            bottomButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            bottomButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            bottomButtons.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             bottomButtons.heightAnchor.constraint(equalToConstant: 46)
         ])
     }
@@ -236,12 +207,12 @@ final class FiltersOverlayViewController: UIViewController {
         selectedFilters.minRating = selectedRating
 
         onApply?(selectedFilters)
-        dismiss(animated: false) { [weak self] in self?.onDismiss?() }
+        dismiss(animated: true) { [weak self] in self?.onDismiss?() }
     }
 
     // MARK: - Close
     @objc private func close() {
-        dismiss(animated: false) { [weak self] in self?.onDismiss?() }
+        dismiss(animated: true) { [weak self] in self?.onDismiss?() }
     }
 
     // ============================================================

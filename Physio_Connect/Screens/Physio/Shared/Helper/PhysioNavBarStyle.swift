@@ -15,10 +15,11 @@ enum PhysioNavBarStyle {
 
     static func apply(to viewController: UIViewController,
                       title: String,
+                      largeTitle: Bool = false,
                       profileButton: UIButton,
                       profileAction: Selector) {
         viewController.navigationController?.setNavigationBarHidden(false, animated: false)
-        UITheme.applyNativeNavBar(to: viewController, title: title)
+        UITheme.applyNativeNavBar(to: viewController, title: title, largeTitle: largeTitle)
 
         configureProfileButton(profileButton, image: UIImage(systemName: "person.crop.circle"))
         profileButton.addTarget(viewController, action: profileAction, for: .touchUpInside)

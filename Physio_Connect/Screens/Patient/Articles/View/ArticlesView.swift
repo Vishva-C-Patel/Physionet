@@ -12,7 +12,6 @@ final class ArticlesView: UIView {
     // MARK: - UI
     let profileButton = UIButton(type: .system)
 
-    let searchBar = UISearchBar()
     let segmented = UISegmentedControl(items: ["All", "For You", "Bookmarks"])
     private let segBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
 
@@ -20,7 +19,6 @@ final class ArticlesView: UIView {
     private let recentHeaderStack = UIStackView()
     private let recentTitleLabel = UILabel()
     let resultsLabel = UILabel()
-    let filterCollectionView: UICollectionView
     let tableView = UITableView(frame: .zero, style: .plain)
 
     private let refreshControl = UIRefreshControl()
@@ -29,11 +27,6 @@ final class ArticlesView: UIView {
     private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumInteritemSpacing = 10
-        layout.minimumLineSpacing = 10
-        filterCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: frame)
         backgroundColor = .clear
         build()
@@ -78,8 +71,6 @@ final class ArticlesView: UIView {
     }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
 
         headerContainer.translatesAutoresizingMaskIntoConstraints = true
         headerContainer.backgroundColor = .clear
@@ -88,23 +79,6 @@ final class ArticlesView: UIView {
         let profileConfig = UIImage.SymbolConfiguration(pointSize: 36, weight: .light)
         profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)
         profileButton.tintColor = .secondaryLabel
-
-        searchBar.placeholder = "Search articles, topics, conditions..."
-        searchBar.searchBarStyle = .minimal
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.backgroundImage = UIImage()
-        
-        let searchField = searchBar.searchTextField
-        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
-        searchField.layer.cornerRadius = 20
-        searchField.layer.masksToBounds = true
-        
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.frame = searchField.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        blurView.isUserInteractionEnabled = false
-        searchField.insertSubview(blurView, at: 0)
 
         segmented.translatesAutoresizingMaskIntoConstraints = false
         UITheme.applySegmentedStyle(segmented)
@@ -140,9 +114,7 @@ final class ArticlesView: UIView {
         recentHeaderStack.addArrangedSubview(spacer)
         recentHeaderStack.addArrangedSubview(resultsLabel)
 
-        filterCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        filterCollectionView.backgroundColor = .clear
-        filterCollectionView.showsHorizontalScrollIndicator = false
+        // removed filterCollectionView
 
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
@@ -152,14 +124,13 @@ final class ArticlesView: UIView {
         featuredCard.isHidden = true
 
         addSubview(tableView)
+        tableView.backgroundView = backgroundGlow
         tableView.tableHeaderView = headerContainer
         tableView.contentInset = .zero
         tableView.contentInsetAdjustmentBehavior = .always
         
-        headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segBlur)
         headerContainer.addSubview(segmented)
-        headerContainer.addSubview(filterCollectionView)
         headerContainer.addSubview(featuredCard)
         headerContainer.addSubview(recentHeaderStack)
 
@@ -167,36 +138,24 @@ final class ArticlesView: UIView {
         featuredHeightConstraint?.isActive = true
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+
 
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            searchBar.topAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
-
             segBlur.topAnchor.constraint(equalTo: segmented.topAnchor),
             segBlur.bottomAnchor.constraint(equalTo: segmented.bottomAnchor),
             segBlur.leadingAnchor.constraint(equalTo: segmented.leadingAnchor),
             segBlur.trailingAnchor.constraint(equalTo: segmented.trailingAnchor),
 
-            segmented.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 12),
+            segmented.topAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.topAnchor),
             segmented.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             segmented.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
             segmented.heightAnchor.constraint(equalToConstant: 36),
 
-            filterCollectionView.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 12),
-            filterCollectionView.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
-            filterCollectionView.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
-            filterCollectionView.heightAnchor.constraint(equalToConstant: 40),
-
-            featuredCard.topAnchor.constraint(equalTo: filterCollectionView.bottomAnchor, constant: 14),
+            featuredCard.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 14),
             featuredCard.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
             featuredCard.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
 

@@ -81,12 +81,18 @@ final class FeaturedArticleCardView: UIView {
         summaryLabel.textColor = UIColor.black.withAlphaComponent(0.65)
         summaryLabel.numberOfLines = 3
 
-        readButton.setTitle("Read Featured Story", for: .normal)
-        readButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
-        readButton.setTitleColor(.white, for: .normal)
-        readButton.backgroundColor = UIColor(hex: "1E6EF7")
-        readButton.layer.cornerRadius = 27
-        readButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+        readButton.translatesAutoresizingMaskIntoConstraints = false
+        var config = UIButton.Configuration.filled()
+        config.title = "Read Featured Story"
+        config.baseBackgroundColor = UIColor(hex: "1E6EF7")
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 15, weight: .bold)
+            return out
+        }
+        readButton.configuration = config
         readButton.addTarget(self, action: #selector(readTapped), for: .touchUpInside)
 
         addSubview(cardView)
@@ -114,6 +120,7 @@ final class FeaturedArticleCardView: UIView {
 
             readButton.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 16),
             readButton.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 18),
+            readButton.heightAnchor.constraint(equalToConstant: 44),
             readButton.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -18)
         ])
     }

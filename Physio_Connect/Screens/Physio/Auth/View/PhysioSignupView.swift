@@ -72,8 +72,8 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
     private let orDivider = OrDividerView()
 
     // MARK: - Social
-    let googleButton = UIButton(type: .system)
-    let appleButton = UIButton(type: .system)
+    let googleButton = UIButton(type: .custom)
+    let appleButton = UIButton(type: .custom)
 
     // MARK: - Login
     let loginButton = UIButton(type: .system)
@@ -131,7 +131,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         contentView.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 32),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
@@ -141,6 +141,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         sectionTitle.text = "Sign up with email"
         sectionTitle.font = .systemFont(ofSize: 18, weight: .bold)
         sectionTitle.textColor = UITheme.Colors.textPrimary
+        sectionTitle.textAlignment = .center
         stack.addArrangedSubview(sectionTitle)
 
         // Fields
@@ -276,8 +277,8 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         socialRow.distribution = .fillEqually
         socialRow.translatesAutoresizingMaskIntoConstraints = false
 
-        styleOutlineSocialButton(googleButton, title: "Google", iconSystemName: "g.circle")
-        styleOutlineSocialButton(appleButton, title: "Apple", iconSystemName: "apple.logo")
+        styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
+        styleOutlineSocialButton(appleButton, title: "Apple", icon: UIImage(systemName: "apple.logo")?.withRenderingMode(.alwaysTemplate))
 
         stack.addArrangedSubview(socialRow)
 
@@ -374,7 +375,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         v.layer.shadowOffset = CGSize(width: 0, height: 6)
     }
 
-    private func styleOutlineSocialButton(_ b: UIButton, title: String, iconSystemName: String) {
+    private func styleOutlineSocialButton(_ b: UIButton, title: String, icon: UIImage?) {
         b.translatesAutoresizingMaskIntoConstraints = false
         b.setTitle("  \(title)", for: .normal)
         b.setTitleColor(UITheme.Colors.textPrimary, for: .normal)
@@ -384,8 +385,15 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         b.layer.borderColor = UITheme.Colors.border.cgColor
         b.backgroundColor = UITheme.Colors.surface
         b.heightAnchor.constraint(equalToConstant: 52).isActive = true
-        b.setImage(UIImage(systemName: iconSystemName), for: .normal)
-        b.tintColor = UITheme.Colors.textSecondary
+        
+        b.setImage(icon, for: .normal)
+        b.imageView?.contentMode = .scaleAspectFit
+        
+        if icon?.isSymbolImage == true {
+            b.tintColor = UITheme.Colors.textSecondary
+        } else {
+            b.tintColor = nil // Keep original colors (gray for monochrome logos)
+        }
     }
 
     // MARK: - Actions
@@ -474,6 +482,55 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         guard textField === phoneField.textField else { return }
         if (textField.text ?? "").isEmpty {
             textField.text = phonePrefix
+        }
+    }
+
+    private func drawGoogleLogo(size: CGFloat) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
+        return renderer.image { context in
+            let center = CGPoint(x: size / 2, y: size / 2)
+            let radius = size * 0.45
+            let thickness = size * 0.18
+            let offset: CGFloat = 0.05 // Increased gap to prevent zoom overlap
+
+            // Clip to perfect circle to prevent middle bar corners from sticking out
+            let clipPath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
+            clipPath.addClip()
+
+            // Top (Red)
+            let redPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: -.pi * 0.8 + offset, endAngle: -.pi * 0.1 - offset, clockwise: true)
+            redPath.lineWidth = thickness
+            redPath.lineCapStyle = .butt
+            UIColor(hex: "#EA4335").setStroke()
+            redPath.stroke()
+            
+            // Left (Yellow)
+            let yellowPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: .pi * 0.9 + offset, endAngle: .pi * 1.2 - offset, clockwise: true)
+            yellowPath.lineWidth = thickness
+            yellowPath.lineCapStyle = .butt
+            UIColor(hex: "#FBBC05").setStroke()
+            yellowPath.stroke()
+            
+            // Bottom (Green)
+            let greenPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: .pi * 0.35 + offset, endAngle: .pi * 0.9 - offset, clockwise: true)
+            greenPath.lineWidth = thickness
+            greenPath.lineCapStyle = .butt
+            UIColor(hex: "#34A853").setStroke()
+            greenPath.stroke()
+            
+            // Right (Blue)
+            let bluePath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: -.pi * 0.1 + offset, endAngle: .pi * 0.35 - offset, clockwise: true)
+            bluePath.lineWidth = thickness
+            bluePath.lineCapStyle = .butt
+            UIColor(hex: "#4285F4").setStroke()
+            bluePath.stroke()
+            
+            // Middle Bar (Blue)
+            let blue = UIColor(hex: "#4285F4")
+            blue.setFill()
+            // Make bar slightly thinner to fit visually within stroke boundaries without bleeding
+            let barRect = CGRect(x: center.x - 1, y: center.y - (thickness * 0.85)/2, width: radius + 1, height: thickness * 0.85)
+            UIBezierPath(rect: barRect).fill()
         }
     }
 }

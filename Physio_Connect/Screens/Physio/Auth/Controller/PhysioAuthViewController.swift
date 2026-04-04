@@ -23,6 +23,9 @@ final class PhysioAuthViewController: UIViewController {
     private let onboardingKey = "physioconnect.physio_onboarded"
     private var activeProof: ProofType?
 
+    private let backButton = UIButton(type: .system)
+    private let backButtonBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+
     private enum ProofType {
         case idProof
         case licenseProof
@@ -72,6 +75,7 @@ final class PhysioAuthViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
         // Ensure buttons are re-enabled after any previous attempts
         loginView.setLoading(false)
         loginView.showError(nil)
@@ -92,10 +96,36 @@ final class PhysioAuthViewController: UIViewController {
     }
 
     private func bind() {
-        // Native navigation bar handles pop automatically if we're pushed.
-        // We can hook into viewWillDisappear or provide a custom leftBarButtonItem for back.
-        let backItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(handleBackNavigation))
-        navigationItem.leftBarButtonItem = backItem
+        // iOS 26 Floating Back Button Style
+        backButtonBlur.isUserInteractionEnabled = false
+        backButtonBlur.layer.cornerRadius = 18
+        backButtonBlur.clipsToBounds = true
+        backButtonBlur.layer.borderWidth = 0.5
+        backButtonBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
+
+        let backConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: backConfig), for: .normal)
+        backButton.tintColor = .label
+
+        view.addSubview(backButtonBlur)
+        view.addSubview(backButton)
+
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        backButtonBlur.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            backButton.widthAnchor.constraint(equalToConstant: 36),
+            backButton.heightAnchor.constraint(equalToConstant: 36),
+
+            backButtonBlur.centerXAnchor.constraint(equalTo: backButton.centerXAnchor),
+            backButtonBlur.centerYAnchor.constraint(equalTo: backButton.centerYAnchor),
+            backButtonBlur.widthAnchor.constraint(equalTo: backButton.widthAnchor),
+            backButtonBlur.heightAnchor.constraint(equalTo: backButton.heightAnchor)
+        ])
+
+        backButton.addTarget(self, action: #selector(handleBackNavigation), for: .touchUpInside)
 
         loginView.onSignupTapped = { [weak self] in self?.show(mode: .signup, animated: true) }
         loginView.onLogin = { [weak self] email, password in

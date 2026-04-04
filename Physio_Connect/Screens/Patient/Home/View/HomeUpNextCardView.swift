@@ -81,11 +81,16 @@ final class HomeUpNextCardView: UIView {
         metaLabel.textColor = UIColor.white.withAlphaComponent(0.85)
 
         primaryButton.translatesAutoresizingMaskIntoConstraints = false
-        primaryButton.backgroundColor = .white
-        primaryButton.setTitleColor(UIColor(hex: "6D5BFF"), for: .normal)
-        primaryButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        primaryButton.layer.cornerRadius = 27
-        primaryButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        var config = UIButton.Configuration.filled()
+        config.baseBackgroundColor = .white
+        config.baseForegroundColor = UIColor(hex: "6D5BFF")
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 15, weight: .bold)
+            return out
+        }
+        primaryButton.configuration = config
 
 
         addSubview(timePill)
@@ -118,7 +123,7 @@ final class HomeUpNextCardView: UIView {
             primaryButton.topAnchor.constraint(equalTo: metaLabel.bottomAnchor, constant: 16),
             primaryButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             primaryButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-
+            primaryButton.heightAnchor.constraint(equalToConstant: 44),
             primaryButton.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16)
         ])
     }

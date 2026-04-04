@@ -22,7 +22,9 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     private let genderField = PhysioLabeledTextField(title: "Gender", placeholder: "Gender")
     private let customGenderField = PhysioLabeledTextField(title: "Custom Gender", placeholder: "Enter your gender")
     private let dobField = PhysioLabeledTextField(title: "Date of Birth", placeholder: "YYYY-MM-DD")
-    private let locationField = PhysioLabeledTextField(title: "Address (Pincode)", placeholder: "Street, Area, Pincode")
+    private let addressLine1Field = PhysioLabeledTextField(title: "Address Line 1", placeholder: "Clinic Name, Flat No")
+    private let addressLine2Field = PhysioLabeledTextField(title: "Address Line 2", placeholder: "Street, Area, City")
+    private let pincodeField = PhysioLabeledTextField(title: "Pincode", placeholder: "Pincode")
     private let placeOfWorkField = PhysioLabeledTextField(title: "Place of Work", placeholder: "Clinic or hospital")
     private let consultationFeeField = PhysioLabeledTextField(title: "Consultation Fee", placeholder: "e.g., 500")
     private let yearsExperienceField = PhysioLabeledTextField(title: "Years of Experience", placeholder: "e.g., 6")
@@ -50,7 +52,23 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
 
     func apply(_ data: PhysioProfileModel.EditProfileData) {
         nameField.text = data.name
-        locationField.text = data.address
+        
+        let loc = data.address
+        var parts = loc.components(separatedBy: ", ")
+        if parts.count >= 3 {
+            pincodeField.text = parts.popLast() ?? ""
+            addressLine2Field.text = parts.popLast() ?? ""
+            addressLine1Field.text = parts.joined(separator: ", ")
+        } else if parts.count == 2 {
+            pincodeField.text = parts.popLast() ?? ""
+            addressLine1Field.text = parts.popLast() ?? ""
+            addressLine2Field.text = ""
+        } else {
+            addressLine1Field.text = loc
+            addressLine2Field.text = ""
+            pincodeField.text = ""
+        }
+        
         phoneField.text = data.phone
         placeOfWorkField.text = data.placeOfWork
         consultationFeeField.text = data.consultationFee
@@ -74,10 +92,16 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
             let selection = genderField.text
             return selection
         }()
+        
+        let line1 = addressLine1Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line2 = addressLine2Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pin = pincodeField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let combinedLocation = [line1, line2, pin].filter { !$0.isEmpty }.joined(separator: ", ")
+
         return PhysioProfileModel.UpdateInput(
             name: nameField.text,
             gender: resolvedGender,
-            location: locationField.text,
+            location: combinedLocation,
             placeOfWork: placeOfWorkField.text,
             phone: phoneField.text,
             dateOfBirth: dobField.text,
@@ -100,7 +124,9 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     }
 
     func setLocationText(_ text: String) {
-        locationField.text = text
+        addressLine1Field.text = text
+        addressLine2Field.text = ""
+        pincodeField.text = ""
     }
 
     func hasCoordinates() -> Bool {
@@ -109,7 +135,10 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
     }
 
     func currentAddress() -> String {
-        locationField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line1 = addressLine1Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let line2 = addressLine2Field.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pin = pincodeField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return [line1, line2, pin].filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
     private func build() {
@@ -177,7 +206,9 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         formStack.addArrangedSubview(placeOfWorkField)
         formStack.addArrangedSubview(genderField)
         formStack.addArrangedSubview(dobField)
-        formStack.addArrangedSubview(locationField)
+        formStack.addArrangedSubview(addressLine1Field)
+        formStack.addArrangedSubview(addressLine2Field)
+        formStack.addArrangedSubview(pincodeField)
         formStack.addArrangedSubview(consultationFeeField)
         formStack.addArrangedSubview(yearsExperienceField)
         formStack.addArrangedSubview(aboutField)

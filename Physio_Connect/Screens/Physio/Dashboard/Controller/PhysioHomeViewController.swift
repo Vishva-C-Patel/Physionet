@@ -22,6 +22,7 @@ final class PhysioHomeViewController: UIViewController {
         PhysioNavBarStyle.apply(
             to: self,
             title: "Dashboard",
+            largeTitle: true,
             profileButton: profileButton,
             profileAction: #selector(profileTapped)
         )

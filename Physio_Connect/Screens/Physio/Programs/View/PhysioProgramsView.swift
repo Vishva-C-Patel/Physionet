@@ -44,9 +44,6 @@ final class PhysioProgramsView: UIView {
     }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-        sendSubviewToBack(backgroundGlow)
 
         // Fix layout: Make the create button the table header
         // so the table can be pinned to topAnchor allowing the native scrollEdgeAppearance.
@@ -77,6 +74,8 @@ final class PhysioProgramsView: UIView {
         tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
         tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
         tableView.refreshControl = refreshControl
+        tableView.contentInsetAdjustmentBehavior = .always
+        tableView.backgroundView = backgroundGlow
 
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyLabel.text = "No programs yet."
@@ -101,11 +100,6 @@ final class PhysioProgramsView: UIView {
 
         NSLayoutConstraint.activate([
             headerContainer.widthAnchor.constraint(equalTo: widthAnchor),
-
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -220,24 +214,34 @@ final class ProgramCardCell: UITableViewCell {
 
         topButtonsRow.translatesAutoresizingMaskIntoConstraints = false
         topButtonsRow.axis = .horizontal
-        topButtonsRow.spacing = 12
+        topButtonsRow.spacing = 10
         topButtonsRow.distribution = .fillEqually
 
         assignButton.translatesAutoresizingMaskIntoConstraints = false
-        var assignConfig = UIButton.Configuration.tinted()
+        var assignConfig = UIButton.Configuration.filled()
         assignConfig.title = "Assign to Patients"
-        assignConfig.baseForegroundColor = UITheme.Colors.accent
+        assignConfig.baseForegroundColor = .white
         assignConfig.baseBackgroundColor = UITheme.Colors.accent
         assignConfig.cornerStyle = .capsule
+        assignConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 14, weight: .semibold)
+            return out
+        }
         assignButton.configuration = assignConfig
         assignButton.addTarget(self, action: #selector(assignTapped), for: .touchUpInside)
 
         detailsButton.translatesAutoresizingMaskIntoConstraints = false
         var detailsConfig = UIButton.Configuration.tinted()
         detailsConfig.title = "View Details"
-        detailsConfig.baseForegroundColor = .secondaryLabel
+        detailsConfig.baseForegroundColor = .label
         detailsConfig.baseBackgroundColor = .secondarySystemFill
         detailsConfig.cornerStyle = .capsule
+        detailsConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 14, weight: .semibold)
+            return out
+        }
         detailsButton.configuration = detailsConfig
         detailsButton.addTarget(self, action: #selector(detailsTapped), for: .touchUpInside)
 
@@ -247,6 +251,11 @@ final class ProgramCardCell: UITableViewCell {
         deleteConfig.baseForegroundColor = .systemRed
         deleteConfig.baseBackgroundColor = .systemRed
         deleteConfig.cornerStyle = .capsule
+        deleteConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 14, weight: .semibold)
+            return out
+        }
         deleteButton.configuration = deleteConfig
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
 
@@ -311,7 +320,7 @@ final class ProgramCardCell: UITableViewCell {
         row.alignment = .center
 
         let iconView = UIImageView(image: UIImage(systemName: icon))
-        iconView.tintColor = .tertiaryLabel
+        iconView.tintColor = UITheme.Colors.textSecondary
         iconView.setContentHuggingPriority(.required, for: .horizontal)
 
         let label = UILabel()

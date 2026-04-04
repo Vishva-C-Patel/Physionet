@@ -51,7 +51,6 @@ final class PhysioAppointmentsView: UIView {
         }
     }
 
-    let searchBar = UISearchBar()
     let segmentControl = UISegmentedControl(items: ["All", "Upcoming", "Completed"])
     let tableView = UITableView(frame: .zero, style: .plain)
 
@@ -66,26 +65,6 @@ final class PhysioAppointmentsView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = "Search patients or sessions..."
-        searchBar.backgroundImage = UIImage()
-        
-        let searchField = searchBar.searchTextField
-        searchField.backgroundColor = .systemBackground.withAlphaComponent(0.5)
-        searchField.layer.cornerRadius = 20
-        searchField.layer.masksToBounds = true
-        
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurView = UIVisualEffectView(effect: blurEffect)
-        blurView.frame = searchField.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        blurView.isUserInteractionEnabled = false
-        searchField.insertSubview(blurView, at: 0)
-
         segmentControl.translatesAutoresizingMaskIntoConstraints = false
         segmentControl.selectedSegmentIndex = 0
         UITheme.applySegmentedStyle(segmentControl)
@@ -95,42 +74,31 @@ final class PhysioAppointmentsView: UIView {
         tableView.separatorStyle = .none
         tableView.showsVerticalScrollIndicator = false
         tableView.register(PhysioAppointmentCell.self, forCellReuseIdentifier: "PhysioAppointmentCell")
+        tableView.contentInsetAdjustmentBehavior = .always
+        tableView.backgroundView = backgroundGlow
 
         // Build table header with search + segment so tableView can be
         // pinned to topAnchor — enabling the native hovering-title glass nav bar.
         let headerContainer = UIView()
         headerContainer.backgroundColor = .clear
 
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        segmentControl.translatesAutoresizingMaskIntoConstraints = false
-
-        headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segmentControl)
 
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
-            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
-            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
-
-            segmentControl.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
-            segmentControl.leadingAnchor.constraint(equalTo: searchBar.leadingAnchor),
-            segmentControl.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor),
+            segmentControl.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 12),
+            segmentControl.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
+            segmentControl.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
             segmentControl.heightAnchor.constraint(equalToConstant: 36),
-            segmentControl.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -8)
+            segmentControl.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -12)
         ])
 
         // Size the header to fit
-        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 110)
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 60)
         tableView.tableHeaderView = headerContainer
 
         addSubview(tableView)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
-
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -143,16 +111,13 @@ final class PhysioAppointmentCell: UITableViewCell {
     private let card = UIView()
     private let statusPill = UILabel()
     private let titleLabel = UILabel()
-    private let patientLabel = UILabel()
-    private let timeLabel = UILabel()
-    private let durationLabel = UILabel()
-    private let locationLabel = UILabel()
+    private let metricsStack = UIStackView()
     private let cancelButton = UIButton(type: .system)
     private let completeButton = UIButton(type: .system)
     private let buttonStack = UIStackView()
     private var buttonStackBottomConstraint: NSLayoutConstraint?
     private var buttonStackHeightConstraint: NSLayoutConstraint?
-    private var locationBottomConstraint: NSLayoutConstraint?
+    private var metricsBottomConstraint: NSLayoutConstraint?
 
     var onCancelTapped: (() -> Void)?
     var onCompleteTapped: (() -> Void)?
@@ -180,28 +145,15 @@ final class PhysioAppointmentCell: UITableViewCell {
         card.addSubview(statusPill)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
         titleLabel.textColor = .label
+        card.addSubview(titleLabel)
 
-        patientLabel.translatesAutoresizingMaskIntoConstraints = false
-        patientLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        patientLabel.textColor = .secondaryLabel
-        patientLabel.numberOfLines = 0
-
-        timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        timeLabel.textColor = UITheme.Colors.accent
-        timeLabel.numberOfLines = 0
-
-        durationLabel.translatesAutoresizingMaskIntoConstraints = false
-        durationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        durationLabel.textColor = .tertiaryLabel
-        durationLabel.numberOfLines = 0
-
-        locationLabel.translatesAutoresizingMaskIntoConstraints = false
-        locationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        locationLabel.textColor = .tertiaryLabel
-        locationLabel.numberOfLines = 0
+        metricsStack.translatesAutoresizingMaskIntoConstraints = false
+        metricsStack.axis = .vertical
+        metricsStack.spacing = 8
+        metricsStack.alignment = .leading
+        card.addSubview(metricsStack)
 
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         var cancelConfig = UIButton.Configuration.tinted()
@@ -228,17 +180,11 @@ final class PhysioAppointmentCell: UITableViewCell {
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         buttonStack.addArrangedSubview(cancelButton)
         buttonStack.addArrangedSubview(completeButton)
-
-        card.addSubview(titleLabel)
-        card.addSubview(patientLabel)
-        card.addSubview(timeLabel)
-        card.addSubview(durationLabel)
-        card.addSubview(locationLabel)
         card.addSubview(buttonStack)
 
         buttonStackHeightConstraint = buttonStack.heightAnchor.constraint(greaterThanOrEqualToConstant: 40)
         buttonStackBottomConstraint = buttonStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
-        locationBottomConstraint = locationLabel.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
+        metricsBottomConstraint = metricsStack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14)
 
         var constraints: [NSLayoutConstraint] = [
             card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
@@ -246,34 +192,22 @@ final class PhysioAppointmentCell: UITableViewCell {
             card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
 
-            statusPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            statusPill.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            statusPill.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            statusPill.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
             statusPill.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
             statusPill.heightAnchor.constraint(equalToConstant: 24),
 
-            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
-            titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 12),
+            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
+            titleLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: statusPill.leadingAnchor, constant: -8),
 
-            patientLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            patientLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            patientLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+            metricsStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            metricsStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            metricsStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
 
-            timeLabel.topAnchor.constraint(equalTo: patientLabel.bottomAnchor, constant: 8),
-            timeLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            timeLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-
-            durationLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 6),
-            durationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            durationLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-
-            locationLabel.topAnchor.constraint(equalTo: durationLabel.bottomAnchor, constant: 6),
-            locationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            locationLabel.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-
-            buttonStack.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 12),
-            buttonStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            buttonStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12)
+            buttonStack.topAnchor.constraint(equalTo: metricsStack.bottomAnchor, constant: 12),
+            buttonStack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
+            buttonStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14)
         ]
 
         if let buttonStackHeightConstraint {
@@ -285,24 +219,51 @@ final class PhysioAppointmentCell: UITableViewCell {
 
         NSLayoutConstraint.activate(constraints)
 
-        locationBottomConstraint?.isActive = false
+        metricsBottomConstraint?.isActive = false
     }
 
     func apply(_ vm: PhysioAppointmentsView.AppointmentVM) {
         titleLabel.text = vm.title
-        patientLabel.text = vm.patientName
-        timeLabel.text = vm.timeText
-        durationLabel.text = vm.durationText
-        locationLabel.text = vm.locationText
         statusPill.text = "  \(vm.status.text)  "
         statusPill.backgroundColor = vm.status.pillBg
         statusPill.textColor = vm.status.pillText
+
+        metricsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "person.fill", text: vm.patientName, color: .secondaryLabel))
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "clock.fill", text: vm.timeText, color: UITheme.Colors.accent))
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "hourglass", text: vm.durationText, color: .secondaryLabel))
+        if !vm.locationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            metricsStack.addArrangedSubview(makeMetricRow(icon: "mappin.and.ellipse", text: vm.locationText, color: .secondaryLabel))
+        }
 
         let showsActions = vm.isActionable
         buttonStack.isHidden = !showsActions
         buttonStackHeightConstraint?.isActive = showsActions
         buttonStackBottomConstraint?.isActive = showsActions
-        locationBottomConstraint?.isActive = !showsActions
+        metricsBottomConstraint?.isActive = !showsActions
+    }
+
+    private func makeMetricRow(icon: String, text: String, color: UIColor) -> UIView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.spacing = 8
+        row.alignment = .center
+
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = color
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        iconView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = color
+        label.text = text
+        label.numberOfLines = 0
+
+        row.addArrangedSubview(iconView)
+        row.addArrangedSubview(label)
+        return row
     }
 
     @objc private func cancelTapped() {

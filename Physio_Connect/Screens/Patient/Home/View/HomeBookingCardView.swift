@@ -88,16 +88,18 @@ final class HomeBookingCardView: UIView {
         subtitleLabel.numberOfLines = 2
 
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        actionButton.setTitle("Book Appointment", for: .normal)
-        actionButton.setTitleColor(UITheme.Colors.accent, for: .normal)
-        actionButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        actionButton.backgroundColor = .white
-        actionButton.layer.cornerRadius = 27
-        actionButton.layer.shadowColor = UIColor.black.cgColor
-        actionButton.layer.shadowOpacity = 0.12
-        actionButton.layer.shadowRadius = 8
-        actionButton.layer.shadowOffset = CGSize(width: 0, height: 4)
-        actionButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
+        var config = UIButton.Configuration.filled()
+        config.title = "Book Appointment"
+        config.baseBackgroundColor = .white
+        config.baseForegroundColor = UITheme.Colors.accent
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 15, weight: .bold)
+            return out
+        }
+        actionButton.configuration = config
+        // remove old shadow/padding logic as Configuration handles it
 
         iconCircle.translatesAutoresizingMaskIntoConstraints = false
         iconCircle.backgroundColor = UIColor.white.withAlphaComponent(0.2)

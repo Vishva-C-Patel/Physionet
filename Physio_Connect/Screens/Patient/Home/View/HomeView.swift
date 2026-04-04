@@ -42,6 +42,10 @@ final class HomeView: UIView {
     let articlesTableView = UITableView(frame: .zero, style: .plain)
     private var articlesHeightConstraint: NSLayoutConstraint?
 
+    private let locationPill = UIView()
+    private let locationIcon = UIImageView()
+    let locationLabel = UILabel()
+
     private let backgroundGlow = AppBackgroundTopGlowView()
 
     override init(frame: CGRect) {
@@ -62,18 +66,40 @@ final class HomeView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let bottomInset: CGFloat = 64
-        scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
-        scrollView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+        scrollView.contentInset.bottom = bottomInset
+        scrollView.scrollIndicatorInsets.bottom = bottomInset
     }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-
         scrollView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
         scrollView.addSubview(contentView)
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(backgroundGlow, at: 0)
+
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Location Pill
+        locationPill.translatesAutoresizingMaskIntoConstraints = false
+        locationPill.backgroundColor = UIColor.secondarySystemBackground.withAlphaComponent(0.3)
+        locationPill.layer.cornerRadius = 16
+        locationPill.layer.borderWidth = 1
+        locationPill.layer.borderColor = UITheme.Colors.glassBorder.cgColor
+        contentView.addSubview(locationPill)
+
+        locationIcon.translatesAutoresizingMaskIntoConstraints = false
+        locationIcon.image = UIImage(systemName: "location.fill")
+        locationIcon.tintColor = UITheme.Colors.accent
+        locationIcon.contentMode = .scaleAspectFit
+        locationPill.addSubview(locationIcon)
+
+        locationLabel.translatesAutoresizingMaskIntoConstraints = false
+        locationLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        locationLabel.textColor = .secondaryLabel
+        locationPill.addSubview(locationLabel)
 
         carousel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(carousel)
@@ -125,10 +151,10 @@ final class HomeView: UIView {
         contentView.addSubview(articlesTableView)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: scrollView.frameLayoutGuide.topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: scrollView.frameLayoutGuide.bottomAnchor),
 
             scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -141,7 +167,20 @@ final class HomeView: UIView {
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
 
-            carousel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            locationPill.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            locationPill.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            locationPill.heightAnchor.constraint(equalToConstant: 32),
+
+            locationIcon.leadingAnchor.constraint(equalTo: locationPill.leadingAnchor, constant: 10),
+            locationIcon.centerYAnchor.constraint(equalTo: locationPill.centerYAnchor),
+            locationIcon.widthAnchor.constraint(equalToConstant: 14),
+            locationIcon.heightAnchor.constraint(equalToConstant: 14),
+
+            locationLabel.leadingAnchor.constraint(equalTo: locationIcon.trailingAnchor, constant: 6),
+            locationLabel.trailingAnchor.constraint(equalTo: locationPill.trailingAnchor, constant: -12),
+            locationLabel.centerYAnchor.constraint(equalTo: locationPill.centerYAnchor),
+
+            carousel.topAnchor.constraint(equalTo: locationPill.bottomAnchor, constant: 16),
             carousel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             carousel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
 

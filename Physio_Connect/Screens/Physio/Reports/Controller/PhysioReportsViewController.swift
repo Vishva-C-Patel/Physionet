@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class PhysioReportsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+final class PhysioReportsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
 
     private let reportsView = PhysioReportsView()
     private let model = PhysioReportsModel()
@@ -18,6 +18,7 @@ final class PhysioReportsViewController: UIViewController, UITableViewDataSource
     private var allPatients: [PhysioReportsView.PatientVM] = []
     private var filteredPatients: [PhysioReportsView.PatientVM] = []
     private var isLoading = false
+    private let searchController = UISearchController(searchResultsController: nil)
 
     override func loadView() {
         view = reportsView
@@ -28,6 +29,7 @@ final class PhysioReportsViewController: UIViewController, UITableViewDataSource
         PhysioNavBarStyle.apply(
             to: self,
             title: "Reports",
+            largeTitle: true,
             profileButton: profileButton,
             profileAction: #selector(profileTapped)
         )
@@ -35,7 +37,7 @@ final class PhysioReportsViewController: UIViewController, UITableViewDataSource
 
         reportsView.tableView.dataSource = self
         reportsView.tableView.delegate = self
-        reportsView.searchBar.delegate = self
+        setupSearchController()
         reportsView.refreshControl.addTarget(self, action: #selector(refreshPulled), for: .valueChanged)
 
         Task { await loadReports() }
@@ -150,23 +152,37 @@ final class PhysioReportsViewController: UIViewController, UITableViewDataSource
     }
 
     // MARK: - Search
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search patients or programs..."
+        searchController.hidesNavigationBarDuringPresentation = true
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = true
+        definesPresentationContext = true
+    }
+
+    func updateSearchResults(for searchController: UISearchController) {
         applyFilter()
     }
 
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        searchBar.setShowsCancelButton(true, animated: true)
+    func willPresentSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 0
+            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
+        }
     }
 
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.text = nil
-        searchBar.resignFirstResponder()
-        searchBar.setShowsCancelButton(false, animated: true)
-        applyFilter()
+    func willDismissSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 1
+            self.tabBarController?.tabBar.transform = .identity
+        }
     }
 
     private func applyFilter() {
-        let query = reportsView.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let query = searchController.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !query.isEmpty else {
             filteredPatients = allPatients
             reportsView.tableView.reloadData()

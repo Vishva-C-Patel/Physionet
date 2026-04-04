@@ -25,7 +25,7 @@ final class AppointmentsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        UITheme.applyNativeNavBar(to: self, title: "Appointments")
+        UITheme.applyNativeNavBar(to: self, title: "Appointments", largeTitle: true)
         let profileItem = UIBarButtonItem(customView: apptView.profileButton)
         navigationItem.rightBarButtonItem = profileItem
 

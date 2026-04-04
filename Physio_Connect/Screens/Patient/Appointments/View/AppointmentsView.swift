@@ -82,15 +82,12 @@ final class AppointmentsView: UIView {
 
     private func build() {
         backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-
-        // Segmented control
-        segmented.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(segmented)
+        insertSubview(backgroundGlow, at: 0)
 
         // Scroll
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
 
         contentStack.axis = .vertical
@@ -108,6 +105,20 @@ final class AppointmentsView: UIView {
         bookCard.translatesAutoresizingMaskIntoConstraints = false
         completedList.translatesAutoresizingMaskIntoConstraints = false
 
+        let segContainer = UIView()
+        segContainer.translatesAutoresizingMaskIntoConstraints = false
+        segmented.translatesAutoresizingMaskIntoConstraints = false
+        segContainer.addSubview(segmented)
+        
+        NSLayoutConstraint.activate([
+            segmented.topAnchor.constraint(equalTo: segContainer.topAnchor, constant: 18),
+            segmented.bottomAnchor.constraint(equalTo: segContainer.bottomAnchor),
+            segmented.leadingAnchor.constraint(equalTo: segContainer.leadingAnchor),
+            segmented.trailingAnchor.constraint(equalTo: segContainer.trailingAnchor),
+            segmented.heightAnchor.constraint(equalToConstant: 36)
+        ])
+
+        contentStack.addArrangedSubview(segContainer)
         contentStack.addArrangedSubview(upcomingListStack)
         contentStack.addArrangedSubview(bookCard)
         contentStack.addArrangedSubview(completedList)
@@ -115,23 +126,16 @@ final class AppointmentsView: UIView {
         upcomingListStack.setContentHuggingPriority(.required, for: .vertical)
         upcomingListStack.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        // Layout
-
         NSLayoutConstraint.activate([
             backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
             backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
             backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
             backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            segmented.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 18),
-            segmented.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            segmented.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            segmented.heightAnchor.constraint(equalToConstant: 36),
-
-            scrollView.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 14),
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             contentStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 16),

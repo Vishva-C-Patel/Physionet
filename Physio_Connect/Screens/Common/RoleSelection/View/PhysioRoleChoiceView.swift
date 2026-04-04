@@ -6,6 +6,7 @@ final class PhysioRoleChoiceView: UIView {
     private let contentView = UIView()
     private let container = UIView()
     private let topBar = UIView()
+    private let backButtonBlur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     let backButton = UIButton(type: .system)
 
     private let titleLabel = UILabel()
@@ -28,7 +29,7 @@ final class PhysioRoleChoiceView: UIView {
         [scrollView].forEach { addSubview($0) }
         scrollView.addSubview(contentView)
         [topBar, container].forEach { contentView.addSubview($0) }
-        [backButton].forEach { topBar.addSubview($0) }
+        [backButtonBlur, backButton].forEach { topBar.addSubview($0) }
         [titleLabel, subtitleLabel, loginButton, signupButton].forEach { container.addSubview($0) }
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -41,8 +42,16 @@ final class PhysioRoleChoiceView: UIView {
         loginButton.translatesAutoresizingMaskIntoConstraints = false
         signupButton.translatesAutoresizingMaskIntoConstraints = false
 
-        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)), for: .normal)
-        backButton.tintColor = UIColor.black.withAlphaComponent(0.8)
+        backButtonBlur.translatesAutoresizingMaskIntoConstraints = false
+        backButtonBlur.isUserInteractionEnabled = false
+        backButtonBlur.layer.cornerRadius = 18
+        backButtonBlur.clipsToBounds = true
+        backButtonBlur.layer.borderWidth = 0.5
+        backButtonBlur.layer.borderColor = UITheme.Colors.glassBorder.cgColor
+
+        let backConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+        backButton.setImage(UIImage(systemName: "chevron.left", withConfiguration: backConfig), for: .normal)
+        backButton.tintColor = .label
 
         titleLabel.text = "Physiotherapist Access"
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
@@ -79,6 +88,11 @@ final class PhysioRoleChoiceView: UIView {
             backButton.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
             backButton.widthAnchor.constraint(equalToConstant: 36),
             backButton.heightAnchor.constraint(equalToConstant: 36),
+
+            backButtonBlur.centerXAnchor.constraint(equalTo: backButton.centerXAnchor),
+            backButtonBlur.centerYAnchor.constraint(equalTo: backButton.centerYAnchor),
+            backButtonBlur.widthAnchor.constraint(equalTo: backButton.widthAnchor),
+            backButtonBlur.heightAnchor.constraint(equalTo: backButton.heightAnchor),
 
             container.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 24),
             container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),

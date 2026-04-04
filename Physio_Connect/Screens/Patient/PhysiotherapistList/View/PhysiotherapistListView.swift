@@ -30,7 +30,6 @@ final class PhysiotherapistListView: UIView {
     }()
 
     let searchBar = UISearchBar()
-    let filterButton = UIButton(type: .system)
 
     let selectDateLabel: UILabel = {
         let l = UILabel()
@@ -123,11 +122,6 @@ final class PhysiotherapistListView: UIView {
 
         // Hugging priority
         searchBar.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        filterButton.setContentHuggingPriority(.required, for: .horizontal)
-
-        // Filter button
-        filterButton.setImage(UIImage(systemName: "slider.horizontal.3"), for: .normal)
-        filterButton.tintColor = UITheme.Colors.accent
 
         // Pills style
         [datePill, timePill].forEach {
@@ -144,7 +138,7 @@ final class PhysiotherapistListView: UIView {
         timePill.setTitle("10:35 AM", for: .normal)
 
         [locationIcon, cityLabel,
-         searchBar, filterButton,
+         searchBar,
          selectDateLabel,
          datePill, timePill].forEach {
             headerContentView.addSubview($0)
@@ -164,14 +158,8 @@ final class PhysiotherapistListView: UIView {
             // Search bar
             searchBar.topAnchor.constraint(equalTo: locationIcon.bottomAnchor, constant: 12),
             searchBar.leadingAnchor.constraint(equalTo: headerContentView.leadingAnchor, constant: 16),
+            searchBar.trailingAnchor.constraint(equalTo: headerContentView.trailingAnchor, constant: -16),
             searchBar.heightAnchor.constraint(equalToConstant: 44),
-
-            // Filter button
-            filterButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
-            filterButton.leadingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: 10),
-            filterButton.trailingAnchor.constraint(equalTo: headerContentView.trailingAnchor, constant: -16),
-            filterButton.widthAnchor.constraint(equalToConstant: 32),
-            filterButton.heightAnchor.constraint(equalToConstant: 32),
 
             // Select date label
             selectDateLabel.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 16),

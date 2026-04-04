@@ -137,11 +137,10 @@ enum UITheme {
         return appearance
     };    static func makeGlassNavBarAppearance() -> UINavigationBarAppearance {
         let appearance = UINavigationBarAppearance()
-        // iOS 26: Use system ultra thin material for a premium glass feel
+        // iOS 26: Let the system render native Liquid Glass
         appearance.configureWithDefaultBackground()
-        appearance.backgroundEffect = UIBlurEffect(style: .systemThinMaterial)
-        appearance.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.2)
-        appearance.shadowColor = Colors.glassBorder
+        appearance.shadowColor = .clear
+        appearance.shadowImage = UIImage()
         
         let titleAttrs: [NSAttributedString.Key: Any] = [
             .foregroundColor: UIColor.label,
@@ -153,9 +152,10 @@ enum UITheme {
     }
 
     /// Applies the refined native iOS navigation bar — transparent on scroll edge, glass when scrolled.
-    static func applyNativeNavBar(to vc: UIViewController, title: String) {
+    static func applyNativeNavBar(to vc: UIViewController, title: String, largeTitle: Bool = false) {
         let navBar = vc.navigationController?.navigationBar
-        navBar?.prefersLargeTitles = false
+        navBar?.prefersLargeTitles = true
+        vc.navigationItem.largeTitleDisplayMode = largeTitle ? .always : .never
         navBar?.tintColor = Colors.accent
 
         let standard = makeGlassNavBarAppearance()
@@ -163,9 +163,13 @@ enum UITheme {
         let scrollEdge = UINavigationBarAppearance()
         scrollEdge.configureWithTransparentBackground()
         scrollEdge.shadowColor = .clear
+        scrollEdge.shadowImage = UIImage()
         scrollEdge.titleTextAttributes = [
             .foregroundColor: UIColor.label,
             .font: UIFont.systemFont(ofSize: 18, weight: .bold)
+        ]
+        scrollEdge.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.label
         ]
 
         navBar?.standardAppearance = standard

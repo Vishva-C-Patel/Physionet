@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class VideosViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+final class VideosViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UISearchResultsUpdating, UISearchControllerDelegate {
 
     private let videosView = VideosView()
     private let model = VideosModel()
@@ -37,6 +37,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     private var programFooterView: UIView?
     private var animatedProgramRows = Set<IndexPath>()
 
+    private let searchController = UISearchController(searchResultsController: nil)
+
     private var isProgramTab: Bool { videosView.segmented.selectedSegmentIndex == 1 }
     private var filteredFreeExercises: [ExerciseVideoRow] {
         guard selectedFilterIndex > 0 else { return freeExercises }
@@ -51,18 +53,18 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        UITheme.applyNativeNavBar(to: self, title: "Exercises")
+        UITheme.applyNativeNavBar(to: self, title: "Exercises", largeTitle: true)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: videosView.profileButton)
 
         videosView.tableView.dataSource = self
         videosView.tableView.delegate = self
-        videosView.searchBar.delegate = self
+        setupSearchController()
         videosView.tableView.register(ExerciseCell.self, forCellReuseIdentifier: ExerciseCell.reuseID)
         videosView.tableView.register(ProgramExerciseCell.self, forCellReuseIdentifier: ProgramExerciseCell.reuseID)
         videosView.tableView.rowHeight = UITableView.automaticDimension
         videosView.tableView.estimatedRowHeight = 300
-        videosView.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
-        videosView.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
+        videosView.tableView.contentInset.bottom = 110
+        videosView.tableView.scrollIndicatorInsets.bottom = 110
         videosView.filterCollectionView.dataSource = self
         videosView.filterCollectionView.delegate = self
         videosView.filterCollectionView.register(ExerciseFilterChipCell.self, forCellWithReuseIdentifier: ExerciseFilterChipCell.reuseID)
@@ -113,6 +115,11 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     @objc private func tabChanged() {
+        if isProgramTab {
+            navigationItem.searchController = nil
+        } else {
+            navigationItem.searchController = searchController
+        }
         Task { await reload() }
     }
 
@@ -278,7 +285,8 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
                     self.videosView.tableView.tableFooterView = nil
                 }
                 programStartDate = nil
-                let rows = try await model.fetchFreeExercises(search: videosView.searchBar.text)
+                let searchText = searchController.searchBar.text
+                let rows = try await model.fetchFreeExercises(search: searchText)
                 freeExercises = rows
                 await MainActor.run {
                     self.videosView.showEmptyState(false)
@@ -349,15 +357,36 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
         }
     }
 
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        Task {
-            do {
-                let rows = try await model.fetchFreeExercises(search: searchText)
-                freeExercises = rows
-                await MainActor.run { self.videosView.tableView.reloadData() }
-            } catch {
-                await MainActor.run { self.showError("Search error", error.localizedDescription) }
-            }
+    // MARK: - Search
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search exercises"
+        searchController.hidesNavigationBarDuringPresentation = true
+        
+        if !isProgramTab {
+            navigationItem.searchController = searchController
+        }
+        navigationItem.hidesSearchBarWhenScrolling = true
+        definesPresentationContext = true
+    }
+
+    func updateSearchResults(for searchController: UISearchController) {
+        Task { await reload() }
+    }
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 0
+            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
+        }
+    }
+
+    func willDismissSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 1
+            self.tabBarController?.tabBar.transform = .identity
         }
     }
 

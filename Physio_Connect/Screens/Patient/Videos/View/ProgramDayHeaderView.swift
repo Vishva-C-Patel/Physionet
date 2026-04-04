@@ -41,15 +41,15 @@ final class ProgramDayHeaderView: UIView {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .label
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.font = .systemFont(ofSize: 12, weight: .regular)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.55)
+        subtitleLabel.textColor = .secondaryLabel
 
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         countLabel.font = .systemFont(ofSize: 12, weight: .semibold)
-        countLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        countLabel.textColor = .secondaryLabel
 
         addSubview(dayCircle)
         addSubview(titleLabel)

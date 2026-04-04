@@ -25,6 +25,7 @@ final class PhysioProgramsViewController: UIViewController, UITableViewDataSourc
         PhysioNavBarStyle.apply(
             to: self,
             title: "Programs",
+            largeTitle: true,
             profileButton: profileButton,
             profileAction: #selector(profileTapped)
         )

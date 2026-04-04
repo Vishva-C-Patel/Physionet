@@ -36,13 +36,13 @@ final class PhysioHomeView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(backgroundGlow)
-
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(backgroundGlow, at: 0)
 
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         contentStack.axis = .vertical
@@ -93,10 +93,10 @@ final class PhysioHomeView: UIView {
         patientsStack.addArrangedSubview(patientsEmptyLabel)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: scrollView.frameLayoutGuide.topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: scrollView.frameLayoutGuide.bottomAnchor),
 
             scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -217,49 +217,33 @@ private final class StatCardView: UIView {
 
 private final class UpcomingSessionCard: UIView {
     private let titleLabel = UILabel()
-    private let patientLabel = UILabel()
-    private let timeLabel = UILabel()
-    private let locationLabel = UILabel()
+    private let metricsStack = UIStackView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
         UITheme.applyCardStyle(self)
 
-        [titleLabel, patientLabel, timeLabel, locationLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            addSubview($0)
-        }
-
-        titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
         titleLabel.textColor = .label
+        addSubview(titleLabel)
 
-        patientLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        patientLabel.textColor = UITheme.Colors.textSecondary
-
-        timeLabel.font = .systemFont(ofSize: 14, weight: .semibold)
-        timeLabel.textColor = UITheme.Colors.accent
-
-        locationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        locationLabel.textColor = UITheme.Colors.textSecondary
+        metricsStack.translatesAutoresizingMaskIntoConstraints = false
+        metricsStack.axis = .vertical
+        metricsStack.spacing = 8
+        metricsStack.alignment = .leading
+        addSubview(metricsStack)
 
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            patientLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
-            patientLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            patientLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-
-            timeLabel.topAnchor.constraint(equalTo: patientLabel.bottomAnchor, constant: 10),
-            timeLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            timeLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-
-            locationLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 8),
-            locationLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            locationLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+            metricsStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 12),
+            metricsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            metricsStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            metricsStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 
@@ -267,49 +251,67 @@ private final class UpcomingSessionCard: UIView {
 
     func configure(title: String, patient: String, time: String, location: String) {
         titleLabel.text = title
-        patientLabel.text = patient
-        timeLabel.text = time
-        locationLabel.text = location
+        metricsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "person.fill", text: patient, color: .secondaryLabel))
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "clock.fill", text: time, color: UITheme.Colors.accent))
+        if !location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            metricsStack.addArrangedSubview(makeMetricRow(icon: "mappin.and.ellipse", text: location, color: .secondaryLabel))
+        }
+    }
+
+    private func makeMetricRow(icon: String, text: String, color: UIColor) -> UIView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.spacing = 8
+        row.alignment = .center
+
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = color
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        iconView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = color
+        label.text = text
+        label.numberOfLines = 0
+
+        row.addArrangedSubview(iconView)
+        row.addArrangedSubview(label)
+        return row
     }
 }
 
 private final class PatientCardView: UIView {
     private let nameLabel = UILabel()
-    private let contactLabel = UILabel()
-    private let locationLabel = UILabel()
+    private let metricsStack = UIStackView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         translatesAutoresizingMaskIntoConstraints = false
         UITheme.applyCardStyle(self)
 
-        [nameLabel, contactLabel, locationLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            addSubview($0)
-        }
-
-        nameLabel.font = .systemFont(ofSize: 16, weight: .semibold)
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.font = .systemFont(ofSize: 16, weight: .bold)
         nameLabel.textColor = .label
+        addSubview(nameLabel)
 
-        contactLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        contactLabel.textColor = UITheme.Colors.textSecondary
-
-        locationLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        locationLabel.textColor = UITheme.Colors.textMuted
+        metricsStack.translatesAutoresizingMaskIntoConstraints = false
+        metricsStack.axis = .vertical
+        metricsStack.spacing = 8
+        metricsStack.alignment = .leading
+        addSubview(metricsStack)
 
         NSLayoutConstraint.activate([
             nameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
 
-            contactLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 10),
-            contactLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            contactLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-
-            locationLabel.topAnchor.constraint(equalTo: contactLabel.bottomAnchor, constant: 8),
-            locationLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            locationLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            locationLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+            metricsStack.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 10),
+            metricsStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            metricsStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            metricsStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
         ])
     }
 
@@ -317,7 +319,33 @@ private final class PatientCardView: UIView {
 
     func configure(name: String, contact: String, location: String) {
         nameLabel.text = name
-        contactLabel.text = contact
-        locationLabel.text = location
+        metricsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metricsStack.addArrangedSubview(makeMetricRow(icon: "phone.fill", text: contact, color: .secondaryLabel))
+        if !location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            metricsStack.addArrangedSubview(makeMetricRow(icon: "mappin.and.ellipse", text: location, color: .secondaryLabel))
+        }
+    }
+
+    private func makeMetricRow(icon: String, text: String, color: UIColor) -> UIView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.spacing = 8
+        row.alignment = .center
+
+        let iconView = UIImageView(image: UIImage(systemName: icon))
+        iconView.tintColor = color
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        iconView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textColor = color
+        label.text = text
+        label.numberOfLines = 0
+
+        row.addArrangedSubview(iconView)
+        row.addArrangedSubview(label)
+        return row
     }
 }

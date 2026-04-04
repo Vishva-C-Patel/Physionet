@@ -15,10 +15,7 @@ final class RoleSelectionViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // If you have an asset, put it in Assets.xcassets as "welcome_hero"
-        roleView.setHeroImage(UIImage(named: "welcome_hero"))
-
+        
         roleView.patientButton.addTarget(self, action: #selector(patientTapped), for: .touchUpInside)
         roleView.physioButton.addTarget(self, action: #selector(physioTapped), for: .touchUpInside)
     }

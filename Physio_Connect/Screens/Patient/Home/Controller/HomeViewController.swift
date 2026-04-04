@@ -30,7 +30,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        UITheme.applyNativeNavBar(to: self, title: "Home")
+        UITheme.applyNativeNavBar(to: self, title: "Home", largeTitle: true)
         setupNavigationItems()
         homeView.videosCollectionView.dataSource = self
         homeView.videosCollectionView.delegate = self
@@ -57,10 +57,10 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
 
         locationService.onLocationUpdate = { [weak self] name, _ in
             DispatchQueue.main.async {
-                self?.locationLabel.text = name
+                self?.homeView.locationLabel.text = name
             }
         }
-        locationLabel.text = "Locating..."
+        homeView.locationLabel.text = "Locating..."
         locationService.requestLocation()
 
         Task { await refreshCards() }
@@ -262,26 +262,9 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    private let locationLabel = UILabel()
     private let profileButton = UIButton(type: .system)
 
     private func setupNavigationItems() {
-        // Location Stack (Left)
-        let locationIcon = UIImageView(image: UIImage(systemName: "location"))
-        locationIcon.tintColor = UITheme.Colors.accent
-        locationIcon.translatesAutoresizingMaskIntoConstraints = false
-        locationIcon.widthAnchor.constraint(equalToConstant: 18).isActive = true
-        locationIcon.heightAnchor.constraint(equalToConstant: 18).isActive = true
-
-        locationLabel.font = .systemFont(ofSize: 13, weight: .semibold)
-        locationLabel.textColor = .secondaryLabel
-
-        let locationStack = UIStackView(arrangedSubviews: [locationIcon, locationLabel])
-        locationStack.spacing = 6
-        locationStack.alignment = .center
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: locationStack)
-
         // Profile Button (Right)
         let profileConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .light)
         profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)

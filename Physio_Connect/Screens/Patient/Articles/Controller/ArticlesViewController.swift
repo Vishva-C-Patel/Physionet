@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class ArticlesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+final class ArticlesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
 
     private let articlesView = ArticlesView()
     private let model = ArticlesModel()
@@ -22,27 +22,25 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
     private let filterOptions = ["All", "Neck", "Upper Back", "Lower Back", "Shoulders"]
     private var selectedFilterIndex = 0
     private var selectedSegmentIndex = 0
+    private let searchController = UISearchController(searchResultsController: nil)
 
     override func loadView() { view = articlesView }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        UITheme.applyNativeNavBar(to: self, title: "Articles")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: articlesView.profileButton)
+        UITheme.applyNativeNavBar(to: self, title: "Articles", largeTitle: true)
         articlesView.profileButton.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
+        setupFilterMenu()
 
         articlesView.tableView.dataSource = self
         articlesView.tableView.delegate = self
-        articlesView.searchBar.delegate = self
-        articlesView.filterCollectionView.dataSource = self
-        articlesView.filterCollectionView.delegate = self
+        setupSearchController()
 
         articlesView.tableView.register(ArticleCardCell.self, forCellReuseIdentifier: ArticleCardCell.reuseID)
-        articlesView.filterCollectionView.register(ArticleFilterChipCell.self, forCellWithReuseIdentifier: ArticleFilterChipCell.reuseID)
         articlesView.tableView.rowHeight = UITableView.automaticDimension
         articlesView.tableView.estimatedRowHeight = 320
-        articlesView.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
-        articlesView.tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 110, right: 0)
+        articlesView.tableView.contentInset.bottom = 110
+        articlesView.tableView.scrollIndicatorInsets.bottom = 110
 
         articlesView.setRefreshTarget(self, action: #selector(refreshPulled))
         articlesView.segmented.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
@@ -55,7 +53,6 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
             self.openDetail(for: featuredArticle)
         }
 
-        articlesView.filterCollectionView.selectItem(at: IndexPath(item: selectedFilterIndex, section: 0), animated: false, scrollPosition: [])
         updateBookmarksVisibility()
         Task { await reload() }
         Task { await refreshProfileAvatar() }
@@ -119,7 +116,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
                 }
             } else {
                 let rows = try await model.fetchArticles(
-                    search: articlesView.searchBar.text,
+                    search: searchController.searchBar.text,
                     category: currentCategory(),
                     sort: currentSort()
                 )
@@ -162,48 +159,58 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
         openDetail(for: article)
     }
 
-    // MARK: - UISearchBarDelegate
+    // MARK: - Search
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search articles, topics..."
+        searchController.hidesNavigationBarDuringPresentation = true
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = true
+        definesPresentationContext = true
+    }
 
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
+    func updateSearchResults(for searchController: UISearchController) {
         Task { await reload() }
     }
 
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        Task { await reload() }
-    }
-
-    // MARK: - UICollectionViewDataSource
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        filterOptions.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: ArticleFilterChipCell.reuseID,
-            for: indexPath
-        ) as? ArticleFilterChipCell else {
-            return UICollectionViewCell()
+    func willPresentSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 0
+            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
         }
-        let title = filterOptions[indexPath.item]
-        cell.configure(title: title, isSelected: indexPath.item == selectedFilterIndex)
-        return cell
     }
 
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectedFilterIndex = indexPath.item
-        collectionView.reloadData()
-        Task { await reload() }
+    func willDismissSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 1
+            self.tabBarController?.tabBar.transform = CGAffineTransform.identity
+        }
     }
 
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let title = filterOptions[indexPath.item]
-        let font = UIFont.systemFont(ofSize: 14, weight: .semibold)
-        let titleWidth = ceil(title.size(withAttributes: [.font: font]).width)
-        return CGSize(width: max(60, titleWidth + 40), height: 32)
+    // MARK: - Native Filters Menu
+    private func setupFilterMenu() {
+        let actions = filterOptions.enumerated().map { index, title in
+            let isSelected = index == selectedFilterIndex
+            let action = UIAction(title: title, state: isSelected ? .on : .off) { [weak self] _ in
+                self?.selectedFilterIndex = index
+                self?.setupFilterMenu()
+                Task { await self?.reload() }
+            }
+            if #available(iOS 15.0, *) { action.attributes = .keepsMenuPresented }
+            return action
+        }
+        let menu = UIMenu(title: "Filter by Category", children: actions)
+
+        let filterItem = UIBarButtonItem(
+            title: nil,
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            primaryAction: nil,
+            menu: menu
+        )
+        let profileItem = UIBarButtonItem(customView: articlesView.profileButton)
+        navigationItem.rightBarButtonItems = [profileItem, filterItem]
     }
 
     private func showBookmarkToast(_ isBookmarked: Bool) {
@@ -249,7 +256,7 @@ final class ArticlesViewController: UIViewController, UITableViewDataSource, UIT
     }
 
     private func filteredBookmarks() -> [ArticleRow] {
-        let search = articlesView.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let search = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let category = currentCategory()
 
         return bookmarkedArticles.values.filter { article in

@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class PhysioAppointmentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+final class PhysioAppointmentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
     private let contentView = PhysioAppointmentsView()
     private let model = PhysioAppointmentsModel()
     private let profileModel = PhysioProfileModel()
@@ -16,6 +16,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
     private var filteredAppointments: [PhysioAppointmentsView.AppointmentVM] = []
     private var physioID: String?
     private var isLoading = false
+    private let searchController = UISearchController(searchResultsController: nil)
 
     override func loadView() { view = contentView }
 
@@ -24,6 +25,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         PhysioNavBarStyle.apply(
             to: self,
             title: "Appointments",
+            largeTitle: true,
             profileButton: profileButton,
             profileAction: #selector(profileTapped)
         )
@@ -33,7 +35,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         contentView.tableView.delegate = self
         contentView.tableView.rowHeight = UITableView.automaticDimension
         contentView.tableView.estimatedRowHeight = 220
-        contentView.searchBar.delegate = self
+        setupSearchController()
         contentView.segmentControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
         
         // Ensure initial segment selection is rendered
@@ -73,7 +75,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
     }
 
     private func applyFilters() {
-        let searchText = contentView.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let searchText = searchController.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let selectedIndex = contentView.segmentControl.selectedSegmentIndex
 
         filteredAppointments = allAppointments.filter { vm in
@@ -202,8 +204,33 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         return cell
     }
 
-    // MARK: - UISearchBar
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    // MARK: - Search
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search patients or sessions..."
+        searchController.hidesNavigationBarDuringPresentation = true
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = true
+        definesPresentationContext = true
+    }
+
+    func updateSearchResults(for searchController: UISearchController) {
         applyFilters()
+    }
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 0
+            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
+        }
+    }
+
+    func willDismissSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 1
+            self.tabBarController?.tabBar.transform = .identity
+        }
     }
 }

@@ -219,12 +219,18 @@ final class UpcomingAppointmentCardView: UIView {
 
         // Button
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        actionButton.setTitle("View Details", for: .normal)
-        actionButton.setTitleColor(.white, for: .normal)
-        actionButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
-        actionButton.backgroundColor = UIColor.systemBlue
-        actionButton.layer.cornerRadius = 26
-
+        var config = UIButton.Configuration.filled()
+        config.title = "View Details"
+        config.baseBackgroundColor = UITheme.Colors.accent
+        config.baseForegroundColor = .white
+        config.cornerStyle = .capsule
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 16, weight: .bold)
+            return out
+        }
+        actionButton.configuration = config
+        
         let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
         chevron.tintColor = .white
         chevron.translatesAutoresizingMaskIntoConstraints = false
@@ -252,7 +258,7 @@ final class UpcomingAppointmentCardView: UIView {
             actionButton.topAnchor.constraint(equalTo: contentRow.bottomAnchor, constant: 16),
             actionButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
             actionButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-            actionButton.heightAnchor.constraint(equalToConstant: 52),
+            actionButton.heightAnchor.constraint(equalToConstant: 48),
             actionButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
     }
