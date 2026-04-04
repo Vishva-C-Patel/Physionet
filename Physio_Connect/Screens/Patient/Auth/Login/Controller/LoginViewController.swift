@@ -29,7 +29,7 @@ final class LoginViewController: UIViewController {
             action: #selector(backTapped)
         )
         bind()
-        addKeyboardDismissTap()
+        enableTapToDismissKeyboard()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -110,15 +110,7 @@ final class LoginViewController: UIViewController {
         }
     }
 
-    private func addKeyboardDismissTap() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(endEditingNow))
-        tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
-    }
 
-    @objc private func endEditingNow() {
-        view.endEditing(true)
-    }
 
     private func showAlert(title: String, message: String) {
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)

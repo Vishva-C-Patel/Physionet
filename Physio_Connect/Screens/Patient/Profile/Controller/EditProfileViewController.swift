@@ -29,6 +29,7 @@ final class EditProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Edit Profile")
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Save",

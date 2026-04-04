@@ -93,6 +93,7 @@ final class ExerciseDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: headerTitleText)
         // Custom back — saves progress before popping
         navigationItem.leftBarButtonItem = UIBarButtonItem(

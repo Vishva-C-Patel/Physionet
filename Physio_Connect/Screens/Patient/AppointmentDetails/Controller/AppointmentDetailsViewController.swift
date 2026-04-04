@@ -30,6 +30,7 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Appointment Details")
         // Custom back — pops to root
         navigationItem.leftBarButtonItem = UIBarButtonItem(

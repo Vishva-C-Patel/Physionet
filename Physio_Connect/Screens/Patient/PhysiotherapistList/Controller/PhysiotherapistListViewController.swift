@@ -30,6 +30,7 @@ final class PhysiotherapistListViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Find a Physiotherapist")
 
         listView.tableView.dataSource = self
@@ -149,7 +150,7 @@ final class PhysiotherapistListViewController: UIViewController {
 
     private func buildFilterMenu() -> UIMenu {
         // Specialities
-        let specialitiesOptions = ["Knee Physiotherapy", "Neck Physiotherapy", "Shoulder Physiotherapy"]
+        let specialitiesOptions = ["Knee", "Back", "Shoulder", "Neck"]
         let specialitiesActions = specialitiesOptions.map { spec in
             let isSelected = activeFilters.specialities.contains(spec)
             let action = UIAction(title: spec, state: isSelected ? .on : .off) { [weak self] _ in

@@ -53,6 +53,7 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Exercises", largeTitle: true)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: videosView.profileButton)
 
@@ -92,6 +93,11 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Reset tab bar state in case search was active during a push/pop
+        if !searchController.isActive {
+            tabBarController?.tabBar.transform = .identity
+            tabBarController?.tabBar.alpha = 1
+        }
         Task { await reload() }
         Task { await refreshProfileAvatar() }
     }
@@ -379,14 +385,13 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
     func willPresentSearchController(_ searchController: UISearchController) {
         UIView.animate(withDuration: 0.3) {
             self.tabBarController?.tabBar.alpha = 0
-            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
         }
     }
 
-    func willDismissSearchController(_ searchController: UISearchController) {
+    func didDismissSearchController(_ searchController: UISearchController) {
+        self.tabBarController?.tabBar.transform = .identity
         UIView.animate(withDuration: 0.3) {
             self.tabBarController?.tabBar.alpha = 1
-            self.tabBarController?.tabBar.transform = .identity
         }
     }
 

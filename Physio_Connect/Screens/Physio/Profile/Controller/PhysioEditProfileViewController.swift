@@ -20,6 +20,7 @@ final class PhysioEditProfileViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Edit Profile")
         let saveItem = UIBarButtonItem(title: "Save", style: .done, target: self, action: #selector(saveTapped))
         navigationItem.rightBarButtonItem = saveItem

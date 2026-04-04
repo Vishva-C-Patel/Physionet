@@ -52,6 +52,7 @@ final class PhysioAuthViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Physio Access")
 
         layoutViews()

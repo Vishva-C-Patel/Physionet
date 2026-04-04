@@ -34,6 +34,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Create New Program")
         view.backgroundColor = UITheme.Colors.background
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -653,6 +654,7 @@ final class ExercisePickerViewController: UIViewController, UITableViewDataSourc
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         title = "Select Exercise"
         view.backgroundColor = UITheme.Colors.background
         navigationItem.rightBarButtonItem = UIBarButtonItem(
