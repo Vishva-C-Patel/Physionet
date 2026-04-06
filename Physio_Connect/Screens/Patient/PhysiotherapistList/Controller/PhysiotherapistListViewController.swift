@@ -70,12 +70,18 @@ final class PhysiotherapistListViewController: UIViewController {
 
                 await MainActor.run {
                     self.items = cards
+                    print("✅ Fetched \(cards.count) physiotherapists")
                     self.applyAvailabilityFilter()
                     self.applyFilters()
                 }
                 await refreshAvailability()
             } catch {
                 print("❌ fetchPhysios error:", error)
+                await MainActor.run {
+                    let ac = UIAlertController(title: "Connection Error", message: "Failed to load physiotherapists. Please check your connection and try again.", preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(ac, animated: true)
+                }
             }
         }
     }
@@ -174,10 +180,11 @@ final class PhysiotherapistListViewController: UIViewController {
         let genderMenu = UIMenu(title: "Gender", image: UIImage(systemName: "person.2.fill"), children: genderActions)
 
         // Distance
-        let distanceOptions: [Double] = [5, 10, 15, 25, 50]
+        let distanceOptions: [Double] = [5, 15, 50, 100, 10000]
         let distanceActions = distanceOptions.map { dist in
             let isSelected = activeFilters.maxDistance == dist
-            let action = UIAction(title: "Within \(Int(dist)) km", state: isSelected ? .on : .off) { [weak self] _ in
+            let title = dist >= 10000 ? "Any Distance" : "Within \(Int(dist)) km"
+            let action = UIAction(title: title, state: isSelected ? .on : .off) { [weak self] _ in
                 self?.activeFilters.maxDistance = dist
                 self?.applyFiltersAndRebuildMenu()
             }
@@ -271,6 +278,7 @@ final class PhysiotherapistListViewController: UIViewController {
         }
 
         filtered = list
+        listView.emptyStateLabel.isHidden = !filtered.isEmpty
         listView.tableView.reloadData()
     }
 
@@ -345,14 +353,24 @@ final class PhysiotherapistListViewController: UIViewController {
 
     private func refreshAvailability() async {
         do {
-            let ids = try await PhysioService.shared.fetchAvailablePhysioIDs(at: selectedDate)
+            let ids = try await PhysioService.shared.fetchAvailablePhysioIDs(
+                at: selectedDate,
+                physioIDs: items.map { $0.id }
+            )
             await MainActor.run {
-                self.availablePhysioIDs = ids.isEmpty ? nil : ids
+                // Use actual IDs — empty means no physios are available that day
+                self.availablePhysioIDs = ids
                 self.applyAvailabilityFilter()
                 self.applyFilters()
             }
         } catch {
             print("❌ availability fetch error:", error)
+            await MainActor.run {
+                // On error, fall back to showing all (can't determine availability)
+                self.availablePhysioIDs = nil
+                self.applyAvailabilityFilter()
+                self.applyFilters()
+            }
         }
     }
 

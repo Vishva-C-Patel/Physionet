@@ -109,7 +109,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     private func buildBottomBar() {
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
-        bottomBar.backgroundColor = .secondarySystemGroupedBackground
+        bottomBar.backgroundColor = .clear
 
         var cancelConfig = UIButton.Configuration.tinted()
         cancelConfig.title = "Cancel"

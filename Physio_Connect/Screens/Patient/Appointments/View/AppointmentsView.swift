@@ -81,14 +81,14 @@ final class AppointmentsView: UIView {
     }
 
     private func build() {
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        insertSubview(backgroundGlow, at: 0)
-
-        // Scroll
+        // Scroll FIRST to ensure UINavigationBar liquid glass tracking works
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.contentInsetAdjustmentBehavior = .always
         addSubview(scrollView)
+
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(backgroundGlow, at: 0)
 
         contentStack.axis = .vertical
         contentStack.spacing = 12
@@ -127,10 +127,10 @@ final class AppointmentsView: UIView {
         upcomingListStack.setContentCompressionResistancePriority(.required, for: .vertical)
 
         NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: bottomAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: scrollView.frameLayoutGuide.topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: scrollView.frameLayoutGuide.bottomAnchor),
 
             scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),

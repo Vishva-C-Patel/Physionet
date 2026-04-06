@@ -125,7 +125,7 @@ final class HomeModel {
         return mapped.sorted { $0.startTime < $1.startTime }
     }
 
-    func fetchProgressSummary(programID: UUID?) async throws -> ProgressSummary {
+    func fetchProgressSummary(programID: UUID?, offsetWeeks: Int = 0) async throws -> ProgressSummary {
         struct ProgressRow: Decodable {
             let program_id: UUID?
             let progress_date: String?
@@ -140,7 +140,8 @@ final class HomeModel {
         df.dateFormat = "yyyy-MM-dd"
         df.locale = Locale(identifier: "en_US_POSIX")
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let currentDayRaw = calendar.startOfDay(for: Date())
+        let today = calendar.date(byAdding: .day, value: -(offsetWeeks * 7), to: currentDayRaw) ?? currentDayRaw
         guard let startDate = calendar.date(byAdding: .day, value: -41, to: today) else {
             return ProgressSummary(
                 painSeries: Array(repeating: 0, count: 7),

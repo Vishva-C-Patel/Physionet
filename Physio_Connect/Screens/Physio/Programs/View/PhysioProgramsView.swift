@@ -47,7 +47,6 @@ final class PhysioProgramsView: UIView {
 
         // Fix layout: Make the create button the table header
         // so the table can be pinned to topAnchor allowing the native scrollEdgeAppearance.
-        headerContainer.translatesAutoresizingMaskIntoConstraints = false
         headerContainer.backgroundColor = .clear
 
         createButton.translatesAutoresizingMaskIntoConstraints = false
@@ -99,8 +98,6 @@ final class PhysioProgramsView: UIView {
         tableView.tableHeaderView = headerContainer
 
         NSLayoutConstraint.activate([
-            headerContainer.widthAnchor.constraint(equalTo: widthAnchor),
-
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),

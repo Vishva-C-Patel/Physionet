@@ -14,92 +14,59 @@ struct AvailabilitySaveResult {
 final class PhysioAvailabilityModel {
     private let client = SupabaseManager.shared.client
 
-    func saveAvailability(
+    func saveMultiSlotAvailability(
         physioID: UUID,
         day: Date,
-        startTime: Date,
-        endTime: Date,
+        ranges: [TimeSlotRange],
         repeatWeekdays: [Int]
     ) async throws -> AvailabilitySaveResult {
         if repeatWeekdays.isEmpty {
             return try await createSingleDaySlots(
                 physioID: physioID,
                 day: day,
-                startTime: startTime,
-                endTime: endTime
+                ranges: ranges
             )
         }
         return try await createRecurringAvailability(
             physioID: physioID,
             day: day,
-            startTime: startTime,
-            endTime: endTime,
+            ranges: ranges,
             repeatWeekdays: repeatWeekdays
         )
-    }
-
-    func createHourlySlots(physioID: UUID, day: Date, startTime: Date, endTime: Date) async throws -> AvailabilitySaveResult {
-        let calendar = Calendar.current
-        let dayStart = calendar.startOfDay(for: day)
-
-        let start = combine(day: dayStart, time: startTime, calendar: calendar)
-        let end = combine(day: dayStart, time: endTime, calendar: calendar)
-
-        guard end > start else {
-            throw AvailabilityError(message: "End time must be later than start time.")
-        }
-
-        let weekday = calendar.component(.weekday, from: dayStart) - 1
-        let startLocal = timeString(from: start)
-        let endLocal = timeString(from: end)
-
-        let template = AvailabilityTemplateUpsert(
-            physio_id: physioID,
-            weekday: weekday,
-            start_local: startLocal,
-            end_local: endLocal,
-            slot_minutes: 60,
-            is_active: true
-        )
-
-        _ = try await client
-            .from("physio_availability_templates")
-            .upsert(template, onConflict: "physio_id,weekday,start_local,end_local")
-            .execute()
-
-        try await generateSlotsForDay(physioID: physioID, day: dayStart)
-        let counts = try await fetchSlotCounts(physioID: physioID, day: dayStart)
-        return AvailabilitySaveResult(createdSlots: counts.total)
     }
 
     private func createRecurringAvailability(
         physioID: UUID,
         day: Date,
-        startTime: Date,
-        endTime: Date,
+        ranges: [TimeSlotRange],
         repeatWeekdays: [Int]
     ) async throws -> AvailabilitySaveResult {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: day)
 
-        let start = combine(day: dayStart, time: startTime, calendar: calendar)
-        let end = combine(day: dayStart, time: endTime, calendar: calendar)
-
-        guard end > start else {
-            throw AvailabilityError(message: "End time must be later than start time.")
-        }
-
-        let startLocal = timeString(from: start)
-        let endLocal = timeString(from: end)
-        let templates = repeatWeekdays.map {
-            AvailabilityTemplateUpsert(
-                physio_id: physioID,
-                weekday: $0,
-                start_local: startLocal,
-                end_local: endLocal,
-                slot_minutes: 60,
-                is_active: true
-            )
+        var templates: [AvailabilityTemplateUpsert] = []
+        for range in ranges {
+            let start = combine(day: dayStart, time: range.startTime, calendar: calendar)
+            let end = combine(day: dayStart, time: range.endTime, calendar: calendar)
+            
+            guard end > start else {
+                throw AvailabilityError(message: "End time must be later than start time for all slots.")
+            }
+            let startLocal = timeString(from: start)
+            let endLocal = timeString(from: end)
+            
+            for weekday in repeatWeekdays {
+                templates.append(
+                    AvailabilityTemplateUpsert(
+                        physio_id: physioID,
+                        weekday: weekday,
+                        start_local: startLocal,
+                        end_local: endLocal,
+                        slot_minutes: 60,
+                        is_active: true
+                    )
+                )
+            }
         }
 
         _ = try await client
@@ -115,8 +82,7 @@ final class PhysioAvailabilityModel {
     private func createSingleDaySlots(
         physioID: UUID,
         day: Date,
-        startTime: Date,
-        endTime: Date
+        ranges: [TimeSlotRange]
     ) async throws -> AvailabilitySaveResult {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: day)
@@ -124,20 +90,39 @@ final class PhysioAvailabilityModel {
             throw AvailabilityError(message: "Invalid day selected.")
         }
 
-        let start = combine(day: dayStart, time: startTime, calendar: calendar)
-        let end = combine(day: dayStart, time: endTime, calendar: calendar)
-
-        guard end > start else {
-            throw AvailabilityError(message: "End time must be later than start time.")
-        }
-
-        let totalMinutes = Int(end.timeIntervalSince(start) / 60)
-        if totalMinutes % 60 != 0 {
-            throw AvailabilityError(message: "Select a range in 60-minute blocks.")
-        }
-
+        var inserts: [AvailabilitySlotInsert] = []
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        for range in ranges {
+            let start = combine(day: dayStart, time: range.startTime, calendar: calendar)
+            let end = combine(day: dayStart, time: range.endTime, calendar: calendar)
+            
+            guard end > start else {
+                throw AvailabilityError(message: "End time must be later than start time for all slots.")
+            }
+            
+            let totalMinutes = Int(end.timeIntervalSince(start) / 60)
+            if totalMinutes % 60 != 0 {
+                throw AvailabilityError(message: "Select ranges in 60-minute blocks.")
+            }
+            
+            var cursor = start
+            while cursor < end {
+                guard let next = calendar.date(byAdding: .minute, value: 60, to: cursor) else { break }
+                if next <= end {
+                    inserts.append(
+                        AvailabilitySlotInsert(
+                            physio_id: physioID,
+                            start_time: f.string(from: cursor),
+                            end_time: f.string(from: next),
+                            is_booked: false
+                        )
+                    )
+                }
+                cursor = next
+            }
+        }
 
         let existing: [SlotCountRow] = try await client
             .from("physio_availability_slots")
@@ -160,22 +145,7 @@ final class PhysioAvailabilityModel {
             .lt("start_time", value: f.string(from: dayEnd))
             .execute()
 
-        var inserts: [AvailabilitySlotInsert] = []
-        var cursor = start
-        while cursor < end {
-            guard let next = calendar.date(byAdding: .minute, value: 60, to: cursor) else { break }
-            if next <= end {
-                inserts.append(
-                    AvailabilitySlotInsert(
-                        physio_id: physioID,
-                        start_time: f.string(from: cursor),
-                        end_time: f.string(from: next),
-                        is_booked: false
-                    )
-                )
-            }
-            cursor = next
-        }
+
 
         if !inserts.isEmpty {
             _ = try await client

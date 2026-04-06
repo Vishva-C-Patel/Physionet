@@ -122,7 +122,15 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
 
     @objc private func tabChanged() {
         if isProgramTab {
+            if searchController.isActive {
+                searchController.isActive = false
+            }
             navigationItem.searchController = nil
+            // Ensure the tab bar is visible, in case it was hidden by the search controller
+            UIView.animate(withDuration: 0.3) {
+                self.tabBarController?.tabBar.alpha = 1
+                self.tabBarController?.tabBar.transform = .identity
+            }
         } else {
             navigationItem.searchController = searchController
         }
@@ -308,7 +316,10 @@ final class VideosViewController: UIViewController, UITableViewDataSource, UITab
             }
         } catch {
             await MainActor.run {
-                if self.isProgramTab { self.videosView.showEmptyState(true) }
+                if self.isProgramTab {
+                    self.videosView.showEmptyState(true)
+                }
+                self.videosView.tableView.reloadData()
                 self.showError("Videos Error", error.localizedDescription)
             }
         }

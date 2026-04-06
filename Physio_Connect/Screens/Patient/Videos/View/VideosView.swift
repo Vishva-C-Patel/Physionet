@@ -55,7 +55,8 @@ final class VideosView: UIView {
 
     func showEmptyState(_ show: Bool) {
         emptyCard.isHidden = !show
-        tableView.isHidden = show
+        // We do NOT hide the tableView here, because hiding the tableView
+        // also hides its tableHeaderView, which contains the segmented control!
     }
 
     func configureEmptyState(title: String, message: String, showRedeem: Bool) {
@@ -193,12 +194,25 @@ final class VideosView: UIView {
         emptySub.numberOfLines = 0
 
         redeemButton.translatesAutoresizingMaskIntoConstraints = false
-        redeemButton.setTitle("Redeem Code", for: .normal)
-        redeemButton.titleLabel?.font = UITheme.Typography.button
-        redeemButton.backgroundColor = UITheme.Colors.accent
-        redeemButton.setTitleColor(.white, for: .normal)
-        redeemButton.layer.cornerRadius = 27
-        redeemButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.filled()
+            config.cornerStyle = .capsule
+            config.baseBackgroundColor = UITheme.Colors.accent
+            config.baseForegroundColor = .white
+            config.title = "Redeem Code"
+            var container = AttributeContainer()
+            container.font = UITheme.Typography.button
+            config.attributedTitle = AttributedString("Redeem Code", attributes: container)
+            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            redeemButton.configuration = config
+        } else {
+            redeemButton.setTitle("Redeem Code", for: .normal)
+            redeemButton.titleLabel?.font = UITheme.Typography.button
+            redeemButton.backgroundColor = UITheme.Colors.accent
+            redeemButton.setTitleColor(.white, for: .normal)
+            redeemButton.layer.cornerRadius = 27
+            redeemButton.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+        }
 
         // Table view with header container (liquid glass scrolling)
         addSubview(tableView)

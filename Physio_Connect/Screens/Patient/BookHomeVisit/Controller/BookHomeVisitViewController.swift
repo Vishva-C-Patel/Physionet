@@ -53,6 +53,7 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
         // Fetch
         fetchPhysioHeader()
         fetchSlots(for: bookView.datePicker.date)
+        prefillProfileData()
 
         // Initial summary
         bookView.updateAppointmentSummary(
@@ -132,6 +133,38 @@ final class BookHomeVisitViewController: UIViewController, UITextFieldDelegate {
 
             } catch {
                 print("❌ fetchPhysioHeader error:", error)
+            }
+        }
+    }
+
+    // MARK: - Prefill User Profile Data
+    private func prefillProfileData() {
+        Task {
+            do {
+                let profile = try await ProfileModel().fetchCurrentProfile()
+                let address = profile.address == "—" ? "" : profile.address
+                let location = profile.location == "—" ? address : profile.location
+                let phone = profile.phone == "—" ? "" : profile.phone
+
+                await MainActor.run {
+                    let currentAddress = self.bookView.addressField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    if currentAddress.isEmpty {
+                        if !location.isEmpty {
+                            self.bookView.addressField.text = location
+                        } else if !address.isEmpty {
+                            self.bookView.addressField.text = address
+                        }
+                    }
+
+                    let currentPhone = self.bookView.phoneField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    if !phone.isEmpty && (currentPhone.isEmpty || currentPhone == "+91") {
+                        self.bookView.phoneField.text = phone
+                    }
+                    
+                    self.addressChanged() // update summary UI
+                }
+            } catch {
+                print("❌ prefillProfileData error:", error)
             }
         }
     }

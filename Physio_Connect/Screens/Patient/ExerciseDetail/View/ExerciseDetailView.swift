@@ -341,8 +341,6 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         completeCard.translatesAutoresizingMaskIntoConstraints = false
         completeCard.backgroundColor = UITheme.Colors.surface
         completeCard.layer.cornerRadius = 16
-        completeCard.layer.borderWidth = 1
-        completeCard.layer.borderColor = UIColor.separator.cgColor
         completeCard.layer.shadowColor = UIColor.black.cgColor
         completeCard.layer.shadowOpacity = 0.04
         completeCard.layer.shadowRadius = 8
@@ -606,11 +604,12 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         saveButton.backgroundColor = UITheme.Colors.accent
         saveButton.setTitleColor(.white, for: .normal)
         saveButton.layer.cornerRadius = 27
-        saveButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         saveButton.layer.shadowColor = UIColor.black.cgColor
         saveButton.layer.shadowOpacity = 0.12
         saveButton.layer.shadowRadius = 10
         saveButton.layer.shadowOffset = CGSize(width: 0, height: 6)
+        
+        saveButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
     }
 
     private func buildNextUp() {
@@ -629,11 +628,12 @@ final class ExerciseDetailView: UIView, UIGestureRecognizerDelegate {
         continueButton.backgroundColor = UITheme.Colors.accent
         continueButton.setTitleColor(.white, for: .normal)
         continueButton.layer.cornerRadius = 27
-        continueButton.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 16)
         continueButton.layer.shadowColor = UIColor.black.cgColor
         continueButton.layer.shadowOpacity = 0.12
         continueButton.layer.shadowRadius = 10
         continueButton.layer.shadowOffset = CGSize(width: 0, height: 6)
+
+        continueButton.heightAnchor.constraint(equalToConstant: 54).isActive = true
 
         nextUpCollection.heightAnchor.constraint(equalToConstant: 160).isActive = true
     }

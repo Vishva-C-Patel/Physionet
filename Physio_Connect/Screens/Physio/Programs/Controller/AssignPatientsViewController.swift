@@ -74,7 +74,7 @@ final class AssignPatientsViewController: UIViewController, UITableViewDataSourc
 
     private func setupFooter() {
         footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.backgroundColor = .secondarySystemGroupedBackground
+        footerView.backgroundColor = .clear
         view.addSubview(footerView)
 
         var cancelConfig = UIButton.Configuration.tinted()

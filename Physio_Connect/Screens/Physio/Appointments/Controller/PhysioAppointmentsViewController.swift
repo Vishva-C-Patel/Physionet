@@ -121,7 +121,18 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
             }
         } catch {
             await MainActor.run {
-                self.allAppointments = []
+                self.allAppointments = [
+                    PhysioAppointmentsView.AppointmentVM(
+                        id: UUID(),
+                        status: .upcoming,
+                        title: "Fetch Error",
+                        patientName: error.localizedDescription,
+                        timeText: "TBD",
+                        durationText: "TBD",
+                        locationText: "Debug",
+                        isActionable: false
+                    )
+                ]
                 self.applyFilters()
             }
         }
@@ -191,10 +202,31 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
 
     // MARK: - UITableView
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        filteredAppointments.count
+        return max(1, filteredAppointments.count)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if filteredAppointments.isEmpty {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            cell.selectionStyle = .none
+            cell.backgroundColor = .clear
+            
+            let label = UILabel()
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.text = "No appointments found."
+            label.textColor = .secondaryLabel
+            label.font = .systemFont(ofSize: 16, weight: .medium)
+            label.textAlignment = .center
+            
+            cell.contentView.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
+                label.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 60),
+                label.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -60)
+            ])
+            return cell
+        }
+        
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "PhysioAppointmentCell", for: indexPath) as? PhysioAppointmentCell else {
             return UITableViewCell()
         }

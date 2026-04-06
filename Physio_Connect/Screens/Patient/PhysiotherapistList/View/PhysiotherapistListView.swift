@@ -41,6 +41,16 @@ final class PhysiotherapistListView: UIView {
 
     let datePill = UIButton(type: .system)
     let timePill = UIButton(type: .system)
+    let emptyStateLabel: UILabel = {
+        let l = UILabel()
+        l.text = "No physiotherapists found matching your criteria."
+        l.font = .systemFont(ofSize: 14)
+        l.textColor = UITheme.Colors.textSecondary
+        l.textAlignment = .center
+        l.numberOfLines = 0
+        l.isHidden = true
+        return l
+    }()
 
     // MARK: - INIT
     override init(frame: CGRect) {
@@ -70,18 +80,25 @@ final class PhysiotherapistListView: UIView {
     private func setupTable() {
         tableView.register(PhysiotherapistCardCell.self, forCellReuseIdentifier: PhysiotherapistCardCell.reuseID)
         addSubview(tableView)
+        addSubview(emptyStateLabel)
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 180
         tableView.contentInsetAdjustmentBehavior = .always
-
+ 
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            emptyStateLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            emptyStateLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 100),
+            emptyStateLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
+            emptyStateLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -32)
         ])
     }
 
