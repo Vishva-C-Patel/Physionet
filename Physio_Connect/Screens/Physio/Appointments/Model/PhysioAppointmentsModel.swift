@@ -34,6 +34,40 @@ struct PhysioAppointment {
 final class PhysioAppointmentsModel {
     private let client = SupabaseManager.shared.client
 
+    func resolvePhysioID() async throws -> String {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+
+        struct Row: Decodable { let id: UUID }
+
+        let direct: [Row] = try await client
+            .from("physiotherapists")
+            .select("id")
+            .eq("id", value: userID)
+            .limit(1)
+            .execute()
+            .value
+
+        if let match = direct.first {
+            return match.id.uuidString
+        }
+
+        guard let email = session.user.email?.lowercased() else {
+            return userID
+        }
+
+        let byEmail: [Row] = try await client
+            .from("physiotherapists")
+            .select("id")
+            .eq("email", value: email)
+            .order("updated_at", ascending: false)
+            .limit(1)
+            .execute()
+            .value
+
+        return byEmail.first?.id.uuidString ?? userID
+    }
+
     func fetchAppointments(physioID: String) async throws -> [PhysioAppointment] {
         let rows: [AppointmentJoinedRow] = try await client
             .from("appointments")
@@ -255,4 +289,3 @@ private struct AppointmentJoinedRow: Decodable {
         let end_time: String?
     }
 }
-

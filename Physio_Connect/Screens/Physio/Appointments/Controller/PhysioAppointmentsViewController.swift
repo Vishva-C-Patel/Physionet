@@ -109,8 +109,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         defer { isLoading = false }
 
         do {
-            let session = try await SupabaseManager.shared.client.auth.session
-            let id = session.user.id.uuidString
+            let id = try await model.resolvePhysioID()
             physioID = id
 
             let rows = try await model.fetchAppointments(physioID: id)
