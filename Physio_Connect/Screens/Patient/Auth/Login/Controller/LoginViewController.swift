@@ -47,6 +47,7 @@ final class LoginViewController: UIViewController {
         loginView.passwordEyeButton.addTarget(self, action: #selector(togglePassword), for: .touchUpInside)
         loginView.loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
         loginView.signUpButton.addTarget(self, action: #selector(signupTapped), for: .touchUpInside)
+        loginView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
     }
 
     @objc private func backTapped() {
@@ -107,6 +108,66 @@ final class LoginViewController: UIViewController {
             onSignupTapped()
         } else {
             navigationController?.popViewController(animated: true)
+        }
+    }
+
+    @objc private func googleTapped() {
+        Task {
+            do {
+                try await GoogleOAuthHandler.shared.signIn(from: self)
+                let session = try await SupabaseManager.shared.client.auth.session
+                let userId = session.user.id.uuidString
+                let email = session.user.email ?? ""
+                let fullName = session.user.userMetadata["full_name"]?.stringValue ?? "Google User"
+
+                let isValidPatient = await RoleAccessGate.isSessionValid(for: .patient)
+                if isValidPatient {
+                    await MainActor.run {
+                        self.onLoginSuccess?()
+                        if self.onLoginSuccess == nil {
+                            self.navigationController?.popViewController(animated: true)
+                        }
+                    }
+                    return
+                }
+
+                // If not valid, check if they are a physio
+                struct PhysioRow: Decodable { let id: UUID }
+                
+                let physioRows: [PhysioRow] = (try? await SupabaseManager.shared.client.from("physiotherapists").select("id").eq("id", value: userId).limit(1).execute().value) ?? []
+                let isPhysio = !physioRows.isEmpty
+
+                if isPhysio {
+                    try? await SupabaseManager.shared.client.auth.signOut()
+                    await MainActor.run {
+                        self.showAlert(title: "Unauthorized", message: "This account is registered for physiotherapists. Please log in on the physio side.")
+                        self.resetLoginButtonState()
+                    }
+                    return
+                }
+
+                // Treat as new customer
+                struct CustomerInsert: Encodable {
+                    let id: UUID
+                    let full_name: String
+                    let email: String
+                    let phone: String
+                }
+                let payload = CustomerInsert(id: session.user.id, full_name: fullName, email: email, phone: "")
+                _ = try await SupabaseManager.shared.client.from("customers").upsert(payload).execute()
+
+                await MainActor.run {
+                    self.onLoginSuccess?()
+                    if self.onLoginSuccess == nil {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.showAlert(title: "Google Sign-In Failed", message: error.localizedDescription)
+                    self.resetLoginButtonState()
+                }
+            }
         }
     }
 
