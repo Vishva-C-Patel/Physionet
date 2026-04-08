@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import WebKit
 
 final class ArticleDetailView: UIView {
 
@@ -18,6 +19,9 @@ final class ArticleDetailView: UIView {
     private let articleTitleLabel = UILabel()
     private let summaryLabel = UILabel()
     private let bodyLabel = UILabel()
+    let webView = WKWebView(frame: .zero)
+    let loadingIndicator = UIActivityIndicatorView(style: .large)
+    private var currentSummaryText: String = ""
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -39,9 +43,15 @@ final class ArticleDetailView: UIView {
     }
 
     func configure(with article: ArticleRow) {
+        showTextContent()
         articleTitleLabel.text = article.title
-        summaryLabel.text = article.summary
-        bodyLabel.text = preferredBodyText(for: article)
+        let bodyText = preferredBodyText(for: article)
+        let summaryText = article.summary?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        currentSummaryText = summaryText
+        let shouldShowSummary = !summaryText.isEmpty && bodyText.caseInsensitiveCompare(summaryText) != .orderedSame
+        summaryLabel.text = shouldShowSummary ? article.summary : nil
+        summaryLabel.isHidden = !shouldShowSummary
+        bodyLabel.text = bodyText
         let sourceText = article.source_name?.trimmingCharacters(in: .whitespacesAndNewlines)
         let sourceSlug = article.source?.trimmingCharacters(in: .whitespacesAndNewlines)
         let fallback = article.tags?.first?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -55,20 +65,67 @@ final class ArticleDetailView: UIView {
         setTags(article.tags ?? [])
     }
 
+    func updateBodyText(_ text: String) {
+        let normalized = normalizeBodyText(text)
+        bodyLabel.text = normalized
+        let shouldShowSummary = !currentSummaryText.isEmpty &&
+            normalized.caseInsensitiveCompare(currentSummaryText) != .orderedSame
+        summaryLabel.text = shouldShowSummary ? currentSummaryText : nil
+        summaryLabel.isHidden = !shouldShowSummary
+    }
+
     private func preferredBodyText(for article: ArticleRow) -> String {
         let content = article.content?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let content, !content.isEmpty {
-            return content
+            return normalizeBodyText(content)
         }
         let summary = article.summary?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let summary, !summary.isEmpty {
-            return summary
+            return normalizeBodyText(summary)
         }
         return "Full article content will appear here."
     }
 
+    private func normalizeBodyText(_ text: String) -> String {
+        let decoded = decodeHTMLIfNeeded(text)
+        return decoded
+            .replacingOccurrences(of: "\\n", with: "\n")
+            .replacingOccurrences(of: "\\t", with: "\t")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func decodeHTMLIfNeeded(_ text: String) -> String {
+        guard text.contains("<"), text.contains(">"), let data = text.data(using: .utf8) else { return text }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        if let attributed = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
+            return attributed.string
+        }
+        return text
+    }
+
     func preferredContentText(for article: ArticleRow) -> String {
         preferredBodyText(for: article)
+    }
+
+    func showTextContent() {
+        scrollView.isHidden = false
+        webView.isHidden = true
+        loadingIndicator.stopAnimating()
+    }
+
+    func showWebContentLoading() {
+        scrollView.isHidden = true
+        webView.isHidden = false
+        loadingIndicator.startAnimating()
+    }
+
+    func showWebContentLoaded() {
+        scrollView.isHidden = true
+        webView.isHidden = false
+        loadingIndicator.stopAnimating()
     }
 
     private func build() {
@@ -76,6 +133,15 @@ final class ArticleDetailView: UIView {
         scrollView.backgroundColor = .systemGroupedBackground
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.backgroundColor = .clear
+
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.isHidden = true
+        webView.backgroundColor = .systemGroupedBackground
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.color = UITheme.Colors.accent
 
         contentCard.translatesAutoresizingMaskIntoConstraints = false
         contentCard.backgroundColor = UITheme.Colors.surface
@@ -117,6 +183,8 @@ final class ArticleDetailView: UIView {
         bodyLabel.numberOfLines = 0
 
         addSubview(scrollView)
+        addSubview(webView)
+        addSubview(loadingIndicator)
         scrollView.addSubview(contentView)
 
         contentView.addSubview(contentCard)
@@ -133,11 +201,19 @@ final class ArticleDetailView: UIView {
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            webView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            loadingIndicator.centerXAnchor.constraint(equalTo: webView.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: webView.centerYAnchor),
+
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
 
             contentCard.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             contentCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),

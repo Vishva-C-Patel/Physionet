@@ -28,6 +28,38 @@ struct ArticleRow: Decodable {
     let tags: [String]?
 }
 
+extension ArticleRow {
+    var displayReadMinutes: Int {
+        if let read_minutes, read_minutes > 0 { return read_minutes }
+
+        let contentText = content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let summaryText = summary?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let titleText = title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !contentText.isEmpty {
+            let words = contentText.split { $0.isWhitespace || $0.isNewline }.count
+            let estimated = Int(ceil(Double(words) / 180.0))
+            return max(1, estimated)
+        }
+
+        let combined = [titleText, summaryText]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        if combined.isEmpty { return 2 }
+
+        let words = combined.split { $0.isWhitespace || $0.isNewline }.count
+        var estimated = Int(ceil(Double(words) / 140.0))
+
+        // When only teaser text exists (common "..."), avoid under-reporting as 1 min.
+        if summaryText.hasSuffix("...") || summaryText.hasSuffix("…") {
+            estimated = max(estimated, 3)
+        } else {
+            estimated = max(estimated, 2)
+        }
+        return estimated
+    }
+}
+
 enum ArticleSort {
     case recent
     case topRated

@@ -182,7 +182,7 @@ final class ArticleCardCell: UITableViewCell {
         categoryPill.text = resolvedSource
         titleLabel.text = article.title
         summaryLabel.text = article.summary
-        let minutes = article.read_minutes ?? 0
+        let minutes = article.displayReadMinutes
         timeLabel.text = "\(minutes) min"
     }
 

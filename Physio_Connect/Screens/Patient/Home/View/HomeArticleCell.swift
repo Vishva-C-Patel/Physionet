@@ -33,7 +33,7 @@ final class HomeArticleCell: UITableViewCell {
 
     func configure(with article: ArticleRow) {
         titleLabel.text = article.title
-        metaLabel.text = "\(article.read_minutes ?? 0) min read"
+        metaLabel.text = "\(article.displayReadMinutes) min read"
         let sourceName = article.source_name?.trimmingCharacters(in: .whitespacesAndNewlines)
         let sourceSlug = article.source?.trimmingCharacters(in: .whitespacesAndNewlines)
         let urlSource = sourceHost(from: article.source_url) ?? sourceHost(from: article.url)
