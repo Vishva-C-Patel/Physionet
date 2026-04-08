@@ -177,6 +177,9 @@ final class LoginViewController: UIViewController {
         view.addGestureRecognizer(tap)
     }
 
+    @objc private func endEditingNow() {
+        view.endEditing(true)
+    }
 
     private func showAlert(title: String, message: String) {
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
