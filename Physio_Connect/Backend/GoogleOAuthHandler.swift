@@ -105,10 +105,18 @@ final class GoogleOAuthHandler: NSObject {
 
 extension GoogleOAuthHandler: ASWebAuthenticationPresentationContextProviding {
     nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        // ASWebAuthenticationSession always calls this on the main thread, so
-        // assumeIsolated is safe here. DispatchQueue.main.sync would deadlock.
         MainActor.assumeIsolated {
-            self.presentingWindow ?? UIWindow()
+            // Provide a guaranteed active window for the presentation anchor
+            if let window = self.presentingWindow, window.windowScene != nil {
+                return window
+            }
+            for scene in UIApplication.shared.connectedScenes {
+                if let windowScene = scene as? UIWindowScene,
+                   let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                    return keyWindow
+                }
+            }
+            return UIWindow()
         }
     }
 }
