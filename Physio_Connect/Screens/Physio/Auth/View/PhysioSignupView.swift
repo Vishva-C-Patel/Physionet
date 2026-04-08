@@ -68,13 +68,6 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
     // MARK: - CTA
     let createAccountButton = UIButton(type: .system)
 
-    // MARK: - Divider
-    private let orDivider = OrDividerView()
-
-    // MARK: - Social
-    let googleButton = UIButton(type: .custom)
-    let appleButton = UIButton(type: .custom)
-
     // MARK: - Login
     let loginButton = UIButton(type: .system)
 
@@ -166,7 +159,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         passwordField.textField.autocorrectionType = .no
         passwordField.textField.spellCheckingType = .no
         passwordField.textField.keyboardType = .asciiCapable
-        passwordField.textField.textContentType = UITextContentType(rawValue: "")
+        passwordField.textField.textContentType = .newPassword
         passwordField.textField.clearsOnBeginEditing = false
 
         confirmPasswordField.placeholder = "Confirm Password"
@@ -175,17 +168,14 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         confirmPasswordField.textField.autocorrectionType = .no
         confirmPasswordField.textField.spellCheckingType = .no
         confirmPasswordField.textField.keyboardType = .asciiCapable
-        confirmPasswordField.textField.textContentType = UITextContentType(rawValue: "")
+        confirmPasswordField.textField.textContentType = .newPassword
         confirmPasswordField.textField.clearsOnBeginEditing = false
 
         configureEyeButton(passwordEyeButton, selector: #selector(togglePassword))
         configureEyeButton(confirmPasswordEyeButton, selector: #selector(toggleConfirmPassword))
 
-        passwordField.textField.rightView = passwordEyeButton
-        passwordField.textField.rightViewMode = .always
-
-        confirmPasswordField.textField.rightView = confirmPasswordEyeButton
-        confirmPasswordField.textField.rightViewMode = .always
+        passwordField.setTrailingAccessory(passwordEyeButton)
+        confirmPasswordField.setTrailingAccessory(confirmPasswordEyeButton)
 
         stack.addArrangedSubview(fullNameField)
         stack.addArrangedSubview(emailField)
@@ -267,21 +257,6 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
 
         stack.addArrangedSubview(createAccountButton)
 
-        // Or divider
-        stack.addArrangedSubview(orDivider)
-
-        // Social buttons row
-        let socialRow = UIStackView(arrangedSubviews: [googleButton, appleButton])
-        socialRow.axis = .horizontal
-        socialRow.spacing = 12
-        socialRow.distribution = .fillEqually
-        socialRow.translatesAutoresizingMaskIntoConstraints = false
-
-        styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
-        styleOutlineSocialButton(appleButton, title: "Apple", icon: UIImage(systemName: "apple.logo")?.withRenderingMode(.alwaysTemplate))
-
-        stack.addArrangedSubview(socialRow)
-
         // Login link
         loginButton.setTitle("Already have an account? Log in", for: .normal)
         loginButton.setTitleColor(primaryBlue, for: .normal)
@@ -329,7 +304,7 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
     private func configureEyeButton(_ b: UIButton, selector: Selector) {
         b.tintColor = UITheme.Colors.textSecondary
         b.setImage(UIImage(systemName: "eye"), for: .normal)
-        b.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        b.frame = CGRect(x: 0, y: 0, width: 34, height: 34)
         b.contentMode = .center
         b.isUserInteractionEnabled = true
         b.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
@@ -344,6 +319,9 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         let text = passwordField.textField.text
         passwordField.textField.text = nil
         passwordField.textField.text = text
+        if let end = passwordField.textField.endOfDocument as UITextPosition? {
+            passwordField.textField.selectedTextRange = passwordField.textField.textRange(from: end, to: end)
+        }
     }
 
     @objc private func toggleConfirmPassword() {
@@ -354,6 +332,9 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         let text = confirmPasswordField.textField.text
         confirmPasswordField.textField.text = nil
         confirmPasswordField.textField.text = text
+        if let end = confirmPasswordField.textField.endOfDocument as UITextPosition? {
+            confirmPasswordField.textField.selectedTextRange = confirmPasswordField.textField.textRange(from: end, to: end)
+        }
     }
 
     @objc private func toggleTerms() {
@@ -373,27 +354,6 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         v.layer.shadowOpacity = 0.06
         v.layer.shadowRadius = 10
         v.layer.shadowOffset = CGSize(width: 0, height: 6)
-    }
-
-    private func styleOutlineSocialButton(_ b: UIButton, title: String, icon: UIImage?) {
-        b.translatesAutoresizingMaskIntoConstraints = false
-        b.setTitle("  \(title)", for: .normal)
-        b.setTitleColor(UITheme.Colors.textPrimary, for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        b.layer.cornerRadius = 14
-        b.layer.borderWidth = 0.5
-        b.layer.borderColor = UITheme.Colors.border.cgColor
-        b.backgroundColor = UITheme.Colors.surface
-        b.heightAnchor.constraint(equalToConstant: 52).isActive = true
-        
-        b.setImage(icon, for: .normal)
-        b.imageView?.contentMode = .scaleAspectFit
-        
-        if icon?.isSymbolImage == true {
-            b.tintColor = UITheme.Colors.textSecondary
-        } else {
-            b.tintColor = nil // Keep original colors (gray for monochrome logos)
-        }
     }
 
     // MARK: - Actions
@@ -485,101 +445,6 @@ final class PhysioSignupView: UIView, UITextFieldDelegate {
         }
     }
 
-    private func drawGoogleLogo(size: CGFloat) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
-        return renderer.image { context in
-            let center = CGPoint(x: size / 2, y: size / 2)
-            let radius = size * 0.45
-            let thickness = size * 0.18
-            let offset: CGFloat = 0.05 // Increased gap to prevent zoom overlap
-
-            // Clip to perfect circle to prevent middle bar corners from sticking out
-            let clipPath = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2 * .pi, clockwise: true)
-            clipPath.addClip()
-
-            // Top (Red)
-            let redPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: -.pi * 0.8 + offset, endAngle: -.pi * 0.1 - offset, clockwise: true)
-            redPath.lineWidth = thickness
-            redPath.lineCapStyle = .butt
-            UIColor(hex: "#EA4335").setStroke()
-            redPath.stroke()
-            
-            // Left (Yellow)
-            let yellowPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: .pi * 0.9 + offset, endAngle: .pi * 1.2 - offset, clockwise: true)
-            yellowPath.lineWidth = thickness
-            yellowPath.lineCapStyle = .butt
-            UIColor(hex: "#FBBC05").setStroke()
-            yellowPath.stroke()
-            
-            // Bottom (Green)
-            let greenPath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: .pi * 0.35 + offset, endAngle: .pi * 0.9 - offset, clockwise: true)
-            greenPath.lineWidth = thickness
-            greenPath.lineCapStyle = .butt
-            UIColor(hex: "#34A853").setStroke()
-            greenPath.stroke()
-            
-            // Right (Blue)
-            let bluePath = UIBezierPath(arcCenter: center, radius: radius - thickness/2, startAngle: -.pi * 0.1 + offset, endAngle: .pi * 0.35 - offset, clockwise: true)
-            bluePath.lineWidth = thickness
-            bluePath.lineCapStyle = .butt
-            UIColor(hex: "#4285F4").setStroke()
-            bluePath.stroke()
-            
-            // Middle Bar (Blue)
-            let blue = UIColor(hex: "#4285F4")
-            blue.setFill()
-            // Make bar slightly thinner to fit visually within stroke boundaries without bleeding
-            let barRect = CGRect(x: center.x - 1, y: center.y - (thickness * 0.85)/2, width: radius + 1, height: thickness * 0.85)
-            UIBezierPath(rect: barRect).fill()
-        }
-    }
-}
-
-// MARK: - Divider view
-private final class OrDividerView: UIView {
-    private let line1 = UIView()
-    private let line2 = UIView()
-    private let label = UILabel()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        build()
-    }
-    required init?(coder: NSCoder) { fatalError() }
-
-    private func build() {
-        translatesAutoresizingMaskIntoConstraints = false
-        heightAnchor.constraint(equalToConstant: 24).isActive = true
-
-        line1.translatesAutoresizingMaskIntoConstraints = false
-        line2.translatesAutoresizingMaskIntoConstraints = false
-        line1.backgroundColor = UITheme.Colors.border
-        line2.backgroundColor = UITheme.Colors.border
-
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "or continue with"
-        label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .placeholderText
-
-        addSubview(line1)
-        addSubview(line2)
-        addSubview(label)
-
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: centerYAnchor),
-
-            line1.leadingAnchor.constraint(equalTo: leadingAnchor),
-            line1.trailingAnchor.constraint(equalTo: label.leadingAnchor, constant: -12),
-            line1.centerYAnchor.constraint(equalTo: centerYAnchor),
-            line1.heightAnchor.constraint(equalToConstant: 1),
-
-            line2.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 12),
-            line2.trailingAnchor.constraint(equalTo: trailingAnchor),
-            line2.centerYAnchor.constraint(equalTo: centerYAnchor),
-            line2.heightAnchor.constraint(equalToConstant: 1)
-        ])
-    }
 }
 
 private final class ProofUploadRow: UIView {

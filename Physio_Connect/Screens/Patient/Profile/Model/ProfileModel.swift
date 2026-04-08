@@ -28,6 +28,8 @@ struct ProfileViewData {
     let name: String
     let email: String
     let phone: String
+    let placeOfWork: String
+    let consultationFee: String
     let address: String
     let gender: String
     let dateOfBirth: String
@@ -58,6 +60,8 @@ struct ProfileViewData {
             name: name,
             email: email.isEmpty ? "—" : email,
             phone: phone?.isEmpty == false ? phone! : "—",
+            placeOfWork: "—",
+            consultationFee: "—",
             address: address?.isEmpty == false ? address! : "—",
             gender: gender?.isEmpty == false ? gender! : "—",
             dateOfBirth: dob?.isEmpty == false ? dob! : "—",

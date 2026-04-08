@@ -141,7 +141,6 @@ final class PhysioAuthViewController: UIViewController {
         signupView.onPickLicenseProof = { [weak self] in self?.presentPicker(for: .licenseProof) }
 
         loginView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
-        signupView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
     }
 
     private func show(mode: Mode, animated: Bool) {
@@ -243,6 +242,7 @@ final class PhysioAuthViewController: UIViewController {
                 let signupInput = PhysioAuthModel.PhysioSignupInput(
                     name: name,
                     email: email,
+                    phone: "+91\(normalizedDigits)",
                     password: input.password,
                     idProofData: input.idProofData,
                     idProofFilename: input.idProofFilename,

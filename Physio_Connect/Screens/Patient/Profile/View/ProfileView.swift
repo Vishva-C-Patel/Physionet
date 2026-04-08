@@ -42,6 +42,10 @@ final class ProfileView: UIView {
 
     private let emailRow = ProfileRowView(title: "Email")
     private let phoneRow = ProfileRowView(title: "Phone")
+    private let placeOfWorkRow = ProfileRowView(title: "Place of Work")
+    private let consultationFeeRow = ProfileRowView(title: "Consultation Fee")
+    private let yearsExperienceRow = ProfileRowView(title: "Years of Experience")
+    private let aboutRow = ProfileRowView(title: "About")
     private let genderRow = ProfileRowView(title: "Gender")
     private let dobRow = ProfileRowView(title: "Date of Birth")
 
@@ -87,6 +91,10 @@ final class ProfileView: UIView {
         nameLabel.text = data.name
         emailRow.setValue(data.email)
         phoneRow.setValue(data.phone)
+        placeOfWorkRow.setValue(data.placeOfWork)
+        consultationFeeRow.setValue(data.consultationFee)
+        yearsExperienceRow.setValue(data.yearsExperience)
+        aboutRow.setValue(data.about)
         genderRow.setValue(data.gender)
         dobRow.setValue(data.dateOfBirth)
         let fullLocation = data.location != "—" ? data.location : data.address
@@ -110,6 +118,10 @@ final class ProfileView: UIView {
         nameLabel.text = "Guest"
         emailRow.setValue("—")
         phoneRow.setValue("—")
+        placeOfWorkRow.setValue("—")
+        consultationFeeRow.setValue("—")
+        yearsExperienceRow.setValue("—")
+        aboutRow.setValue("—")
         genderRow.setValue("—")
         dobRow.setValue("—")
         addressRow.setValue("—")
@@ -348,6 +360,14 @@ final class ProfileView: UIView {
         stack.addArrangedSubview(emailRow)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(phoneRow)
+        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(placeOfWorkRow)
+        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(consultationFeeRow)
+        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(yearsExperienceRow)
+        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(aboutRow)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(genderRow)
         stack.addArrangedSubview(makeSeparator())

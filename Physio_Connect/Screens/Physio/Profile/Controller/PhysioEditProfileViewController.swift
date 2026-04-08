@@ -51,6 +51,14 @@ final class PhysioEditProfileViewController: UIViewController {
     }
 
     private func saveProfile() {
+        let input: PhysioProfileModel.UpdateInput
+        do {
+            input = try editView.validatedInput()
+        } catch {
+            showError(error.localizedDescription)
+            return
+        }
+
         navigationItem.rightBarButtonItem?.isEnabled = false
         editView.setSaving(true)
         Task {
@@ -61,7 +69,6 @@ final class PhysioEditProfileViewController: UIViewController {
                         editView.setCoordinates(latitude: coordinate.latitude, longitude: coordinate.longitude)
                     }
                 }
-                let input = editView.currentInput()
                 try await model.updateProfile(input)
                 await MainActor.run {
                     self.navigationItem.rightBarButtonItem?.isEnabled = true

@@ -100,12 +100,11 @@ final class PhysioLoginView: UIView {
         passwordField.textField.autocapitalizationType = .none
         passwordField.textField.autocorrectionType = .no
         passwordField.textField.keyboardType = .asciiCapable
-        passwordField.textField.textContentType = UITextContentType(rawValue: "")
+        passwordField.textField.textContentType = .password
 
         configureEyeButton(passwordEyeButton)
         passwordEyeButton.addTarget(self, action: #selector(togglePassword), for: .touchUpInside)
-        passwordField.textField.rightView = passwordEyeButton
-        passwordField.textField.rightViewMode = .always
+        passwordField.setTrailingAccessory(passwordEyeButton)
 
         stack.addArrangedSubview(emailField)
         stack.addArrangedSubview(passwordField)
@@ -196,6 +195,9 @@ final class PhysioLoginView: UIView {
         let text = passwordField.textField.text
         passwordField.textField.text = nil
         passwordField.textField.text = text
+        if let end = passwordField.textField.endOfDocument as UITextPosition? {
+            passwordField.textField.selectedTextRange = passwordField.textField.textRange(from: end, to: end)
+        }
     }
 
     func setLoading(_ loading: Bool) {
@@ -285,6 +287,8 @@ final class PhysioIconTextField: UIView {
 
     private let container = UIView()
     private let icon = UIImageView()
+    private let trailingAccessoryContainer = UIView()
+    private var trailingAccessoryWidthConstraint: NSLayoutConstraint!
 
     init(iconSystemName: String) {
         super.init(frame: .zero)
@@ -316,11 +320,18 @@ final class PhysioIconTextField: UIView {
         textField.textColor = .label
         textField.tintColor = primaryBlue
         textField.autocorrectionType = .no
+        textField.spellCheckingType = .no
+        textField.smartQuotesType = .no
+        textField.smartDashesType = .no
         updatePlaceholder()
+
+        trailingAccessoryContainer.translatesAutoresizingMaskIntoConstraints = false
+        trailingAccessoryContainer.isUserInteractionEnabled = true
 
         addSubview(container)
         container.addSubview(icon)
         container.addSubview(textField)
+        container.addSubview(trailingAccessoryContainer)
 
         NSLayoutConstraint.activate([
             container.topAnchor.constraint(equalTo: topAnchor),
@@ -335,9 +346,16 @@ final class PhysioIconTextField: UIView {
             icon.heightAnchor.constraint(equalToConstant: 18),
 
             textField.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 10),
-            textField.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -10),
-            textField.centerYAnchor.constraint(equalTo: container.centerYAnchor)
+            textField.trailingAnchor.constraint(equalTo: trailingAccessoryContainer.leadingAnchor, constant: -8),
+            textField.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+
+            trailingAccessoryContainer.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -10),
+            trailingAccessoryContainer.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            trailingAccessoryContainer.heightAnchor.constraint(equalToConstant: 34)
         ])
+
+        trailingAccessoryWidthConstraint = trailingAccessoryContainer.widthAnchor.constraint(equalToConstant: 0)
+        trailingAccessoryWidthConstraint.isActive = true
     }
 
     private func updatePlaceholder() {
@@ -346,5 +364,24 @@ final class PhysioIconTextField: UIView {
             .font: textField.font ?? UIFont.systemFont(ofSize: 15, weight: .medium)
         ]
         textField.attributedPlaceholder = NSAttributedString(string: placeholder, attributes: attributes)
+    }
+
+    func setTrailingAccessory(_ view: UIView?) {
+        trailingAccessoryContainer.subviews.forEach { $0.removeFromSuperview() }
+        guard let view else {
+            trailingAccessoryWidthConstraint.constant = 0
+            return
+        }
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        trailingAccessoryContainer.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: trailingAccessoryContainer.topAnchor),
+            view.bottomAnchor.constraint(equalTo: trailingAccessoryContainer.bottomAnchor),
+            view.leadingAnchor.constraint(equalTo: trailingAccessoryContainer.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: trailingAccessoryContainer.trailingAnchor)
+        ])
+
+        trailingAccessoryWidthConstraint.constant = max(34, view.intrinsicContentSize.width)
     }
 }

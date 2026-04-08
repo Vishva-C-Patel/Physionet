@@ -8,6 +8,14 @@
 import UIKit
 
 final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewDelegate {
+    enum ValidationError: LocalizedError {
+        case message(String)
+        var errorDescription: String? {
+            switch self {
+            case .message(let text): return text
+            }
+        }
+    }
 
     // Replaced top bar with native navigation 
 
@@ -114,6 +122,74 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         )
     }
 
+    func validatedInput() throws -> PhysioProfileModel.UpdateInput {
+        let name = nameField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard name.count >= 2 else {
+            throw ValidationError.message("Full Name must be at least 2 characters.")
+        }
+        guard name.count <= 80 else {
+            throw ValidationError.message("Full Name is too long.")
+        }
+
+        let phoneRaw = phoneField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedPhone = try normalizedIndianPhone(phoneRaw)
+
+        let pincode = pincodeField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !pincode.isEmpty {
+            let pinDigits = pincode.filter { $0.isNumber }
+            guard pinDigits.count == 6 else {
+                throw ValidationError.message("Pincode must be 6 digits.")
+            }
+        }
+
+        let dobText = dobField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !dobText.isEmpty {
+            guard let dob = Self.dateFormatter.date(from: dobText) else {
+                throw ValidationError.message("Date of Birth must be in YYYY-MM-DD format.")
+            }
+            let age = Calendar.current.dateComponents([.year], from: dob, to: Date()).year ?? 0
+            guard age >= 18 else {
+                throw ValidationError.message("Physiotherapist must be at least 18 years old.")
+            }
+        }
+
+        let feeText = consultationFeeField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !feeText.isEmpty {
+            guard let fee = Double(feeText), fee >= 0, fee <= 100000 else {
+                throw ValidationError.message("Consultation Fee must be a valid amount between 0 and 100000.")
+            }
+        }
+
+        let expText = yearsExperienceField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !expText.isEmpty {
+            guard let exp = Int(expText), exp >= 0, exp <= 70 else {
+                throw ValidationError.message("Years of Experience must be a whole number between 0 and 70.")
+            }
+        }
+
+        let about = aboutField.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !about.isEmpty, about.count > 500 {
+            throw ValidationError.message("About section cannot exceed 500 characters.")
+        }
+
+        var input = currentInput()
+        input = PhysioProfileModel.UpdateInput(
+            name: name,
+            gender: input.gender,
+            location: input.location,
+            placeOfWork: input.placeOfWork.trimmingCharacters(in: .whitespacesAndNewlines),
+            phone: normalizedPhone ?? "",
+            dateOfBirth: dobText,
+            about: about,
+            yearsExperience: expText,
+            consultationFee: feeText,
+            latitude: input.latitude,
+            longitude: input.longitude,
+            profileImagePath: input.profileImagePath
+        )
+        return input
+    }
+
     func setSaving(_ saving: Bool) {
         // Saving state handled by view controller's navigation item
     }
@@ -192,9 +268,22 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         genderField.setInputView(genderPicker, toolbarTitle: "Select Gender")
         customGenderField.isHidden = true
         phoneField.textField.keyboardType = .phonePad
+        phoneField.textField.textContentType = .telephoneNumber
         consultationFeeField.textField.keyboardType = .decimalPad
+        consultationFeeField.textField.textContentType = .none
         yearsExperienceField.textField.keyboardType = .numberPad
+        yearsExperienceField.textField.textContentType = .none
         dobField.textField.keyboardType = .numbersAndPunctuation
+        nameField.textField.textContentType = .name
+        nameField.textField.autocapitalizationType = .words
+        placeOfWorkField.textField.textContentType = .organizationName
+        placeOfWorkField.textField.autocapitalizationType = .words
+        addressLine1Field.textField.textContentType = .fullStreetAddress
+        addressLine1Field.textField.autocapitalizationType = .words
+        addressLine2Field.textField.autocapitalizationType = .words
+        pincodeField.textField.keyboardType = .numberPad
+        pincodeField.textField.textContentType = .postalCode
+        aboutField.textField.autocapitalizationType = .sentences
         dobPicker.datePickerMode = .date
         dobPicker.preferredDatePickerStyle = .wheels
         dobPicker.maximumDate = Date()
@@ -261,5 +350,20 @@ final class PhysioEditProfileView: UIView, UIPickerViewDataSource, UIPickerViewD
         selectedGenderIndex = row
         customGenderField.isHidden = true
         customGenderField.text = ""
+    }
+
+    private func normalizedIndianPhone(_ raw: String) throws -> String? {
+        guard !raw.isEmpty else { return nil }
+        let digits = raw.filter { $0.isNumber }
+        let tenDigits: String
+        if digits.count > 10, digits.hasPrefix("91") {
+            tenDigits = String(digits.suffix(10))
+        } else {
+            tenDigits = digits
+        }
+        guard tenDigits.count == 10 else {
+            throw ValidationError.message("Phone number must be 10 digits.")
+        }
+        return "+91\(tenDigits)"
     }
 }

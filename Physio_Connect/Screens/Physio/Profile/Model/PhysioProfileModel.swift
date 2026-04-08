@@ -67,6 +67,7 @@ struct PhysioProfileModel {
             let gender: String?
             let location_text: String?
             let place_of_work: String?
+            let consultation_fee: Double?
             let phone: String?
             let date_of_birth: String?
             let profile_image_path: String?
@@ -76,23 +77,35 @@ struct PhysioProfileModel {
 
         let rows: [Row] = try await client
             .from("physiotherapists")
-            .select("id,name,email,gender,location_text,place_of_work,phone,date_of_birth,profile_image_path,about,years_experience")
+            .select("id,name,email,gender,location_text,place_of_work,consultation_fee,phone,date_of_birth,profile_image_path,about,years_experience")
             .eq("id", value: userID)
             .limit(1)
             .execute()
             .value
 
         let row = rows.first
-        let metadataAvatarURL = session.user.userMetadata["avatar_url"]?.stringValue
         let yearsText: String = {
             guard let value = row?.years_experience else { return "—" }
             return "\(value)"
         }()
         let aboutText = row?.about?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phoneText = row?.phone?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let placeText = row?.place_of_work?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let imagePath = row?.profile_image_path?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let feeText: String = {
+            guard let fee = row?.consultation_fee else { return "—" }
+            let rounded = Int(fee.rounded())
+            if abs(fee - Double(rounded)) < 0.001 {
+                return "₹\(rounded)/hr"
+            }
+            return String(format: "₹%.2f/hr", fee)
+        }()
         let data = ProfileViewData(
             name: row?.name ?? "Physiotherapist",
             email: row?.email ?? (session.user.email ?? "—"),
-            phone: row?.phone ?? row?.place_of_work ?? "—",
+            phone: phoneText?.isEmpty == false ? phoneText! : "—",
+            placeOfWork: placeText?.isEmpty == false ? placeText! : "—",
+            consultationFee: feeText,
             address: row?.location_text ?? "—",
             gender: row?.gender ?? "—",
             dateOfBirth: row?.date_of_birth ?? "—",
@@ -101,7 +114,7 @@ struct PhysioProfileModel {
             about: aboutText?.isEmpty == false ? aboutText! : "—",
             yearsExperience: yearsText,
             notificationsEnabled: true,
-            avatarURL: row?.profile_image_path ?? metadataAvatarURL ?? Self.cachedAvatarURL()
+            avatarURL: imagePath?.isEmpty == false ? imagePath : nil
         )
         Self.cacheAvatarURL(data.avatarURL)
         return data
