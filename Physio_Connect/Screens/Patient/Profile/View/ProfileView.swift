@@ -7,6 +7,11 @@
 
 import UIKit
 
+struct TimeSlotRange {
+    var startTime: Date
+    var endTime: Date
+}
+
 final class ProfileView: UIView {
 
     var onPrivacyTapped: (() -> Void)?
@@ -18,7 +23,7 @@ final class ProfileView: UIView {
     var onRefresh: (() -> Void)?
     var onSwitchRole: (() -> Void)?
     var onChangePassword: (() -> Void)?
-    var onAvailabilitySave: ((Date, Date, Date) -> Void)?
+    var onAvailabilitySave: ((Date, [TimeSlotRange]) -> Void)?
     var onAvatarTapped: (() -> Void)?
     private let switchRoleButton = UIButton(type: .system)
 
@@ -52,8 +57,9 @@ final class ProfileView: UIView {
     private let availabilityCard = UIView()
     private let availabilityStack = UIStackView()
     private let availabilityDatePicker = UIDatePicker()
-    private let availabilityStartPicker = UIDatePicker()
-    private let availabilityEndPicker = UIDatePicker()
+    private let timeSlotsStack = UIStackView()
+    private var timeSlotRows: [TimeSlotRowView] = []
+    private let addTimeSlotButton = UIButton(type: .system)
     private let availabilityHintLabel = UILabel()
     private let availabilitySaveButton = UIButton(type: .system)
     private var availabilityVisible = false
@@ -413,12 +419,20 @@ final class ProfileView: UIView {
         availabilityStack.translatesAutoresizingMaskIntoConstraints = false
 
         let dateRow = makeAvailabilityRow(title: "Date", picker: availabilityDatePicker, mode: .date)
-        let startRow = makeAvailabilityRow(title: "Start Time", picker: availabilityStartPicker, mode: .time)
-        let endRow = makeAvailabilityRow(title: "End Time", picker: availabilityEndPicker, mode: .time)
 
         availabilityDatePicker.minimumDate = Calendar.current.startOfDay(for: Date())
 
-        availabilityHintLabel.text = "Slots are created in 1-hour blocks."
+        timeSlotsStack.axis = .vertical
+        timeSlotsStack.spacing = 12
+        timeSlotsStack.translatesAutoresizingMaskIntoConstraints = false
+
+        addTimeSlotButton.setTitle("＋ Add Time Slot", for: .normal)
+        addTimeSlotButton.setTitleColor(UITheme.Colors.accent, for: .normal)
+        addTimeSlotButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        addTimeSlotButton.addTarget(self, action: #selector(addTimeSlotTapped), for: .touchUpInside)
+        addTimeSlotButton.translatesAutoresizingMaskIntoConstraints = false
+
+        availabilityHintLabel.text = "Add multiple time blocks for the same day."
         availabilityHintLabel.font = .systemFont(ofSize: 12, weight: .semibold)
         availabilityHintLabel.textColor = .secondaryLabel
         availabilityHintLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -437,8 +451,30 @@ final class ProfileView: UIView {
         availabilitySaveButton.translatesAutoresizingMaskIntoConstraints = false
 
         availabilityStack.addArrangedSubview(dateRow)
-        availabilityStack.addArrangedSubview(startRow)
-        availabilityStack.addArrangedSubview(endRow)
+        
+        let timeSlotsContainer = UIView()
+        timeSlotsContainer.translatesAutoresizingMaskIntoConstraints = false
+        timeSlotsContainer.addSubview(timeSlotsStack)
+        NSLayoutConstraint.activate([
+            timeSlotsStack.topAnchor.constraint(equalTo: timeSlotsContainer.topAnchor),
+            timeSlotsStack.leadingAnchor.constraint(equalTo: timeSlotsContainer.leadingAnchor, constant: 14),
+            timeSlotsStack.trailingAnchor.constraint(equalTo: timeSlotsContainer.trailingAnchor, constant: -14),
+            timeSlotsStack.bottomAnchor.constraint(equalTo: timeSlotsContainer.bottomAnchor)
+        ])
+        availabilityStack.addArrangedSubview(timeSlotsContainer)
+
+        let addSlotContainer = UIView()
+        addSlotContainer.translatesAutoresizingMaskIntoConstraints = false
+        addSlotContainer.addSubview(addTimeSlotButton)
+        NSLayoutConstraint.activate([
+            addTimeSlotButton.leadingAnchor.constraint(equalTo: addSlotContainer.leadingAnchor, constant: 14),
+            addTimeSlotButton.topAnchor.constraint(equalTo: addSlotContainer.topAnchor),
+            addTimeSlotButton.bottomAnchor.constraint(equalTo: addSlotContainer.bottomAnchor)
+        ])
+        availabilityStack.addArrangedSubview(addSlotContainer)
+
+        addTimeSlotTapped()
+
         let hintContainer = UIView()
         hintContainer.translatesAutoresizingMaskIntoConstraints = false
         hintContainer.addSubview(availabilityHintLabel)
@@ -671,8 +707,24 @@ final class ProfileView: UIView {
         onSwitchRole?()
     }
 
+    @objc private func addTimeSlotTapped() {
+        let row = TimeSlotRowView()
+        timeSlotsStack.addArrangedSubview(row)
+        timeSlotRows.append(row)
+        
+        row.onDelete = { [weak self, weak row] in
+            guard let self, let row else { return }
+            if self.timeSlotRows.count > 1 {
+                self.timeSlotsStack.removeArrangedSubview(row)
+                row.removeFromSuperview()
+                self.timeSlotRows.removeAll(where: { $0 === row })
+            }
+        }
+    }
+
     @objc private func saveAvailabilityTapped() {
-        onAvailabilitySave?(availabilityDatePicker.date, availabilityStartPicker.date, availabilityEndPicker.date)
+        let ranges = timeSlotRows.map { TimeSlotRange(startTime: $0.startPicker.date, endTime: $0.endPicker.date) }
+        onAvailabilitySave?(availabilityDatePicker.date, ranges)
     }
 
     @objc private func avatarTapped() {
@@ -681,6 +733,50 @@ final class ProfileView: UIView {
 
     
     
+}
+
+final class TimeSlotRowView: UIView {
+    let startPicker = UIDatePicker()
+    let endPicker = UIDatePicker()
+    let deleteBtn = UIButton(type: .system)
+    var onDelete: (() -> Void)?
+
+    init() {
+        super.init(frame: .zero)
+        
+        startPicker.datePickerMode = .time
+        startPicker.preferredDatePickerStyle = .compact
+        
+        endPicker.datePickerMode = .time
+        endPicker.preferredDatePickerStyle = .compact
+        
+        let toLabel = UILabel()
+        toLabel.text = "to"
+        toLabel.font = .systemFont(ofSize: 15)
+        toLabel.textColor = .secondaryLabel
+        
+        deleteBtn.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        deleteBtn.tintColor = .systemRed
+        deleteBtn.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+        
+        let stack = UIStackView(arrangedSubviews: [startPicker, toLabel, endPicker, deleteBtn])
+        stack.axis = .horizontal
+        stack.spacing = 8
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+    
+    @objc private func deleteTapped() { onDelete?() }
 }
 
 final class ProfileRowView: UIView {

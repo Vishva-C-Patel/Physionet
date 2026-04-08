@@ -8,7 +8,7 @@ import UIKit
 
 final class AppointmentDetailsView: UIView {
 
-    // MARK: - UI
+    private let backgroundGlow = AppBackgroundTopGlowView()
     private let scrollView = UIScrollView()
     private let contentView = UIView()
 
@@ -58,13 +58,25 @@ final class AppointmentDetailsView: UIView {
     private func build() {
         // Scroll
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
+        
         contentView.translatesAutoresizingMaskIntoConstraints = false
 
         addSubview(scrollView)
+        
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.insertSubview(backgroundGlow, at: 0)
+        
         scrollView.addSubview(contentView)
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            backgroundGlow.topAnchor.constraint(equalTo: scrollView.frameLayoutGuide.topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: scrollView.frameLayoutGuide.bottomAnchor),
+
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -99,22 +111,28 @@ final class AppointmentDetailsView: UIView {
         }
 
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        nameLabel.font = .boldSystemFont(ofSize: 18)
+        nameLabel.font = .systemFont(ofSize: 18, weight: .bold)
         nameLabel.textColor = .label
+        nameLabel.numberOfLines = 2
 
         ratingLabel.translatesAutoresizingMaskIntoConstraints = false
-        ratingLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        ratingLabel.font = .systemFont(ofSize: 14, weight: .semibold)
         ratingLabel.textColor = .secondaryLabel
 
         specLabel.translatesAutoresizingMaskIntoConstraints = false
-        specLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        specLabel.font = .systemFont(ofSize: 14, weight: .medium)
         specLabel.textColor = .secondaryLabel
 
         feeLabel.translatesAutoresizingMaskIntoConstraints = false
-        feeLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        feeLabel.font = .systemFont(ofSize: 14, weight: .semibold)
         feeLabel.textColor = UITheme.Colors.accent
 
-        [nameLabel, ratingLabel, specLabel, feeLabel].forEach { doctorCard.addSubview($0) }
+        let doctorInfoStack = UIStackView(arrangedSubviews: [nameLabel, ratingLabel, specLabel, feeLabel])
+        doctorInfoStack.translatesAutoresizingMaskIntoConstraints = false
+        doctorInfoStack.axis = .vertical
+        doctorInfoStack.spacing = 6
+        doctorInfoStack.alignment = .leading
+        doctorCard.addSubview(doctorInfoStack)
 
         actionStack.translatesAutoresizingMaskIntoConstraints = false
         actionStack.axis = .horizontal
@@ -188,7 +206,7 @@ final class AppointmentDetailsView: UIView {
         notesTextView.font = .systemFont(ofSize: 16)
         notesTextView.backgroundColor = UITheme.Colors.neutralFill
         notesTextView.layer.cornerRadius = 14
-        notesTextView.textContainerInset = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 48)
+        notesTextView.textContainerInset = UIEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
         notesCard.addSubview(notesTextView)
 
         // Layout
@@ -203,23 +221,11 @@ final class AppointmentDetailsView: UIView {
             avatarImageView.heightAnchor.constraint(equalToConstant: 84),
             avatarImageView.bottomAnchor.constraint(lessThanOrEqualTo: doctorCard.bottomAnchor, constant: -16),
 
-            nameLabel.topAnchor.constraint(equalTo: doctorCard.topAnchor, constant: 18),
-            nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 14),
-            nameLabel.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
+            doctorInfoStack.topAnchor.constraint(equalTo: doctorCard.topAnchor, constant: 18),
+            doctorInfoStack.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 14),
+            doctorInfoStack.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
 
-            ratingLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
-            ratingLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            ratingLabel.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
-
-            specLabel.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 6),
-            specLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            specLabel.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
-
-            feeLabel.topAnchor.constraint(equalTo: specLabel.bottomAnchor, constant: 8),
-            feeLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            feeLabel.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
-
-            actionStack.topAnchor.constraint(equalTo: feeLabel.bottomAnchor, constant: 10),
+            actionStack.topAnchor.constraint(equalTo: doctorInfoStack.bottomAnchor, constant: 12),
             actionStack.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
             actionStack.bottomAnchor.constraint(equalTo: doctorCard.bottomAnchor, constant: -16),
 
@@ -279,7 +285,14 @@ final class AppointmentDetailsView: UIView {
     // MARK: - Public
     func configure(with model: AppointmentDetailsModel) {
         nameLabel.text = model.physioName
-        ratingLabel.text = model.ratingText
+        
+        let attachment = NSTextAttachment()
+        attachment.image = UIImage(systemName: "star.fill")?.withTintColor(.systemYellow, renderingMode: .alwaysOriginal)
+        attachment.bounds = CGRect(x: 0, y: -2, width: 14, height: 14)
+        let attrString = NSMutableAttributedString(attachment: attachment)
+        attrString.append(NSAttributedString(string: "  \(model.ratingText)"))
+        ratingLabel.attributedText = attrString
+        
         specLabel.text = model.specializationText
         feeLabel.text = "Consultation fees:  \(model.feeText)"
 
@@ -287,7 +300,11 @@ final class AppointmentDetailsView: UIView {
         locationValueLabel.text = model.locationText
         statusValueLabel.text = model.statusText
 
-        notesTextView.text = model.sessionNotes.isEmpty ? "session details" : model.sessionNotes
+        if model.sessionNotes.isEmpty {
+            notesTextView.text = ""
+        } else {
+            notesTextView.text = model.sessionNotes
+        }
     }
 
     func setAvatarImage(_ image: UIImage?) {

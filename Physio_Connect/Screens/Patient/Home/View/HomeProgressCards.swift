@@ -16,6 +16,11 @@ final class HomePainTrendCardView: UIView {
     private let trendLabel = UILabel()
     private let chartView = LineChartView()
     private let yAxisStack = UIStackView()
+    private let titleHeaderStack = UIStackView()
+    let leftButton = UIButton(type: .system)
+    let rightButton = UIButton(type: .system)
+    var onPreviousTapped: (() -> Void)?
+    var onNextTapped: (() -> Void)?
     private let xAxisStack = UIStackView()
 
     override init(frame: CGRect) {
@@ -27,8 +32,8 @@ final class HomePainTrendCardView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(painSeries: [Int], averagePain: Double, percentChange: Int) {
-        let labels = rollingWeekdayLabels(count: painSeries.count)
+    func configure(painSeries: [Int], averagePain: Double, percentChange: Int, offsetWeeks: Int = 0) {
+        let labels = rollingWeekdayLabels(count: painSeries.count, offsetWeeks: offsetWeeks)
         chartView.configure(series: painSeries, maxValue: 10, lineColor: UIColor(hex: "EF4444"), labels: labels)
         updateXAxisLabels(labels)
         trendLabel.text = String(format: "%.1f", averagePain)
@@ -70,6 +75,22 @@ final class HomePainTrendCardView: UIView {
         trendLabel.font = .systemFont(ofSize: 14, weight: .bold)
         trendLabel.textAlignment = .right
 
+        titleHeaderStack.translatesAutoresizingMaskIntoConstraints = false
+        titleHeaderStack.axis = .horizontal
+        titleHeaderStack.spacing = 16
+        titleHeaderStack.alignment = .center
+
+        leftButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        leftButton.tintColor = .secondaryLabel
+        rightButton.setImage(UIImage(systemName: "chevron.right"), for: .normal)
+        rightButton.tintColor = .secondaryLabel
+
+        leftButton.addTarget(self, action: #selector(didTapLeft), for: .touchUpInside)
+        rightButton.addTarget(self, action: #selector(didTapRight), for: .touchUpInside)
+
+        titleHeaderStack.addArrangedSubview(leftButton)
+        titleHeaderStack.addArrangedSubview(rightButton)
+
         yAxisStack.translatesAutoresizingMaskIntoConstraints = false
         yAxisStack.axis = .vertical
         yAxisStack.alignment = .leading
@@ -90,12 +111,13 @@ final class HomePainTrendCardView: UIView {
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
         xAxisStack.axis = .horizontal
         xAxisStack.distribution = .equalSpacing
-        updateXAxisLabels(rollingWeekdayLabels(count: 7))
+        updateXAxisLabels(rollingWeekdayLabels(count: 7, offsetWeeks: 0))
 
         container.addSubview(iconWrap)
         container.addSubview(titleLabel)
         container.addSubview(subtitleLabel)
         container.addSubview(trendLabel)
+        container.addSubview(titleHeaderStack)
         container.addSubview(yAxisStack)
         container.addSubview(chartView)
         container.addSubview(xAxisStack)
@@ -121,7 +143,10 @@ final class HomePainTrendCardView: UIView {
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
 
             trendLabel.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            trendLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            trendLabel.trailingAnchor.constraint(equalTo: titleHeaderStack.leadingAnchor, constant: -16),
+            
+            titleHeaderStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            titleHeaderStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
 
             yAxisStack.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
             yAxisStack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
@@ -139,6 +164,9 @@ final class HomePainTrendCardView: UIView {
         ])
     }
 
+    @objc private func didTapLeft() { onPreviousTapped?() }
+    @objc private func didTapRight() { onNextTapped?() }
+
     private func updateXAxisLabels(_ labels: [String]) {
         xAxisStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         labels.forEach { text in
@@ -150,13 +178,14 @@ final class HomePainTrendCardView: UIView {
         }
     }
 
-    private func rollingWeekdayLabels(count: Int) -> [String] {
+    private func rollingWeekdayLabels(count: Int, offsetWeeks: Int) -> [String] {
         let calendar = Calendar.current
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = Locale.current
         formatter.dateFormat = "EEE"
-        let today = calendar.startOfDay(for: Date())
+        let currentDayRaw = calendar.startOfDay(for: Date())
+        let today = calendar.date(byAdding: .day, value: -(offsetWeeks * 7), to: currentDayRaw) ?? currentDayRaw
         let safeCount = max(count, 1)
         return (0..<safeCount).map { offset in
             let shift = offset - (safeCount - 1)
@@ -173,6 +202,11 @@ final class HomeAdherenceCardView: UIView {
     private let subtitleLabel = UILabel()
     private let chartView = LineChartView()
     private let yAxisStack = UIStackView()
+    private let titleHeaderStack = UIStackView()
+    let leftButton = UIButton(type: .system)
+    let rightButton = UIButton(type: .system)
+    var onPreviousTapped: (() -> Void)?
+    var onNextTapped: (() -> Void)?
     private let xAxisStack = UIStackView()
 
     override init(frame: CGRect) {
@@ -184,9 +218,9 @@ final class HomeAdherenceCardView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(adherenceSeries: [Int], weeklyPercent: Int) {
+    func configure(adherenceSeries: [Int], weeklyPercent: Int, offsetWeeks: Int = 0) {
         percentLabel.text = "\(weeklyPercent)%"
-        let labels = rollingWeekLabels(count: adherenceSeries.count)
+        let labels = rollingWeekLabels(count: adherenceSeries.count, offsetWeeks: offsetWeeks)
         chartView.configure(series: adherenceSeries, maxValue: 100, lineColor: UIColor(hex: "0EA5E9"), labels: labels)
         updateXAxisLabels(labels)
     }
@@ -217,6 +251,22 @@ final class HomeAdherenceCardView: UIView {
         subtitleLabel.font = .systemFont(ofSize: 14, weight: .medium)
         subtitleLabel.textColor = .secondaryLabel
 
+        titleHeaderStack.translatesAutoresizingMaskIntoConstraints = false
+        titleHeaderStack.axis = .horizontal
+        titleHeaderStack.spacing = 16
+        titleHeaderStack.alignment = .center
+
+        leftButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        leftButton.tintColor = .secondaryLabel
+        rightButton.setImage(UIImage(systemName: "chevron.right"), for: .normal)
+        rightButton.tintColor = .secondaryLabel
+
+        leftButton.addTarget(self, action: #selector(didTapLeft), for: .touchUpInside)
+        rightButton.addTarget(self, action: #selector(didTapRight), for: .touchUpInside)
+
+        titleHeaderStack.addArrangedSubview(leftButton)
+        titleHeaderStack.addArrangedSubview(rightButton)
+
         yAxisStack.translatesAutoresizingMaskIntoConstraints = false
         yAxisStack.axis = .vertical
         yAxisStack.alignment = .leading
@@ -237,9 +287,10 @@ final class HomeAdherenceCardView: UIView {
         xAxisStack.translatesAutoresizingMaskIntoConstraints = false
         xAxisStack.axis = .horizontal
         xAxisStack.distribution = .equalSpacing
-        updateXAxisLabels(rollingWeekLabels(count: 6))
+        updateXAxisLabels(rollingWeekLabels(count: 6, offsetWeeks: 0))
 
         container.addSubview(titleLabel)
+        container.addSubview(titleHeaderStack)
         container.addSubview(percentLabel)
         container.addSubview(subtitleLabel)
         container.addSubview(yAxisStack)
@@ -254,6 +305,9 @@ final class HomeAdherenceCardView: UIView {
 
             titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+            
+            titleHeaderStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            titleHeaderStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
 
             percentLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             percentLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
@@ -276,6 +330,9 @@ final class HomeAdherenceCardView: UIView {
             xAxisStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
         ])
     }
+    
+    @objc private func didTapLeft() { onPreviousTapped?() }
+    @objc private func didTapRight() { onNextTapped?() }
 
     private func updateXAxisLabels(_ labels: [String]) {
         xAxisStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -288,9 +345,10 @@ final class HomeAdherenceCardView: UIView {
         }
     }
 
-    private func rollingWeekLabels(count: Int) -> [String] {
+    private func rollingWeekLabels(count: Int, offsetWeeks: Int) -> [String] {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let currentDayRaw = calendar.startOfDay(for: Date())
+        let today = calendar.date(byAdding: .day, value: -(offsetWeeks * 7), to: currentDayRaw) ?? currentDayRaw
         let safeCount = max(count, 1)
         return (0..<safeCount).map { offset in
             let shift = offset - (safeCount - 1)

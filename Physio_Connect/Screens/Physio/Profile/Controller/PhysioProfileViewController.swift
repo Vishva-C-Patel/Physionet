@@ -33,8 +33,9 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
         profileView.onRefresh = { [weak self] in Task { await self?.loadProfile() } }
         profileView.onAvatarTapped = { [weak self] in self?.presentAvatarPicker() }
         profileView.setAvailabilityVisible(true)
-        profileView.onAvailabilitySave = { [weak self] day, start, end in
-            self?.presentRepeatPicker(for: day, start: start, end: end)
+        profileView.onAvailabilitySave = { [weak self] day, ranges in
+            guard !ranges.isEmpty else { return }
+            self?.presentRepeatPicker(for: day, ranges: ranges)
         }
 
         profileView.setLoggedIn(true)
@@ -108,14 +109,14 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
         }
     }
 
-    private func presentRepeatPicker(for day: Date, start: Date, end: Date) {
+    private func presentRepeatPicker(for day: Date, ranges: [TimeSlotRange]) {
         let weekday = Calendar.current.component(.weekday, from: day) - 1
         let controller = RepeatSelectionViewController(
             selectedDate: day,
             initialWeekdays: [weekday]
         )
         controller.onSave = { [weak self] repeatWeekdays, isSingleDate in
-            self?.saveAvailability(day: day, start: start, end: end, repeatWeekdays: repeatWeekdays, isSingleDate: isSingleDate)
+            self?.saveAvailability(day: day, ranges: ranges, repeatWeekdays: repeatWeekdays, isSingleDate: isSingleDate)
         }
         controller.onCancel = { [weak self] in
             self?.profileView.setAvailabilitySaving(false)
@@ -123,17 +124,16 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
         present(controller, animated: true)
     }
 
-    private func saveAvailability(day: Date, start: Date, end: Date, repeatWeekdays: [Int], isSingleDate: Bool) {
+    private func saveAvailability(day: Date, ranges: [TimeSlotRange], repeatWeekdays: [Int], isSingleDate: Bool) {
         profileView.setAvailabilitySaving(true)
         Task {
             do {
                 let session = try await SupabaseManager.shared.client.auth.session
                 let physioID = session.user.id
-                let result = try await availabilityModel.saveAvailability(
+                let result = try await availabilityModel.saveMultiSlotAvailability(
                     physioID: physioID,
                     day: day,
-                    startTime: start,
-                    endTime: end,
+                    ranges: ranges,
                     repeatWeekdays: isSingleDate ? [] : repeatWeekdays
                 )
                 await MainActor.run {

@@ -75,7 +75,15 @@ final class PhysioAppointmentsView: UIView {
         tableView.showsVerticalScrollIndicator = false
         tableView.register(PhysioAppointmentCell.self, forCellReuseIdentifier: "PhysioAppointmentCell")
         tableView.contentInsetAdjustmentBehavior = .always
-        tableView.backgroundView = backgroundGlow
+        
+        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
+        tableView.insertSubview(backgroundGlow, at: 0)
+        NSLayoutConstraint.activate([
+            backgroundGlow.topAnchor.constraint(equalTo: tableView.frameLayoutGuide.topAnchor),
+            backgroundGlow.leadingAnchor.constraint(equalTo: tableView.frameLayoutGuide.leadingAnchor),
+            backgroundGlow.trailingAnchor.constraint(equalTo: tableView.frameLayoutGuide.trailingAnchor),
+            backgroundGlow.bottomAnchor.constraint(equalTo: tableView.frameLayoutGuide.bottomAnchor)
+        ])
 
         // Build table header with search + segment so tableView can be
         // pinned to topAnchor — enabling the native hovering-title glass nav bar.

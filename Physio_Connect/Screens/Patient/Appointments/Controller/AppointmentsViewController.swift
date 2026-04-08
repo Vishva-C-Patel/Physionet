@@ -79,7 +79,7 @@ final class AppointmentsViewController: UIViewController {
 
         apptView.onRescheduleTapped = { [weak self] vm in
             guard let self else { return }
-            let vc = PhysiotherapistProfileViewController(physioID: vm.physioID, preloadCard: nil, isReschedule: true)
+            let vc = BookHomeVisitViewController(physioID: vm.physioID, isReschedule: true)
             vc.hidesBottomBarWhenPushed = true
             self.navigationController?.pushViewController(vc, animated: true)
         }

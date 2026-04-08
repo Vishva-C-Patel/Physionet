@@ -46,6 +46,11 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Reset tab bar state in case search was active during a push/pop
+        if !searchController.isActive {
+            tabBarController?.tabBar.transform = .identity
+            tabBarController?.tabBar.alpha = 1
+        }
         loadProfileAvatar()
     }
 
@@ -104,8 +109,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         defer { isLoading = false }
 
         do {
-            let session = try await SupabaseManager.shared.client.auth.session
-            let id = session.user.id.uuidString
+            let id = try await model.resolvePhysioID()
             physioID = id
 
             let rows = try await model.fetchAppointments(physioID: id)
@@ -116,7 +120,18 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
             }
         } catch {
             await MainActor.run {
-                self.allAppointments = []
+                self.allAppointments = [
+                    PhysioAppointmentsView.AppointmentVM(
+                        id: UUID(),
+                        status: .upcoming,
+                        title: "Fetch Error",
+                        patientName: error.localizedDescription,
+                        timeText: "TBD",
+                        durationText: "TBD",
+                        locationText: "Debug",
+                        isActionable: false
+                    )
+                ]
                 self.applyFilters()
             }
         }
@@ -186,10 +201,31 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
 
     // MARK: - UITableView
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        filteredAppointments.count
+        return max(1, filteredAppointments.count)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if filteredAppointments.isEmpty {
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            cell.selectionStyle = .none
+            cell.backgroundColor = .clear
+            
+            let label = UILabel()
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.text = "No appointments found."
+            label.textColor = .secondaryLabel
+            label.font = .systemFont(ofSize: 16, weight: .medium)
+            label.textAlignment = .center
+            
+            cell.contentView.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
+                label.topAnchor.constraint(equalTo: cell.contentView.topAnchor, constant: 60),
+                label.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor, constant: -60)
+            ])
+            return cell
+        }
+        
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "PhysioAppointmentCell", for: indexPath) as? PhysioAppointmentCell else {
             return UITableViewCell()
         }
@@ -223,14 +259,13 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
     func willPresentSearchController(_ searchController: UISearchController) {
         UIView.animate(withDuration: 0.3) {
             self.tabBarController?.tabBar.alpha = 0
-            self.tabBarController?.tabBar.transform = CGAffineTransform(translationX: 0, y: 100)
         }
     }
 
-    func willDismissSearchController(_ searchController: UISearchController) {
+    func didDismissSearchController(_ searchController: UISearchController) {
+        self.tabBarController?.tabBar.transform = .identity
         UIView.animate(withDuration: 0.3) {
             self.tabBarController?.tabBar.alpha = 1
-            self.tabBarController?.tabBar.transform = .identity
         }
     }
 }

@@ -38,7 +38,7 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
         UITheme.applyNativeNavBar(to: self, title: "Create Account")
         bind()
         applyAppointmentBanner()
-        addKeyboardDismissTap()
+        enableTapToDismissKeyboard()
     }
 
     private func bind() {
@@ -329,15 +329,7 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
     }
 
     // MARK: - Helpers
-    private func addKeyboardDismissTap() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(endEditingNow))
-        tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
-    }
 
-    @objc private func endEditingNow() {
-        view.endEditing(true)
-    }
 
     private func showAlert(title: String, message: String) {
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)

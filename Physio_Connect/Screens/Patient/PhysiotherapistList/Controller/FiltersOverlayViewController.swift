@@ -104,7 +104,7 @@ final class FiltersOverlayViewController: UIViewController {
         // ================= Cards =================
         let specialityCard = makeCardSection(
             title: "Speciality",
-            items: ["Knee Physiotherapy", "Neck Physiotherapy", "Shoulder Physiotherapy"],
+            items: ["Knee", "Back", "Shoulder", "Neck"],
             storage: &specialityButtons
         )
 

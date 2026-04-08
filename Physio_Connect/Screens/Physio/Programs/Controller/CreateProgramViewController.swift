@@ -34,6 +34,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: "Create New Program")
         view.backgroundColor = UITheme.Colors.background
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -108,7 +109,7 @@ final class CreateProgramViewController: UIViewController, UITableViewDataSource
 
     private func buildBottomBar() {
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
-        bottomBar.backgroundColor = .secondarySystemGroupedBackground
+        bottomBar.backgroundColor = .clear
 
         var cancelConfig = UIButton.Configuration.tinted()
         cancelConfig.title = "Cancel"
@@ -653,6 +654,7 @@ final class ExercisePickerViewController: UIViewController, UITableViewDataSourc
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         title = "Select Exercise"
         view.backgroundColor = UITheme.Colors.background
         navigationItem.rightBarButtonItem = UIBarButtonItem(

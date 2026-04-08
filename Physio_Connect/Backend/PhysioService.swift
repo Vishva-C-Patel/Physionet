@@ -128,22 +128,41 @@ extension PhysioService {
             .value
     }
 
-    func fetchAvailablePhysioIDs(at date: Date) async throws -> Set<UUID> {
+    func fetchAvailablePhysioIDs(at date: Date, physioIDs: [UUID]? = nil) async throws -> Set<UUID> {
+        // [MOD] Batch generate slots for search window before querying
+        if let ids = physioIDs, !ids.isEmpty {
+            await withTaskGroup(of: Void.self) { group in
+                for id in ids {
+                    group.addTask {
+                        try? await self.generateSlotsForDateIfNeeded(physioID: id, date: date)
+                    }
+                }
+            }
+        }
+
         struct AvailabilityRow: Decodable { let physio_id: UUID }
+
+        // Query for ANY available slot on the selected calendar day (not exact timestamp)
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone.current
+        let startOfDay = cal.startOfDay(for: date)
+        guard let endOfDay = cal.date(byAdding: .day, value: 1, to: startOfDay) else { return [] }
 
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let value = f.string(from: date)
 
-        let rows: [AvailabilityRow] = try await client
+        var query = client
             .from("physio_availability_slots")
             .select("physio_id")
             .eq("is_booked", value: false)
-            .lte("start_time", value: value)
-            .gt("end_time", value: value)
-            .execute()
-            .value
+            .gte("start_time", value: f.string(from: startOfDay))
+            .lt("start_time", value: f.string(from: endOfDay))
 
+        if let ids = physioIDs {
+            query = query.in("physio_id", values: ids.map { $0.uuidString })
+        }
+
+        let rows: [AvailabilityRow] = try await query.execute().value
         return Set(rows.map(\.physio_id))
     }
 

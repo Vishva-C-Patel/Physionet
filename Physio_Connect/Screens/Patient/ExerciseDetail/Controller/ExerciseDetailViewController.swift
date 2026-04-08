@@ -93,6 +93,7 @@ final class ExerciseDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        enableTapToDismissKeyboard()
         UITheme.applyNativeNavBar(to: self, title: headerTitleText)
         // Custom back — saves progress before popping
         navigationItem.leftBarButtonItem = UIBarButtonItem(
@@ -458,7 +459,7 @@ final class NextUpCell: UICollectionViewCell {
         playIcon.tintColor = UITheme.Colors.accent
         
         titleLabel.textColor = .label
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        subtitleLabel.textColor = .secondaryLabel
     }
 
     func configure(title: String, subtitle: String, locked: Bool) {
@@ -466,16 +467,16 @@ final class NextUpCell: UICollectionViewCell {
         subtitleLabel.text = subtitle
         if locked {
             playIcon.image = UIImage(systemName: "lock.fill")
-            playIcon.tintColor = UIColor.black.withAlphaComponent(0.35)
+            playIcon.tintColor = .tertiaryLabel
             imageView.alpha = 0.5
-            titleLabel.textColor = UIColor.black.withAlphaComponent(0.5)
-            subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.35)
+            titleLabel.textColor = .secondaryLabel
+            subtitleLabel.textColor = .tertiaryLabel
         } else {
             playIcon.image = UIImage(systemName: "play.fill")
             playIcon.tintColor = UITheme.Colors.accent
             
             titleLabel.textColor = .label
-            subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+            subtitleLabel.textColor = .secondaryLabel
         }
     }
 
@@ -487,7 +488,7 @@ final class NextUpCell: UICollectionViewCell {
         contentView.backgroundColor = .clear
 
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
+        card.backgroundColor = UITheme.Colors.surface
         card.layer.cornerRadius = 16
         card.layer.shadowColor = UIColor.black.cgColor
         card.layer.shadowOpacity = 0.06
@@ -503,7 +504,7 @@ final class NextUpCell: UICollectionViewCell {
 
         playIcon.translatesAutoresizingMaskIntoConstraints = false
         playIcon.image = UIImage(systemName: "play.fill")
-        playIcon.backgroundColor = .white
+        playIcon.backgroundColor = UITheme.Colors.surface
         playIcon.layer.cornerRadius = 16
         playIcon.layer.masksToBounds = true
 
@@ -514,7 +515,7 @@ final class NextUpCell: UICollectionViewCell {
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.font = .systemFont(ofSize: 11, weight: .regular)
-        subtitleLabel.textColor = UIColor.black.withAlphaComponent(0.6)
+        subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.numberOfLines = 2
 
         contentView.addSubview(card)

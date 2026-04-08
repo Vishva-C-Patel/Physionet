@@ -23,6 +23,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
     private var programExercises: [MyProgramExerciseRow] = []
     private var articles: [ArticleRow] = []
     private var selectedArticlesSort: ArticleSort = .recent
+    private var currentProgressOffsetWeeks: Int = 0
     private let itemsPerDay = 2
     private let homeArticleLimit = 3
 
@@ -53,6 +54,13 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             self.navigationController?.pushViewController(vc, animated: true)
         }
 
+        homeView.painCard.onPreviousTapped = { [weak self] in self?.shiftProgressOffset(by: 1) }
+        homeView.painCard.onNextTapped = { [weak self] in self?.shiftProgressOffset(by: -1) }
+        homeView.adherenceCard.onPreviousTapped = { [weak self] in self?.shiftProgressOffset(by: 1) }
+        homeView.adherenceCard.onNextTapped = { [weak self] in self?.shiftProgressOffset(by: -1) }
+        
+        updateProgressNavButtons()
+
         homeView.upNextCard.primaryButton.addTarget(self, action: #selector(startNextExercise), for: .touchUpInside)
 
         locationService.onLocationUpdate = { [weak self] name, _ in
@@ -78,6 +86,19 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
         super.viewWillDisappear(animated)
         upcomingTimer?.invalidate()
         upcomingTimer = nil
+    }
+
+    private func shiftProgressOffset(by delta: Int) {
+        currentProgressOffsetWeeks += delta
+        if currentProgressOffsetWeeks < 0 { currentProgressOffsetWeeks = 0 }
+        updateProgressNavButtons()
+        Task { await refreshCards() }
+    }
+
+    private func updateProgressNavButtons() {
+        let enableNext = currentProgressOffsetWeeks > 0
+        homeView.painCard.rightButton.isEnabled = enableNext
+        homeView.adherenceCard.rightButton.isEnabled = enableNext
     }
 
     private func refreshCards() async {
@@ -111,7 +132,7 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             programRows = (try? await videosModel.fetchMyProgramExercises()) ?? []
             nextExercise = try? await resolveNextExercise(from: programRows)
             let programID = programRows.first?.program_id
-            progress = (try? await model.fetchProgressSummary(programID: programID)) ?? emptyProgress
+            progress = (try? await model.fetchProgressSummary(programID: programID, offsetWeeks: currentProgressOffsetWeeks)) ?? emptyProgress
         }
 
         await MainActor.run {
@@ -123,11 +144,13 @@ final class HomeViewController: UIViewController, UICollectionViewDataSource, UI
             self.homeView.painCard.configure(
                 painSeries: progress.painSeries,
                 averagePain: progress.averagePain,
-                percentChange: progress.painDeltaPercent
+                percentChange: progress.painDeltaPercent,
+                offsetWeeks: self.currentProgressOffsetWeeks
             )
             self.homeView.adherenceCard.configure(
                 adherenceSeries: progress.adherenceSeries,
-                weeklyPercent: progress.weeklyAdherencePercent
+                weeklyPercent: progress.weeklyAdherencePercent,
+                offsetWeeks: self.currentProgressOffsetWeeks
             )
             self.programExercises = programRows
             self.nextProgramExercise = nextExercise
