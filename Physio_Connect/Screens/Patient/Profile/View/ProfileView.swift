@@ -48,6 +48,15 @@ final class ProfileView: UIView {
     private let aboutRow = ProfileRowView(title: "About")
     private let genderRow = ProfileRowView(title: "Gender")
     private let dobRow = ProfileRowView(title: "Date of Birth")
+    private let personalSep1 = UIView()
+    private let personalSep2 = UIView()
+    private let personalSep2Alt = UIView()
+    private let personalSep3 = UIView()
+    private let personalSep4 = UIView()
+    private let personalSep5 = UIView()
+    private let personalSep6 = UIView()
+    private let personalSep7 = UIView()
+    private let personalSep8 = UIView()
 
     private let addressRow = ProfileRowView(title: "Address")
     private let pincodeRow = ProfileRowView(title: "Pincode")
@@ -75,6 +84,7 @@ final class ProfileView: UIView {
 
     private var currentAvatarURL: String?
     private static let avatarImageCache = NSCache<NSString, UIImage>()
+    private var isProfessionalFieldsVisible = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -201,6 +211,7 @@ final class ProfileView: UIView {
         buildAvailability()
         buildPrivacy()
         buildSignOut()
+        setProfessionalProfileFieldsVisible(false)
     }
 
     private func buildHeader() {
@@ -357,21 +368,26 @@ final class ProfileView: UIView {
         let card = makeCardView()
         let stack = makeCardStack()
 
+        [personalSep1, personalSep2, personalSep2Alt, personalSep3, personalSep4, personalSep5, personalSep6, personalSep7, personalSep8]
+            .forEach { configureSeparator($0) }
+
         stack.addArrangedSubview(emailRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep1)
         stack.addArrangedSubview(phoneRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep2)
+        stack.addArrangedSubview(personalSep2Alt)
         stack.addArrangedSubview(placeOfWorkRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep3)
         stack.addArrangedSubview(consultationFeeRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep4)
         stack.addArrangedSubview(yearsExperienceRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep5)
         stack.addArrangedSubview(aboutRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep6)
         stack.addArrangedSubview(genderRow)
-        stack.addArrangedSubview(makeSeparator())
+        stack.addArrangedSubview(personalSep7)
         stack.addArrangedSubview(dobRow)
+        stack.addArrangedSubview(personalSep8)
 
         card.addSubview(stack)
         pinCardStack(stack, to: card)
@@ -673,10 +689,16 @@ final class ProfileView: UIView {
 
     private func makeSeparator() -> UIView {
         let sep = UIView()
+        configureSeparator(sep)
+        return sep
+    }
+
+    private func configureSeparator(_ sep: UIView) {
         sep.backgroundColor = .separator
         sep.translatesAutoresizingMaskIntoConstraints = false
-        sep.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        return sep
+        if sep.constraints.isEmpty {
+            sep.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        }
     }
 
     private func makeSectionLabel(_ text: String) -> UILabel {
@@ -691,6 +713,22 @@ final class ProfileView: UIView {
         availabilityVisible = visible
         availabilitySectionLabel.isHidden = !visible
         availabilityCard.isHidden = !visible
+    }
+
+    func setProfessionalProfileFieldsVisible(_ visible: Bool) {
+        isProfessionalFieldsVisible = visible
+        placeOfWorkRow.isHidden = !visible
+        consultationFeeRow.isHidden = !visible
+        yearsExperienceRow.isHidden = !visible
+        aboutRow.isHidden = !visible
+
+        personalSep2.isHidden = !visible
+        personalSep3.isHidden = !visible
+        personalSep4.isHidden = !visible
+        personalSep5.isHidden = !visible
+        personalSep6.isHidden = !visible
+        personalSep2Alt.isHidden = visible
+        personalSep8.isHidden = true
     }
 
     func setAvailabilitySaving(_ saving: Bool) {

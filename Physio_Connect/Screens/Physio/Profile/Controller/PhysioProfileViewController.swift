@@ -21,6 +21,7 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
     override func viewDidLoad() {
         super.viewDidLoad()
         UITheme.applyNativeNavBar(to: self, title: "Profile")
+        profileView.setProfessionalProfileFieldsVisible(true)
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Edit",
             style: .plain,

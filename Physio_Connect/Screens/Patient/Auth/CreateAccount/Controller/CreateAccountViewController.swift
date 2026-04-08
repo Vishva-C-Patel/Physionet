@@ -66,8 +66,13 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func applyAppointmentBanner() {
-        let appt = model.appointment
-        createView.savedLine1.text = "\(appt.dateText) at \(appt.timeText)"
+        createView.configure(context: model.context)
+        switch model.context {
+        case .booking(let appt):
+            createView.savedLine1.text = "\(appt.dateText) at \(appt.timeText)"
+        case .standard:
+            createView.savedLine1.text = "—"
+        }
     }
 
     // MARK: - Actions

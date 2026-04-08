@@ -21,6 +21,7 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
         UITheme.applyNativeNavBar(to: self, title: "Profile")
+        profileView.setProfessionalProfileFieldsVisible(false)
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "Edit",
@@ -177,13 +178,7 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
     }
 
     private func showSignup() {
-        let signupDraft = AppointmentDraft(
-            dateText: "—",
-            timeText: "—",
-            therapistName: "Physiotherapist",
-            addressText: "—"
-        )
-        let model = CreateAccountModel(appointment: signupDraft)
+        let model = CreateAccountModel(context: .standard)
         let vc = CreateAccountViewController(model: model)
         vc.onSignupComplete = { [weak self] in
             self?.navigationController?.popViewController(animated: true)

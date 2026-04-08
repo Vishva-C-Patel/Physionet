@@ -16,5 +16,18 @@ struct AppointmentDraft {
 }
 
 struct CreateAccountModel {
-    let appointment: AppointmentDraft
+    enum SignupContext {
+        case booking(AppointmentDraft)
+        case standard
+    }
+
+    let context: SignupContext
+
+    init(context: SignupContext) {
+        self.context = context
+    }
+
+    init(appointment: AppointmentDraft) {
+        self.context = .booking(appointment)
+    }
 }

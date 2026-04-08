@@ -90,6 +90,19 @@ final class CreateAccountView: UIView {
         isTermsChecked = checked
     }
 
+    func configure(context: CreateAccountModel.SignupContext) {
+        switch context {
+        case .booking:
+            savedCard.isHidden = false
+            benefitsGrid.isHidden = false
+            createAccountButton.setTitle("Create Account & Confirm Booking", for: .normal)
+        case .standard:
+            savedCard.isHidden = true
+            benefitsGrid.isHidden = true
+            createAccountButton.setTitle("Create Account", for: .normal)
+        }
+    }
+
     // MARK: - UI
     private func build() {
         // Scroll
@@ -642,4 +655,3 @@ final class IconTextField: UIView {
         ])
     }
 }
-
