@@ -48,6 +48,7 @@ struct PhysioListRow: Decodable {
     let id: UUID
     let name: String
     let gender: String?
+    let place_of_work: String?
     let consultation_fee: Double?
     let latitude: Double?
     let longitude: Double?
@@ -111,6 +112,7 @@ extension PhysioService {
                 id,
                 name,
                 gender,
+                place_of_work,
                 consultation_fee,
                 latitude,
                 longitude,

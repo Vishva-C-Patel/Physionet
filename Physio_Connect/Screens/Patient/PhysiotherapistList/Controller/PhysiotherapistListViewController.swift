@@ -102,6 +102,9 @@ final class PhysiotherapistListViewController: UIViewController {
         ?? "Physiotherapy specialist"
 
 
+        let placeOfWork = p.place_of_work?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let placeOfWorkText = (placeOfWork?.isEmpty == false) ? (placeOfWork ?? "") : "Workplace not provided"
+
         return PhysiotherapistCardModel(
             id: p.id,
             name: p.name,
@@ -112,6 +115,7 @@ final class PhysiotherapistListViewController: UIViewController {
             feeText: feeText,
             profileImagePath: p.profile_image_path,
             profileImageVersion: p.updated_at,
+            placeOfWorkText: placeOfWorkText,
             latitude: p.latitude,
             longitude: p.longitude,
             distanceText: "Calculating..."
@@ -273,6 +277,7 @@ final class PhysiotherapistListViewController: UIViewController {
             list = list.filter {
                 $0.name.lowercased().contains(trimmedQuery) ||
                 $0.specializationText.lowercased().contains(trimmedQuery) ||
+                $0.placeOfWorkText.lowercased().contains(trimmedQuery) ||
                 $0.distanceText.lowercased().contains(trimmedQuery)
             }
         }

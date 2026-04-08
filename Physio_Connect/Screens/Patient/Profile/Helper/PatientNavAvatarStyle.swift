@@ -112,11 +112,17 @@ enum PatientNavAvatarStyle {
         button.contentEdgeInsets = .zero
         button.imageEdgeInsets = .zero
 
-        if button.constraints.isEmpty {
-            NSLayoutConstraint.activate([
-                button.widthAnchor.constraint(equalToConstant: size),
-                button.heightAnchor.constraint(equalToConstant: size)
-            ])
+        let ownConstraints = button.constraints
+        if let width = ownConstraints.first(where: { $0.firstAttribute == .width && $0.firstItem as? UIButton === button }) {
+            width.constant = size
+        } else {
+            button.widthAnchor.constraint(equalToConstant: size).isActive = true
+        }
+
+        if let height = ownConstraints.first(where: { $0.firstAttribute == .height && $0.firstItem as? UIButton === button }) {
+            height.constant = size
+        } else {
+            button.heightAnchor.constraint(equalToConstant: size).isActive = true
         }
     }
 

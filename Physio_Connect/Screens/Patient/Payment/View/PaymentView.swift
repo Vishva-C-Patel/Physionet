@@ -362,7 +362,7 @@ final class PaymentView: UIView {
 
         // Pay button
         payButton.translatesAutoresizingMaskIntoConstraints = false
-        payButton.setTitle("Pay & Confirm Booking", for: .normal)
+        payButton.setTitle("Confirm Booking", for: .normal)
         payButton.setTitleColor(.white, for: .normal)
         payButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
         

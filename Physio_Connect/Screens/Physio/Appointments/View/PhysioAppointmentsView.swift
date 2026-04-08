@@ -52,9 +52,11 @@ final class PhysioAppointmentsView: UIView {
     }
 
     let segmentControl = UISegmentedControl(items: ["All", "Upcoming", "Completed"])
+    let searchBar = UISearchBar()
     let tableView = UITableView(frame: .zero, style: .plain)
 
     private let backgroundGlow = AppBackgroundTopGlowView()
+    private let headerContainer = UIView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -69,31 +71,34 @@ final class PhysioAppointmentsView: UIView {
         segmentControl.selectedSegmentIndex = 0
         UITheme.applySegmentedStyle(segmentControl)
 
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        searchBar.searchBarStyle = .minimal
+        searchBar.placeholder = "Search patients or sessions..."
+        searchBar.autocapitalizationType = .none
+        searchBar.autocorrectionType = .no
+
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         tableView.showsVerticalScrollIndicator = false
         tableView.register(PhysioAppointmentCell.self, forCellReuseIdentifier: "PhysioAppointmentCell")
         tableView.contentInsetAdjustmentBehavior = .always
-        
-        backgroundGlow.translatesAutoresizingMaskIntoConstraints = false
-        tableView.insertSubview(backgroundGlow, at: 0)
-        NSLayoutConstraint.activate([
-            backgroundGlow.topAnchor.constraint(equalTo: tableView.frameLayoutGuide.topAnchor),
-            backgroundGlow.leadingAnchor.constraint(equalTo: tableView.frameLayoutGuide.leadingAnchor),
-            backgroundGlow.trailingAnchor.constraint(equalTo: tableView.frameLayoutGuide.trailingAnchor),
-            backgroundGlow.bottomAnchor.constraint(equalTo: tableView.frameLayoutGuide.bottomAnchor)
-        ])
+        tableView.backgroundView = backgroundGlow
 
         // Build table header with search + segment so tableView can be
         // pinned to topAnchor — enabling the native hovering-title glass nav bar.
-        let headerContainer = UIView()
         headerContainer.backgroundColor = .clear
 
+        headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segmentControl)
 
         NSLayoutConstraint.activate([
-            segmentControl.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 12),
+            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
+            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 16),
+            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -16),
+            searchBar.heightAnchor.constraint(equalToConstant: 44),
+
+            segmentControl.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
             segmentControl.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
             segmentControl.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
             segmentControl.heightAnchor.constraint(equalToConstant: 36),
@@ -101,7 +106,7 @@ final class PhysioAppointmentsView: UIView {
         ])
 
         // Size the header to fit
-        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 60)
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 110)
         tableView.tableHeaderView = headerContainer
 
         addSubview(tableView)

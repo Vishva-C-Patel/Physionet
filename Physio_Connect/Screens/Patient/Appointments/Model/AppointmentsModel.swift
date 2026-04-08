@@ -39,7 +39,7 @@ final class AppointmentsModel {
                     name,
                     avg_rating,
                     reviews_count,
-                    location_text,
+                    place_of_work,
                     consultation_fee,
                     profile_image_path,
                     updated_at,
@@ -68,7 +68,7 @@ final class AppointmentsModel {
                 profileImageVersion: physio.updated_at,
                 rating: physio.avg_rating,
                 reviewsCount: physio.reviews_count,
-                locationText: physio.location_text,
+                locationText: physio.place_of_work,
                 fee: physio.consultation_fee
             )
         }
@@ -171,7 +171,7 @@ final class AppointmentsModel {
                 profileImageVersion: physio.updated_at,
                 rating: physio.avg_rating,
                 reviewsCount: physio.reviews_count,
-                locationText: physio.location_text,
+                locationText: physio.place_of_work,
                 fee: physio.consultation_fee
             )
         }
@@ -196,7 +196,7 @@ final class AppointmentsModel {
             name,
             avg_rating,
             reviews_count,
-            location_text,
+            place_of_work,
             consultation_fee,
             profile_image_path,
             updated_at,
@@ -278,7 +278,7 @@ private struct AppointmentJoinedRow: Decodable {
         let name: String
         let avg_rating: Double?
         let reviews_count: Int?
-        let location_text: String?
+        let place_of_work: String?
         let consultation_fee: Double?
         let profile_image_path: String?
         let updated_at: String?

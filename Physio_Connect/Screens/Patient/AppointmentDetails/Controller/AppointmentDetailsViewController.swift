@@ -47,8 +47,6 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
         detailsView.updateNotesHeight()
 
         detailsView.notesTextView.delegate = self
-        detailsView.callButton.addTarget(self, action: #selector(callTapped), for: .touchUpInside)
-        detailsView.messageButton.addTarget(self, action: #selector(messageTapped), for: .touchUpInside)
     }
 
     private func loadAvatarImage(path: String?, version: String?) {
@@ -62,29 +60,10 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
     }
 
     // MARK: - Actions
-    @objc private func callTapped() {
-        guard let number = appointment.phoneNumber, !number.isEmpty else {
-            showAlert("Phone not available", "Add phone number later from DB.")
-            return
-        }
-        if let url = URL(string: "tel://\(number)") {
-            UIApplication.shared.open(url)
-        }
-    }
-
-    @objc private func messageTapped() {
-        guard let number = appointment.phoneNumber, !number.isEmpty else {
-            showAlert("Number not available", "Add number later from DB.")
-            return
-        }
-        if let url = URL(string: "sms:\(number)") {
-            UIApplication.shared.open(url)
-        }
-    }
-
     // MARK: - UITextViewDelegate
     func textViewDidChange(_ textView: UITextView) {
         appointment.sessionNotes = textView.text
+        detailsView.refreshNotesUI()
         detailsView.updateNotesHeight()
         // Later you can sync this to Supabase
     }
@@ -116,12 +95,6 @@ final class AppointmentDetailsViewController: UIViewController, UITextViewDelega
     }
 
     // MARK: - Helpers
-    private func showAlert(_ title: String, _ message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-
     @objc private func backTapped() {
         navigationController?.popToRootViewController(animated: true)
     }

@@ -172,9 +172,9 @@ final class AppointmentsViewController: UIViewController {
                 return "⭐️ \(String(format: "%.1f", r))   ·   \(c) reviews"
             }()
 
-            let distanceText = appt.locationText != nil
-            ? "📍 \(appt.locationText!)"
-            : "📍 Nearby"
+            let distanceText = appt.locationText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? (appt.locationText ?? "")
+            : "Workplace not provided"
 
             let feeText: String = {
                 if let fee = appt.fee {
@@ -239,9 +239,9 @@ final class AppointmentsViewController: UIViewController {
                 return "⭐️ \(String(format: "%.1f", r))   ·   \(c) reviews"
             }()
 
-            let distanceText = item.locationText != nil
-            ? "📍 \(item.locationText!)"
-            : "📍 Nearby"
+            let distanceText = item.locationText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? (item.locationText ?? "")
+            : "Workplace not provided"
 
             let feeText: String = {
                 if let fee = item.fee {

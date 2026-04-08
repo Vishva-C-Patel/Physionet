@@ -23,6 +23,7 @@ struct PhysiotherapistCardModel: Identifiable {
     let feeText: String
     let profileImagePath: String?
     let profileImageVersion: String?
+    let placeOfWorkText: String
 
     let latitude: Double?
     let longitude: Double?

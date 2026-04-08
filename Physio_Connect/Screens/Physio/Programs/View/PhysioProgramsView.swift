@@ -40,7 +40,7 @@ final class PhysioProgramsView: UIView {
 
     func showEmptyState(_ show: Bool) {
         emptyLabel.isHidden = !show
-        tableView.isHidden = show
+        tableView.isHidden = false
     }
 
     private func build() {
@@ -77,10 +77,11 @@ final class PhysioProgramsView: UIView {
         tableView.backgroundView = backgroundGlow
 
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyLabel.text = "No programs yet."
+        emptyLabel.text = "No programs yet.\nTap Create Program to get started."
         emptyLabel.textColor = .tertiaryLabel
         emptyLabel.font = .systemFont(ofSize: 16, weight: .semibold)
         emptyLabel.textAlignment = .center
+        emptyLabel.numberOfLines = 0
         emptyLabel.isHidden = true
 
         addSubview(tableView)

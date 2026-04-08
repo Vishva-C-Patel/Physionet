@@ -109,11 +109,11 @@ final class VideosView: UIView {
         profileButton.setImage(UIImage(systemName: "person.crop.circle.fill", withConfiguration: profileConfig), for: .normal)
         profileButton.tintColor = UITheme.Colors.textSecondary
         profileButton.imageView?.contentMode = .scaleAspectFill
-        profileButton.layer.cornerRadius = 16
+        profileButton.layer.cornerRadius = 18
         profileButton.clipsToBounds = true
         NSLayoutConstraint.activate([
-            profileButton.widthAnchor.constraint(equalToConstant: 32),
-            profileButton.heightAnchor.constraint(equalToConstant: 32)
+            profileButton.widthAnchor.constraint(equalToConstant: 36),
+            profileButton.heightAnchor.constraint(equalToConstant: 36)
         ])
 
         segmented.translatesAutoresizingMaskIntoConstraints = false

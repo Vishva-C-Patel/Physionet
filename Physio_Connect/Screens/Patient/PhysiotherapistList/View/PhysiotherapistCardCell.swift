@@ -133,7 +133,7 @@ final class PhysiotherapistCardCell: UITableViewCell {
         nameLabel.text = model.name
         specializationLabel.text = model.specializationText
         ratingLabel.text = "⭐️ \(String(format: "%.1f", model.rating)) | \(model.reviewsCount) reviews"
-        distanceLabel.text = model.distanceText
+        distanceLabel.text = model.placeOfWorkText
         feeLabel.text = model.feeText
 
         // Placeholder initials

@@ -20,10 +20,6 @@ final class AppointmentDetailsView: UIView {
     private let specLabel = UILabel()
     private let feeLabel = UILabel()
 
-    private let actionStack = UIStackView()
-    let messageButton = UIButton(type: .system)
-    let callButton = UIButton(type: .system)
-
     // Summary card
     private let summaryCard = UIView()
     private let summaryTitleLabel = UILabel()
@@ -39,8 +35,14 @@ final class AppointmentDetailsView: UIView {
     // Notes card
     private let notesCard = UIView()
     private let notesTitleLabel = UILabel()
+    private let notesInputContainer = UIView()
     let notesTextView = UITextView()
+    private let notesPlaceholderLabel = UILabel()
+    private let notesMetaStack = UIStackView()
+    private let notesHintLabel = UILabel()
+    private let notesCountLabel = UILabel()
     private let notesMinHeight: CGFloat = 140
+    private let notesMaxCount: Int = 500
     private var notesHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
@@ -134,22 +136,6 @@ final class AppointmentDetailsView: UIView {
         doctorInfoStack.alignment = .leading
         doctorCard.addSubview(doctorInfoStack)
 
-        actionStack.translatesAutoresizingMaskIntoConstraints = false
-        actionStack.axis = .horizontal
-        actionStack.alignment = .center
-        actionStack.spacing = 12
-        doctorCard.addSubview(actionStack)
-
-        messageButton.translatesAutoresizingMaskIntoConstraints = false
-        messageButton.setImage(UIImage(systemName: "message"), for: .normal)
-        messageButton.tintColor = .secondaryLabel
-
-        callButton.translatesAutoresizingMaskIntoConstraints = false
-        callButton.setImage(UIImage(systemName: "phone"), for: .normal)
-        callButton.tintColor = .secondaryLabel
-        actionStack.addArrangedSubview(messageButton)
-        actionStack.addArrangedSubview(callButton)
-
         // Summary Card
         summaryCard.translatesAutoresizingMaskIntoConstraints = false
         cardStyle(summaryCard)
@@ -202,12 +188,48 @@ final class AppointmentDetailsView: UIView {
         notesTitleLabel.text = "Session Notes"
         notesCard.addSubview(notesTitleLabel)
 
+        notesInputContainer.translatesAutoresizingMaskIntoConstraints = false
+        notesInputContainer.backgroundColor = UITheme.Colors.neutralFill
+        notesInputContainer.layer.cornerRadius = 16
+        notesInputContainer.layer.borderWidth = 0.8
+        notesInputContainer.layer.borderColor = UITheme.Colors.border.withAlphaComponent(0.45).cgColor
+        notesCard.addSubview(notesInputContainer)
+
         notesTextView.translatesAutoresizingMaskIntoConstraints = false
-        notesTextView.font = .systemFont(ofSize: 16)
-        notesTextView.backgroundColor = UITheme.Colors.neutralFill
-        notesTextView.layer.cornerRadius = 14
+        notesTextView.font = .systemFont(ofSize: 15, weight: .regular)
+        notesTextView.backgroundColor = .clear
         notesTextView.textContainerInset = UIEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
-        notesCard.addSubview(notesTextView)
+        notesTextView.textColor = .label
+        notesTextView.keyboardDismissMode = .interactive
+        notesInputContainer.addSubview(notesTextView)
+
+        notesPlaceholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        notesPlaceholderLabel.font = .systemFont(ofSize: 15, weight: .regular)
+        notesPlaceholderLabel.textColor = .tertiaryLabel
+        notesPlaceholderLabel.numberOfLines = 2
+        notesPlaceholderLabel.text = "Write key symptoms, progress, and plan for next session..."
+        notesInputContainer.addSubview(notesPlaceholderLabel)
+
+        notesMetaStack.translatesAutoresizingMaskIntoConstraints = false
+        notesMetaStack.axis = .horizontal
+        notesMetaStack.alignment = .center
+        notesMetaStack.distribution = .fill
+        notesMetaStack.spacing = 8
+        notesCard.addSubview(notesMetaStack)
+
+        notesHintLabel.translatesAutoresizingMaskIntoConstraints = false
+        notesHintLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        notesHintLabel.textColor = .tertiaryLabel
+        notesHintLabel.text = "Private note"
+
+        notesCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        notesCountLabel.font = .systemFont(ofSize: 12, weight: .semibold)
+        notesCountLabel.textColor = .tertiaryLabel
+        notesCountLabel.textAlignment = .right
+
+        notesMetaStack.addArrangedSubview(notesHintLabel)
+        notesMetaStack.addArrangedSubview(UIView())
+        notesMetaStack.addArrangedSubview(notesCountLabel)
 
         // Layout
         NSLayoutConstraint.activate([
@@ -224,15 +246,7 @@ final class AppointmentDetailsView: UIView {
             doctorInfoStack.topAnchor.constraint(equalTo: doctorCard.topAnchor, constant: 18),
             doctorInfoStack.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 14),
             doctorInfoStack.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
-
-            actionStack.topAnchor.constraint(equalTo: doctorInfoStack.bottomAnchor, constant: 12),
-            actionStack.trailingAnchor.constraint(equalTo: doctorCard.trailingAnchor, constant: -16),
-            actionStack.bottomAnchor.constraint(equalTo: doctorCard.bottomAnchor, constant: -16),
-
-            messageButton.widthAnchor.constraint(equalToConstant: 30),
-            messageButton.heightAnchor.constraint(equalToConstant: 30),
-            callButton.widthAnchor.constraint(equalToConstant: 30),
-            callButton.heightAnchor.constraint(equalToConstant: 30),
+            doctorInfoStack.bottomAnchor.constraint(equalTo: doctorCard.bottomAnchor, constant: -16),
 
             summaryCard.topAnchor.constraint(equalTo: doctorCard.bottomAnchor, constant: 20),
             summaryCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -255,7 +269,7 @@ final class AppointmentDetailsView: UIView {
             locationValueLabel.trailingAnchor.constraint(equalTo: summaryCard.trailingAnchor, constant: -16),
             locationValueLabel.leadingAnchor.constraint(greaterThanOrEqualTo: locationTitleLabel.trailingAnchor, constant: 12),
 
-            statusTitleLabel.topAnchor.constraint(equalTo: locationTitleLabel.bottomAnchor, constant: 14),
+            statusTitleLabel.topAnchor.constraint(equalTo: locationValueLabel.bottomAnchor, constant: 14),
             statusTitleLabel.leadingAnchor.constraint(equalTo: summaryCard.leadingAnchor, constant: 16),
             statusTitleLabel.bottomAnchor.constraint(equalTo: summaryCard.bottomAnchor, constant: -18),
 
@@ -271,13 +285,29 @@ final class AppointmentDetailsView: UIView {
             notesTitleLabel.topAnchor.constraint(equalTo: notesCard.topAnchor, constant: 18),
             notesTitleLabel.leadingAnchor.constraint(equalTo: notesCard.leadingAnchor, constant: 16),
 
-            notesTextView.topAnchor.constraint(equalTo: notesTitleLabel.bottomAnchor, constant: 12),
-            notesTextView.leadingAnchor.constraint(equalTo: notesCard.leadingAnchor, constant: 16),
-            notesTextView.trailingAnchor.constraint(equalTo: notesCard.trailingAnchor, constant: -16),
-            notesTextView.bottomAnchor.constraint(equalTo: notesCard.bottomAnchor, constant: -18),
+            notesInputContainer.topAnchor.constraint(equalTo: notesTitleLabel.bottomAnchor, constant: 12),
+            notesInputContainer.leadingAnchor.constraint(equalTo: notesCard.leadingAnchor, constant: 16),
+            notesInputContainer.trailingAnchor.constraint(equalTo: notesCard.trailingAnchor, constant: -16),
+
+            notesTextView.topAnchor.constraint(equalTo: notesInputContainer.topAnchor),
+            notesTextView.leadingAnchor.constraint(equalTo: notesInputContainer.leadingAnchor),
+            notesTextView.trailingAnchor.constraint(equalTo: notesInputContainer.trailingAnchor),
+            notesTextView.bottomAnchor.constraint(equalTo: notesInputContainer.bottomAnchor),
+
+            notesPlaceholderLabel.topAnchor.constraint(equalTo: notesInputContainer.topAnchor, constant: 14),
+            notesPlaceholderLabel.leadingAnchor.constraint(equalTo: notesInputContainer.leadingAnchor, constant: 19),
+            notesPlaceholderLabel.trailingAnchor.constraint(equalTo: notesInputContainer.trailingAnchor, constant: -16),
+
+            notesMetaStack.topAnchor.constraint(equalTo: notesInputContainer.bottomAnchor, constant: 8),
+            notesMetaStack.leadingAnchor.constraint(equalTo: notesCard.leadingAnchor, constant: 16),
+            notesMetaStack.trailingAnchor.constraint(equalTo: notesCard.trailingAnchor, constant: -16),
+            notesMetaStack.bottomAnchor.constraint(equalTo: notesCard.bottomAnchor, constant: -14),
         ])
 
-        let height = notesTextView.heightAnchor.constraint(equalToConstant: notesMinHeight)
+        // Keep status row spacing stable even when location wraps to multiple lines.
+        statusTitleLabel.topAnchor.constraint(greaterThanOrEqualTo: locationTitleLabel.bottomAnchor, constant: 14).isActive = true
+
+        let height = notesInputContainer.heightAnchor.constraint(equalToConstant: notesMinHeight)
         height.isActive = true
         notesHeightConstraint = height
     }
@@ -285,13 +315,8 @@ final class AppointmentDetailsView: UIView {
     // MARK: - Public
     func configure(with model: AppointmentDetailsModel) {
         nameLabel.text = model.physioName
-        
-        let attachment = NSTextAttachment()
-        attachment.image = UIImage(systemName: "star.fill")?.withTintColor(.systemYellow, renderingMode: .alwaysOriginal)
-        attachment.bounds = CGRect(x: 0, y: -2, width: 14, height: 14)
-        let attrString = NSMutableAttributedString(attachment: attachment)
-        attrString.append(NSAttributedString(string: "  \(model.ratingText)"))
-        ratingLabel.attributedText = attrString
+        ratingLabel.attributedText = nil
+        ratingLabel.text = model.ratingText
         
         specLabel.text = model.specializationText
         feeLabel.text = "Consultation fees:  \(model.feeText)"
@@ -305,6 +330,7 @@ final class AppointmentDetailsView: UIView {
         } else {
             notesTextView.text = model.sessionNotes
         }
+        refreshNotesUI()
     }
 
     func setAvatarImage(_ image: UIImage?) {
@@ -322,5 +348,12 @@ final class AppointmentDetailsView: UIView {
         let size = CGSize(width: targetWidth, height: CGFloat.greatestFiniteMagnitude)
         let desired = max(notesMinHeight, notesTextView.sizeThatFits(size).height)
         notesHeightConstraint?.constant = desired
+    }
+
+    func refreshNotesUI() {
+        notesPlaceholderLabel.isHidden = !notesTextView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let count = notesTextView.text.count
+        notesCountLabel.text = "\(count)/\(notesMaxCount)"
+        notesCountLabel.textColor = count > notesMaxCount ? .systemRed : .tertiaryLabel
     }
 }

@@ -69,7 +69,50 @@ final class PhysioAppointmentsModel {
     }
 
     func fetchAppointments(physioID: String) async throws -> [PhysioAppointment] {
-        let rows: [AppointmentJoinedRow] = try await client
+        var rows = try await fetchFlatAppointments(physioID: physioID)
+        if rows.isEmpty, let session = try? await client.auth.session {
+            let userID = session.user.id.uuidString
+            if userID != physioID {
+                rows = try await fetchFlatAppointments(physioID: userID)
+            }
+        }
+
+        let slotsByID = try await fetchSlotsByID(ids: rows.compactMap(\.slot_id))
+        let customersByID = try await fetchCustomersByID(ids: rows.compactMap(\.customer_id))
+
+        let mapped = rows.map { row in
+            let slotModel: PhysioAppointment.SlotRow? = row.slot_id.flatMap { slotID in
+                guard let slot = slotsByID[slotID] else { return nil }
+                return PhysioAppointment.SlotRow(startTime: slot.start_time, endTime: slot.end_time)
+            }
+
+            let customerModel: PhysioAppointment.CustomerRow? = row.customer_id.flatMap { customerID in
+                guard let customer = customersByID[customerID] else { return nil }
+                return PhysioAppointment.CustomerRow(
+                    id: customer.id,
+                    fullName: customer.full_name,
+                    email: customer.email,
+                    phone: customer.phone,
+                    location: customer.location
+                )
+            }
+
+            return PhysioAppointment(
+                id: row.id,
+                status: row.status,
+                serviceMode: row.service_mode ?? "session",
+                addressText: row.address_text,
+                createdAt: row.created_at,
+                slot: slotModel,
+                customer: customerModel
+            )
+        }
+
+        return await completePastAppointmentsIfNeeded(rows: mapped)
+    }
+
+    private func fetchFlatAppointments(physioID: String) async throws -> [AppointmentFlatRow] {
+        try await client
             .from("appointments")
             .select("""
                 id,
@@ -77,58 +120,13 @@ final class PhysioAppointmentsModel {
                 service_mode,
                 address_text,
                 created_at,
-                slot:physio_availability_slots(
-                    start_time,
-                    end_time
-                ),
-                customer:customers(
-                    id,
-                    full_name,
-                    email,
-                    phone,
-                    location
-                )
+                slot_id,
+                customer_id
             """)
             .eq("physio_id", value: physioID)
             .order("created_at", ascending: false)
             .execute()
             .value
-
-        let normalizedRows = await completePastAppointmentsIfNeeded(rows: rows)
-
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        
-        let alternateFormatter = ISO8601DateFormatter()
-        alternateFormatter.formatOptions = [.withInternetDateTime]
-
-        return normalizedRows.map { row in
-            let createDate = (row.created_at.flatMap { formatter.date(from: $0) ?? alternateFormatter.date(from: $0) }) ?? Date()
-            
-            var slotModel: PhysioAppointment.SlotRow? = nil
-            if let slot = row.slot, let startText = slot.start_time, let startDate = formatter.date(from: startText) ?? alternateFormatter.date(from: startText) {
-                let endDate = slot.end_time.flatMap { formatter.date(from: $0) ?? alternateFormatter.date(from: $0) }
-                slotModel = PhysioAppointment.SlotRow(startTime: startDate, endTime: endDate)
-            }
-            
-            return PhysioAppointment(
-                id: row.id,
-                status: row.status,
-                serviceMode: row.service_mode ?? "session",
-                addressText: row.address_text,
-                createdAt: createDate,
-                slot: slotModel,
-                customer: row.customer.map {
-                    PhysioAppointment.CustomerRow(
-                        id: $0.id,
-                        fullName: $0.full_name,
-                        email: $0.email,
-                        phone: $0.phone,
-                        location: $0.location
-                    )
-                }
-            )
-        }
     }
 
     func updateStatus(appointmentID: UUID, status: String) async throws {
@@ -179,11 +177,37 @@ final class PhysioAppointmentsModel {
             .execute()
     }
 
-    // fetchSlotsByID and fetchCustomersByID removed
+    private func fetchSlotsByID(ids: [UUID]) async throws -> [UUID: SlotLookupRow] {
+        let unique = Array(Set(ids))
+        guard !unique.isEmpty else { return [:] }
 
-    private func completePastAppointmentsIfNeeded(rows: [AppointmentJoinedRow]) async -> [AppointmentJoinedRow] {
+        let rows: [SlotLookupRow] = try await client
+            .from("physio_availability_slots")
+            .select("id,start_time,end_time")
+            .in("id", values: unique.map { $0.uuidString })
+            .execute()
+            .value
+
+        return Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
+    }
+
+    private func fetchCustomersByID(ids: [UUID]) async throws -> [UUID: CustomerRow] {
+        let unique = Array(Set(ids))
+        guard !unique.isEmpty else { return [:] }
+
+        let rows: [CustomerRow] = try await client
+            .from("customers")
+            .select("id,full_name,email,phone,location")
+            .in("id", values: unique.map { $0.uuidString })
+            .execute()
+            .value
+
+        return Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
+    }
+
+    private func completePastAppointmentsIfNeeded(rows: [PhysioAppointment]) async -> [PhysioAppointment] {
         let now = Date()
-        var updatedRows: [AppointmentJoinedRow] = []
+        var updatedRows: [PhysioAppointment] = []
         updatedRows.reserveCapacity(rows.count)
 
         for row in rows {
@@ -194,19 +218,20 @@ final class PhysioAppointmentsModel {
                 continue
             }
 
-            guard let dueDate = parseDate(slot.end_time) ?? parseDate(slot.start_time), dueDate <= now else {
+            let dueDate = slot.endTime ?? slot.startTime
+            guard dueDate <= now else {
                 updatedRows.append(row)
                 continue
             }
 
             do {
                 _ = try await updateStatusWithFallback(appointmentID: row.id, status: "completed")
-                updatedRows.append(AppointmentJoinedRow(
+                updatedRows.append(PhysioAppointment(
                     id: row.id,
                     status: "completed",
-                    service_mode: row.service_mode,
-                    address_text: row.address_text,
-                    created_at: row.created_at,
+                    serviceMode: row.serviceMode,
+                    addressText: row.addressText,
+                    createdAt: row.createdAt,
                     slot: row.slot,
                     customer: row.customer
                 ))
@@ -216,16 +241,6 @@ final class PhysioAppointmentsModel {
         }
 
         return updatedRows
-    }
-    
-    private func parseDate(_ dateString: String?) -> Date? {
-        guard let dateString else { return nil }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) { return date }
-        
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter.date(from: dateString)
     }
 }
 
@@ -273,19 +288,19 @@ private struct CustomerRow: Decodable {
     }
 }
 
-// MARK: - Joined Row DTO Models
-private struct AppointmentJoinedRow: Decodable {
+// MARK: - Query DTO Models
+private struct AppointmentFlatRow: Decodable {
     let id: UUID
     let status: String
     let service_mode: String?
     let address_text: String?
-    let created_at: String? // Decode as String to avoid parsing issues
-    
-    let slot: SlotRow?
-    let customer: CustomerRow?
-    
-    struct SlotRow: Decodable {
-        let start_time: String?
-        let end_time: String?
-    }
+    let created_at: Date
+    let slot_id: UUID?
+    let customer_id: UUID?
+}
+
+private struct SlotLookupRow: Decodable {
+    let id: UUID
+    let start_time: Date
+    let end_time: Date?
 }
