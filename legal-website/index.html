@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physionet Legal - Terms & Privacy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">Physionet.</div>
+            <h1>Legal Hub</h1>
+            <p>Everything you need to know about how we manage your data and our terms of use.</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('privacy')">Privacy Policy</button>
+            <button class="tab-btn" onclick="switchTab('terms')">Terms of Service</button>
+        </div>
+
+        <div class="content-wrapper glass">
+            <!-- Privacy Policy Content -->
+            <div id="privacy" class="tab-content active">
+                <h2>Privacy Policy</h2>
+                <p>Last updated: April 2026</p>
+                
+                <h3>1. Introduction</h3>
+                <p>Welcome to Physionet. We are committed to protecting your personal information and your right to privacy. This privacy policy explains what information we collect, how we use it, and your rights in relation to it.</p>
+                
+                <h3>2. Information We Collect</h3>
+                <p>We may collect personal information such as your name, contact information, professional credentials (for physiotherapists), and health-related data (for patients) when you register for an account.</p>
+
+                <h3>3. How We Use Your Information</h3>
+                <p>We use the information we collect to operate, maintain, and improve our services, including scheduling appointments, providing personalized physiotherapy exercises, and communicating with you.</p>
+                
+                <h3>4. Data Security</h3>
+                <p>We have implemented appropriate technical and organizational security measures designed to protect the security of any personal information we process. However, please also remember that we cannot guarantee that the internet itself is 100% secure.</p>
+            </div>
+
+            <!-- Terms of Service Content -->
+            <div id="terms" class="tab-content">
+                <h2>Terms of Service</h2>
+                <p>Last updated: April 2026</p>
+                
+                <h3>1. Agreement to Terms</h3>
+                <p>By using the Physionet application, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+                
+                <h3>2. Use of Service</h3>
+                <p>Physionet provides a platform connecting patients with physiotherapists. We are not a medical service provider; all physiotherapy treatments, advice, and consultations are the sole responsibility of the registered physiotherapists.</p>
+                
+                <h3>3. User Accounts</h3>
+                <p>You must maintain the confidentiality of your account password. You are responsible for all activities that occur under your account.</p>
+                
+                <h3>4. Limitations of Liability</h3>
+                <p>In no event will Physionet, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages resulting from your use of the service.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2026 Physionet. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            
+            const selectedContent = document.getElementById(tabId);
+            selectedContent.style.animation = 'none';
+            selectedContent.offsetHeight; /* trigger reflow */
+            selectedContent.style.animation = null;
+            selectedContent.classList.add('active');
+        }
+    </script>
+</body>
+</html>
