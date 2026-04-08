@@ -2,21 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDisplayName</key>
-	<string>PhysioNet</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to show nearby physiotherapists.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We use your photo library to upload verification documents.</string>
+	<key>N8N_WEBHOOK_TOKEN</key>
+	<string></string>
+	<key>N8N_WEBHOOK_URL</key>
+	<string>https://n8n.ayushrai.in/webhook-test/articles-trigger</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>sb_publishable_CQrdtsEZH2JTGsm2tjELfQ_RYm63cyq</string>
 	<key>SUPABASE_URL</key>
 	<string>https://bvguhuumnumebhblmjrd.supabase.co</string>
-	<key>N8N_WEBHOOK_URL</key>
-	<string>https://n8n.ayushrai.in/webhook-test/articles-trigger</string>
-	<key>N8N_WEBHOOK_TOKEN</key>
-	<string></string>
 </dict>
 </plist>

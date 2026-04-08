@@ -53,11 +53,13 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
 
     private func bind() {
         profileView.onPrivacyTapped = { [weak self] in
-            self?.showAlert(title: "Privacy Policy", message: "Add your privacy policy URL here.")
+            let vc = LegalPolicyViewController(type: .privacy)
+            self?.present(vc, animated: true)
         }
 
         profileView.onTermsTapped = { [weak self] in
-            self?.showAlert(title: "Terms of Service", message: "Add your terms of service URL here.")
+            let vc = LegalPolicyViewController(type: .terms)
+            self?.present(vc, animated: true)
         }
 
         profileView.onSignOut = { [weak self] in

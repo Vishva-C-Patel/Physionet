@@ -38,6 +38,15 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
             guard !ranges.isEmpty else { return }
             self?.presentRepeatPicker(for: day, ranges: ranges)
         }
+        profileView.onPrivacyTapped = { [weak self] in
+            let vc = LegalPolicyViewController(type: .privacy)
+            self?.present(vc, animated: true)
+        }
+        
+        profileView.onTermsTapped = { [weak self] in
+            let vc = LegalPolicyViewController(type: .terms)
+            self?.present(vc, animated: true)
+        }
 
         profileView.setLoggedIn(true)
         loadInitial()
