@@ -61,7 +61,6 @@ final class CreateAccountView: UIView {
 
     // MARK: - Social
     let googleButton = UIButton(type: .custom)
-    let appleButton = UIButton(type: .custom)
 
     // MARK: - Login
     let loginButton = UIButton(type: .system)
@@ -335,17 +334,21 @@ final class CreateAccountView: UIView {
         // Or divider
         stack.addArrangedSubview(orDivider)
 
-        // Social buttons row
-        let socialRow = UIStackView(arrangedSubviews: [googleButton, appleButton])
-        socialRow.axis = .horizontal
-        socialRow.spacing = 12
-        socialRow.distribution = .fillEqually
-        socialRow.translatesAutoresizingMaskIntoConstraints = false
-
+        // Social button (Google only, centered)
         styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
-        styleOutlineSocialButton(appleButton, title: "Apple", icon: UIImage(systemName: "apple.logo")?.withRenderingMode(.alwaysTemplate))
+        googleButton.translatesAutoresizingMaskIntoConstraints = false
 
-        stack.addArrangedSubview(socialRow)
+        let socialWrapper = UIView()
+        socialWrapper.translatesAutoresizingMaskIntoConstraints = false
+        socialWrapper.addSubview(googleButton)
+        NSLayoutConstraint.activate([
+            googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
+            googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
+            googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
+            googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
+        ])
+
+        stack.addArrangedSubview(socialWrapper)
 
         // Login link
         loginButton.setTitle("Already have an account? Log in", for: .normal)

@@ -14,7 +14,6 @@ final class LoginView: UIView {
 
     // MARK: - Social
     let googleButton = UIButton(type: .custom)
-    let appleButton = UIButton(type: .custom)
 
     private let scrollView = UIScrollView()
     private let contentView = UIView()
@@ -135,16 +134,20 @@ final class LoginView: UIView {
         ])
         stack.addArrangedSubview(orDivider)
 
-        let socialRow = UIStackView(arrangedSubviews: [googleButton, appleButton])
-        socialRow.axis = .horizontal
-        socialRow.spacing = 12
-        socialRow.distribution = .fillEqually
-        socialRow.translatesAutoresizingMaskIntoConstraints = false
-
         styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
-        styleOutlineSocialButton(appleButton, title: "Apple", icon: UIImage(systemName: "apple.logo")?.withRenderingMode(.alwaysTemplate))
+        googleButton.translatesAutoresizingMaskIntoConstraints = false
 
-        stack.addArrangedSubview(socialRow)
+        let socialWrapper = UIView()
+        socialWrapper.translatesAutoresizingMaskIntoConstraints = false
+        socialWrapper.addSubview(googleButton)
+        NSLayoutConstraint.activate([
+            googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
+            googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
+            googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
+            googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
+        ])
+
+        stack.addArrangedSubview(socialWrapper)
 
         signUpButton.setTitle("Don't have an account? Sign up", for: .normal)
         signUpButton.setTitleColor(primaryBlue, for: .normal)

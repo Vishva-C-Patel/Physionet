@@ -50,7 +50,6 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
         createView.createAccountButton.addTarget(self, action: #selector(createAccountTapped), for: .touchUpInside)
 
         createView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
-        createView.appleButton.addTarget(self, action: #selector(appleTapped), for: .touchUpInside)
 
         createView.loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
 
@@ -325,9 +324,7 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
         return false
     }
 
-    @objc private func appleTapped() {
-        showAlert(title: "Apple Sign-In", message: "Hook Sign in with Apple here.")
-    }
+
 
     @objc private func loginTapped() {
         onLoginTapped?()
