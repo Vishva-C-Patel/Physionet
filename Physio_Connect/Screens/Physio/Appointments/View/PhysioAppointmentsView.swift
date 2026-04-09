@@ -52,11 +52,12 @@ final class PhysioAppointmentsView: UIView {
     }
 
     let segmentControl = UISegmentedControl(items: ["All", "Upcoming", "Completed"])
-    let searchBar = UISearchBar()
     let tableView = UITableView(frame: .zero, style: .plain)
+    let refreshControl = UIRefreshControl()
 
     private let backgroundGlow = AppBackgroundTopGlowView()
     private let headerContainer = UIView()
+    private let emptyLabel = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -71,12 +72,6 @@ final class PhysioAppointmentsView: UIView {
         segmentControl.selectedSegmentIndex = 0
         UITheme.applySegmentedStyle(segmentControl)
 
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = "Search patients or sessions..."
-        searchBar.autocapitalizationType = .none
-        searchBar.autocorrectionType = .no
-
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
@@ -84,21 +79,15 @@ final class PhysioAppointmentsView: UIView {
         tableView.register(PhysioAppointmentCell.self, forCellReuseIdentifier: "PhysioAppointmentCell")
         tableView.contentInsetAdjustmentBehavior = .always
         tableView.backgroundView = backgroundGlow
+        tableView.refreshControl = refreshControl
 
-        // Build table header with search + segment so tableView can be
-        // pinned to topAnchor — enabling the native hovering-title glass nav bar.
+        // Build table header with segment control only;
+        // search is handled via native UISearchController in the nav bar.
         headerContainer.backgroundColor = .clear
-
-        headerContainer.addSubview(searchBar)
         headerContainer.addSubview(segmentControl)
 
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
-            searchBar.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -16),
-            searchBar.heightAnchor.constraint(equalToConstant: 44),
-
-            segmentControl.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
+            segmentControl.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 10),
             segmentControl.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 20),
             segmentControl.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -20),
             segmentControl.heightAnchor.constraint(equalToConstant: 36),
@@ -106,17 +95,38 @@ final class PhysioAppointmentsView: UIView {
         ])
 
         // Size the header to fit
-        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 110)
+        headerContainer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 58)
         tableView.tableHeaderView = headerContainer
 
+        // Empty state label (overlays without replacing backgroundView)
+        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+        emptyLabel.text = "No appointments found."
+        emptyLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        emptyLabel.textColor = UITheme.Colors.textSecondary
+        emptyLabel.numberOfLines = 0
+        emptyLabel.textAlignment = .center
+        emptyLabel.isHidden = true
+        emptyLabel.isUserInteractionEnabled = false
+
         addSubview(tableView)
+        addSubview(emptyLabel)
 
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: topAnchor),
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            emptyLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            emptyLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            emptyLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 40),
+            emptyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -40)
         ])
+    }
+
+    func showEmptyState(_ show: Bool) {
+        emptyLabel.isHidden = !show
+        if show { bringSubviewToFront(emptyLabel) }
     }
 }
 

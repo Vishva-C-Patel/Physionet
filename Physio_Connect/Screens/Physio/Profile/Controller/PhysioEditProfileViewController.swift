@@ -69,7 +69,11 @@ final class PhysioEditProfileViewController: UIViewController {
                         editView.setCoordinates(latitude: coordinate.latitude, longitude: coordinate.longitude)
                     }
                 }
-                try await model.updateProfile(input)
+                
+                // Re-fetch input to capture any newly geocoded coordinates
+                let finalInput = try editView.validatedInput()
+                
+                try await model.updateProfile(finalInput)
                 await MainActor.run {
                     self.navigationItem.rightBarButtonItem?.isEnabled = true
                     self.editView.setSaving(false)

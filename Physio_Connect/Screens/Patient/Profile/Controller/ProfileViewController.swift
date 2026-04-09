@@ -74,9 +74,8 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
             self?.showSignup()
         }
 
-        profileView.onNotificationsChanged = { [weak self] isOn in
-            Task { await self?.model.updateNotifications(enabled: isOn) }
-        }
+
+
 
         profileView.onRefresh = { [weak self] in
             Task { await self?.refreshProfile() }

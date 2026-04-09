@@ -19,7 +19,7 @@ final class ProfileView: UIView {
     var onSignOut: (() -> Void)?
     var onLogin: (() -> Void)?
     var onSignup: (() -> Void)?
-    var onNotificationsChanged: ((Bool) -> Void)?
+
     var onRefresh: (() -> Void)?
     var onSwitchRole: (() -> Void)?
     var onChangePassword: (() -> Void)?
@@ -60,7 +60,7 @@ final class ProfileView: UIView {
 
     private let addressRow = ProfileRowView(title: "Address")
     private let pincodeRow = ProfileRowView(title: "Pincode")
-    private let notificationRow = ProfileToggleRowView(title: "Notifications")
+
     
 
     private let privacyButton = ProfileActionRowButton(title: "Privacy Policy")
@@ -119,7 +119,7 @@ final class ProfileView: UIView {
             pincodeRow.setValue("—")
             addressRow.setValue(fullLocation.isEmpty ? "—" : fullLocation)
         }
-        notificationRow.setOn(data.notificationsEnabled)
+
         setAvatar(with: data.avatarURL)
     }
 
@@ -136,7 +136,7 @@ final class ProfileView: UIView {
         dobRow.setValue("—")
         addressRow.setValue("—")
         pincodeRow.setValue("—")
-        notificationRow.setOn(false)
+
         setAvatar(with: nil)
         avatarEditButton.isHidden = true
     }
@@ -407,12 +407,6 @@ final class ProfileView: UIView {
         stack.addArrangedSubview(addressRow)
         stack.addArrangedSubview(makeSeparator())
         stack.addArrangedSubview(pincodeRow)
-        stack.addArrangedSubview(makeSeparator())
-        stack.addArrangedSubview(notificationRow)
-
-        notificationRow.onToggleChanged = { [weak self] isOn in
-            self?.onNotificationsChanged?(isOn)
-        }
 
         card.addSubview(stack)
         pinCardStack(stack, to: card)
@@ -586,8 +580,7 @@ final class ProfileView: UIView {
         signUpButton.isHidden = loggedIn
 
         switchRoleButton.isHidden = false
-        notificationRow.isUserInteractionEnabled = loggedIn
-        notificationRow.alpha = loggedIn ? 1.0 : 0.5
+
         avatarEditButton.isHidden = !loggedIn
 
         if !loggedIn {
@@ -848,19 +841,23 @@ final class ProfileRowView: UIView {
         titleLabel.font = .systemFont(ofSize: 15, weight: .regular)
         titleLabel.textColor = .secondaryLabel
 
+        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        titleLabel.setContentHuggingPriority(.required, for: .horizontal)
+
         valueLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         valueLabel.textColor = .label
         valueLabel.textAlignment = .right
-        valueLabel.numberOfLines = 0
+        valueLabel.numberOfLines = 3
+        valueLabel.lineBreakMode = .byTruncatingTail
 
         let stack = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
         stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 8
+        stack.alignment = .top
+        stack.spacing = 24
         stack.translatesAutoresizingMaskIntoConstraints = false
 
-        valueLabel.setContentHuggingPriority(.required, for: .horizontal)
-        valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        valueLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        valueLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         addSubview(stack)
 
@@ -881,52 +878,7 @@ final class ProfileRowView: UIView {
     }
 }
 
-final class ProfileToggleRowView: UIView {
-    private let titleLabel = UILabel()
-    private let toggle = UISwitch()
-    var onToggleChanged: ((Bool) -> Void)?
 
-    init(title: String) {
-        super.init(frame: .zero)
-
-        titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 15, weight: .regular)
-        titleLabel.textColor = .secondaryLabel
-
-        toggle.onTintColor = .systemGreen
-        toggle.addTarget(self, action: #selector(toggleChanged), for: .valueChanged)
-
-        let stack = UIStackView(arrangedSubviews: [titleLabel, toggle])
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 8
-        stack.translatesAutoresizingMaskIntoConstraints = false
-
-        toggle.setContentHuggingPriority(.required, for: .horizontal)
-        toggle.setContentCompressionResistancePriority(.required, for: .horizontal)
-
-        addSubview(stack)
-
-        NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 10),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
-        ])
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    func setOn(_ isOn: Bool) {
-        toggle.setOn(isOn, animated: true)
-    }
-
-    @objc private func toggleChanged() {
-        onToggleChanged?(toggle.isOn)
-    }
-}
 
 final class ProfileActionRowButton: UIButton {
     init(title: String) {

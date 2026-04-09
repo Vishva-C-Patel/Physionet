@@ -182,7 +182,6 @@ struct PhysioProfileModel {
         let userID = session.user.id.uuidString
 
         struct Payload: Encodable {
-            let id: UUID
             let name: String?
             let email: String?
             let gender: String?
@@ -195,14 +194,12 @@ struct PhysioProfileModel {
             let consultation_fee: Double?
             let latitude: Double?
             let longitude: Double?
-            let profile_image_path: String?
             let updated_at: String
         }
 
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let payload = Payload(
-            id: UUID(uuidString: userID) ?? UUID(),
             name: input.name.trimmedOrNil,
             email: session.user.email,
             gender: input.gender.trimmedOrNil?.lowercased(),
@@ -215,13 +212,13 @@ struct PhysioProfileModel {
             consultation_fee: input.consultationFee.doubleOrNil,
             latitude: input.latitude.doubleOrNil,
             longitude: input.longitude.doubleOrNil,
-            profile_image_path: input.profileImagePath.trimmedOrNil,
             updated_at: formatter.string(from: Date())
         )
 
         _ = try await client
             .from("physiotherapists")
-            .upsert(payload, onConflict: "id")
+            .update(payload)
+            .eq("id", value: userID)
             .execute()
     }
 

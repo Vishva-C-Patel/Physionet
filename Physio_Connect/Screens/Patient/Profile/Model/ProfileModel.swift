@@ -126,19 +126,8 @@ final class ProfileModel {
         return data
     }
 
-    func updateNotifications(enabled: Bool) async {
-        do {
-            let session = try await client.auth.session
-            let userID = session.user.id.uuidString
-            _ = try await client
-                .from("customers")
-                .update(["notifications_enabled": enabled])
-                .eq("id", value: userID)
-                .execute()
-        } catch {
-            print("❌ Notification update error:", error)
-        }
-    }
+
+
 
     struct ProfileUpdateInput {
         let name: String

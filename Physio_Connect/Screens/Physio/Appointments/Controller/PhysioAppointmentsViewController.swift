@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class PhysioAppointmentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+final class PhysioAppointmentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, UISearchControllerDelegate {
     private let contentView = PhysioAppointmentsView()
     private let model = PhysioAppointmentsModel()
     private let dashboardModel = PhysioDashboardModel()
@@ -17,7 +17,7 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
     private var filteredAppointments: [PhysioAppointmentsView.AppointmentVM] = []
     private var physioID: String?
     private var isLoading = false
-    private var emptyStateLabel: UILabel?
+    private let searchController = UISearchController(searchResultsController: nil)
 
     override func loadView() { view = contentView }
 
@@ -36,9 +36,11 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         contentView.tableView.delegate = self
         contentView.tableView.rowHeight = UITableView.automaticDimension
         contentView.tableView.estimatedRowHeight = 220
-        contentView.searchBar.delegate = self
         contentView.segmentControl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
-        
+        contentView.refreshControl.addTarget(self, action: #selector(refreshPulled), for: .valueChanged)
+
+        setupSearchController()
+
         // Ensure initial segment selection is rendered
         contentView.layoutIfNeeded()
 
@@ -47,11 +49,45 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        tabBarController?.tabBar.transform = .identity
-        tabBarController?.tabBar.alpha = 1
+        if !searchController.isActive {
+            tabBarController?.tabBar.transform = .identity
+            tabBarController?.tabBar.alpha = 1
+        }
         loadProfileAvatar()
         Task { await loadAppointments() }
     }
+
+    // MARK: - Search Controller
+
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search patients or sessions..."
+        searchController.hidesNavigationBarDuringPresentation = true
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = true
+        definesPresentationContext = true
+    }
+
+    func updateSearchResults(for searchController: UISearchController) {
+        applyFilters()
+    }
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 0
+        }
+    }
+
+    func didDismissSearchController(_ searchController: UISearchController) {
+        self.tabBarController?.tabBar.transform = .identity
+        UIView.animate(withDuration: 0.3) {
+            self.tabBarController?.tabBar.alpha = 1
+        }
+    }
+
+    // MARK: - Profile
 
     private func loadProfileAvatar() {
         Task {
@@ -74,12 +110,16 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
         navigationController?.pushViewController(vc, animated: true)
     }
 
+    @objc private func refreshPulled() {
+        Task { await loadAppointments() }
+    }
+
     @objc private func segmentChanged() {
         applyFilters()
     }
 
     private func applyFilters() {
-        let searchText = contentView.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let searchText = searchController.searchBar.text?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let selectedIndex = contentView.segmentControl.selectedSegmentIndex
 
         filteredAppointments = allAppointments.filter { vm in
@@ -99,32 +139,20 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
             return haystack.contains(searchText)
         }
 
-        updateEmptyState()
+        contentView.showEmptyState(filteredAppointments.isEmpty)
         contentView.tableView.reloadData()
-    }
-
-    private func updateEmptyState() {
-        if filteredAppointments.isEmpty {
-            let label = emptyStateLabel ?? {
-                let l = UILabel()
-                l.text = "No appointments found."
-                l.textColor = .secondaryLabel
-                l.font = .systemFont(ofSize: 16, weight: .medium)
-                l.textAlignment = .center
-                l.numberOfLines = 0
-                emptyStateLabel = l
-                return l
-            }()
-            contentView.tableView.backgroundView = label
-        } else {
-            contentView.tableView.backgroundView = nil
-        }
     }
 
     private func loadAppointments() async {
         if isLoading { return }
         isLoading = true
-        defer { isLoading = false }
+        await MainActor.run { self.contentView.refreshControl.beginRefreshing() }
+        defer {
+            Task { @MainActor in
+                self.isLoading = false
+                self.contentView.refreshControl.endRefreshing()
+            }
+        }
 
         do {
             let id = try await model.resolvePhysioID()
@@ -252,10 +280,5 @@ final class PhysioAppointmentsViewController: UIViewController, UITableViewDataS
             self?.updateStatus(id: vm.id, status: "completed")
         }
         return cell
-    }
-
-    // MARK: - Search
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        applyFilters()
     }
 }
