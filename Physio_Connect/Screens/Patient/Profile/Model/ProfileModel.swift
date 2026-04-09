@@ -9,6 +9,12 @@ import Foundation
 import Supabase
 import UIKit
 
+private struct DeleteAccountErrorResponse: Decodable {
+    let error: String?
+    let details: String?
+    let message: String?
+}
+
 struct CustomerProfileRow: Decodable {
     let id: UUID
     let full_name: String?
@@ -166,6 +172,71 @@ final class ProfileModel {
 
     func signOut() async throws {
         try await client.auth.signOut()
+    }
+
+    func deleteAccount() async throws {
+        _ = try await client.auth.session
+        do {
+            _ = try await client.auth.refreshSession()
+        } catch {
+            throw NSError(
+                domain: "delete_account",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Session expired. Please log in again and retry."]
+            )
+        }
+
+        struct DeletePayload: Encodable { let confirm: Bool }
+        do {
+            try await client.functions.invoke(
+                "delete_account",
+                options: FunctionInvokeOptions(
+                    method: .post,
+                    body: DeletePayload(confirm: true)
+                )
+            )
+        } catch let error as FunctionsError {
+            if case let .httpError(_, data) = error,
+               let message = userFacingDeleteError(from: data) {
+                throw NSError(domain: "delete_account", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+            }
+            throw error
+        }
+
+        try? await client.auth.signOut()
+    }
+
+    func hasBookedAppointments() async throws -> Bool {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+
+        struct Row: Decodable { let id: UUID }
+        let rows: [Row] = try await client
+            .from("appointments")
+            .select("id")
+            .eq("customer_id", value: userID)
+            .eq("status", value: "booked")
+            .limit(1)
+            .execute()
+            .value
+        return !rows.isEmpty
+    }
+
+    private func userFacingDeleteError(from data: Data) -> String? {
+        if let payload = try? JSONDecoder().decode(DeleteAccountErrorResponse.self, from: data) {
+            let details = payload.details?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let details, !details.isEmpty {
+                return details
+            }
+            let message = payload.error?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? payload.message?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let message, !message.isEmpty {
+                return message
+            }
+        }
+
+        let raw = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (raw?.isEmpty == false) ? raw : nil
     }
 
     func uploadAvatarImage(_ imageData: Data) async throws {

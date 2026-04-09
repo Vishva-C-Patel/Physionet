@@ -15,6 +15,10 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
     private let availabilityModel = PhysioAvailabilityModel()
     private var isLoading = false
     private var isUploadingAvatar = false
+    private var isDeletingAccount = false
+    private let deleteOverlay = UIView()
+    private let deleteIndicator = UIActivityIndicatorView(style: .large)
+    private let deleteLabel = UILabel()
 
     override func loadView() { view = profileView }
 
@@ -30,6 +34,7 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
         )
 
         profileView.onSignOut = { [weak self] in self?.signOut() }
+        profileView.onDeleteAccount = { [weak self] in self?.handleDeleteAccountTap() }
         profileView.onSwitchRole = { [weak self] in self?.confirmSwitchRole() }
         profileView.onRefresh = { [weak self] in Task { await self?.loadProfile() } }
         profileView.onAvatarTapped = { [weak self] in self?.presentAvatarPicker() }
@@ -48,6 +53,7 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
             self?.present(vc, animated: true)
         }
 
+        buildDeleteOverlay()
         profileView.setLoggedIn(true)
         loadInitial()
     }
@@ -96,6 +102,129 @@ final class PhysioProfileViewController: UIViewController, PHPickerViewControlle
             AppLogout.backToRoleSelection(from: self.view, signOut: false)
         }))
         present(alert, animated: true)
+    }
+
+    private func confirmDeleteAccount() {
+        let alert = UIAlertController(
+            title: "Delete Account?",
+            message: "This permanently deletes your account and data. This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] _ in
+            self?.deleteAccount()
+        }))
+        present(alert, animated: true)
+    }
+
+    private func handleDeleteAccountTap() {
+        if isDeletingAccount { return }
+        Task {
+            do {
+                let hasBooked = try await model.hasBookedAppointments()
+                await MainActor.run {
+                    if hasBooked {
+                        let ac = UIAlertController(
+                            title: "Cannot Delete Account",
+                            message: "You have booked appointments. Please cancel or complete them first.",
+                            preferredStyle: .alert
+                        )
+                        ac.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(ac, animated: true)
+                    } else {
+                        self.confirmDeleteAccount()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    let ac = UIAlertController(title: "Delete Account Failed", message: error.localizedDescription, preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(ac, animated: true)
+                }
+            }
+        }
+    }
+
+    private func deleteAccount() {
+        if isDeletingAccount { return }
+        isDeletingAccount = true
+        setDeleteLoading(true)
+        Task {
+            do {
+                try await model.deleteAccount()
+                ProfileModel.clearCachedAvatarURL()
+                PhysioProfileModel.clearCachedAvatarURL()
+                await MainActor.run {
+                    self.setDeleteLoading(false)
+                    self.isDeletingAccount = false
+                    AppLogout.backToRoleSelection(from: self.view, signOut: false)
+                }
+            } catch {
+                await MainActor.run {
+                    self.setDeleteLoading(false)
+                    self.isDeletingAccount = false
+                    let ac = UIAlertController(title: "Delete Account Failed", message: error.localizedDescription, preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(ac, animated: true)
+                }
+            }
+        }
+    }
+
+    private func buildDeleteOverlay() {
+        deleteOverlay.translatesAutoresizingMaskIntoConstraints = false
+        deleteOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.26)
+        deleteOverlay.isHidden = true
+
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
+        blur.translatesAutoresizingMaskIntoConstraints = false
+        blur.layer.cornerRadius = 18
+        blur.layer.masksToBounds = true
+
+        deleteIndicator.translatesAutoresizingMaskIntoConstraints = false
+        deleteIndicator.color = .white
+        deleteIndicator.hidesWhenStopped = true
+
+        deleteLabel.translatesAutoresizingMaskIntoConstraints = false
+        deleteLabel.text = "Deleting account..."
+        deleteLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        deleteLabel.textColor = .white
+        deleteLabel.textAlignment = .center
+
+        view.addSubview(deleteOverlay)
+        deleteOverlay.addSubview(blur)
+        blur.contentView.addSubview(deleteIndicator)
+        blur.contentView.addSubview(deleteLabel)
+
+        NSLayoutConstraint.activate([
+            deleteOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            deleteOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            deleteOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            deleteOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            blur.centerXAnchor.constraint(equalTo: deleteOverlay.centerXAnchor),
+            blur.centerYAnchor.constraint(equalTo: deleteOverlay.centerYAnchor),
+            blur.widthAnchor.constraint(equalToConstant: 220),
+            blur.heightAnchor.constraint(equalToConstant: 140),
+
+            deleteIndicator.centerXAnchor.constraint(equalTo: blur.contentView.centerXAnchor),
+            deleteIndicator.topAnchor.constraint(equalTo: blur.contentView.topAnchor, constant: 26),
+
+            deleteLabel.topAnchor.constraint(equalTo: deleteIndicator.bottomAnchor, constant: 14),
+            deleteLabel.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor, constant: 12),
+            deleteLabel.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor, constant: -12)
+        ])
+    }
+
+    private func setDeleteLoading(_ loading: Bool) {
+        deleteOverlay.isHidden = !loading
+        navigationItem.rightBarButtonItem?.isEnabled = !loading
+        if loading {
+            view.bringSubviewToFront(deleteOverlay)
+            deleteIndicator.startAnimating()
+        } else {
+            deleteIndicator.stopAnimating()
+        }
     }
 
     private func setLoading(_ loading: Bool) {
