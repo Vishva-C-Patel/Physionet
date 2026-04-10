@@ -57,14 +57,11 @@ final class ProfileViewController: UIViewController, PHPickerViewControllerDeleg
     }
 
     private func bind() {
-        profileView.onPrivacyTapped = { [weak self] in
-            let vc = LegalPolicyViewController(type: .privacy)
-            self?.present(vc, animated: true)
-        }
-
-        profileView.onTermsTapped = { [weak self] in
-            let vc = LegalPolicyViewController(type: .terms)
-            self?.present(vc, animated: true)
+        profileView.onLegalTapped = { [weak self] in
+            guard let url = URL(string: "https://physionet-site.vercel.app/legal.html") else { return }
+            let webVC = LegalWebViewController(url: url)
+            webVC.hidesBottomBarWhenPushed = true
+            self?.navigationController?.pushViewController(webVC, animated: true)
         }
 
         profileView.onSignOut = { [weak self] in

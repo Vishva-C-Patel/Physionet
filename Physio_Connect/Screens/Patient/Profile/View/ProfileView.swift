@@ -14,8 +14,7 @@ struct TimeSlotRange {
 
 final class ProfileView: UIView {
 
-    var onPrivacyTapped: (() -> Void)?
-    var onTermsTapped: (() -> Void)?
+    var onLegalTapped: (() -> Void)?
     var onSignOut: (() -> Void)?
     var onDeleteAccount: (() -> Void)?
     var onLogin: (() -> Void)?
@@ -64,8 +63,7 @@ final class ProfileView: UIView {
 
     
 
-    private let privacyButton = ProfileActionRowButton(title: "Privacy Policy")
-    private let termsButton = ProfileActionRowButton(title: "Terms of Service")
+    private let legalButton = ProfileActionRowButton(title: "Privacy Policy and Terms")
 
     private let availabilitySectionLabel = UILabel()
     private let availabilityCard = UIView()
@@ -423,13 +421,9 @@ final class ProfileView: UIView {
         let card = makeCardView()
         let stack = makeCardStack()
 
-        privacyButton.addTarget(self, action: #selector(privacyTapped), for: .touchUpInside)
-        termsButton.addTarget(self, action: #selector(termsTapped), for: .touchUpInside)
-        
+        legalButton.addTarget(self, action: #selector(legalTapped), for: .touchUpInside)
 
-        stack.addArrangedSubview(privacyButton)
-        stack.addArrangedSubview(makeSeparator())
-        stack.addArrangedSubview(termsButton)
+        stack.addArrangedSubview(legalButton)
 
         card.addSubview(stack)
         pinCardStack(stack, to: card)
@@ -758,12 +752,8 @@ final class ProfileView: UIView {
     }
 
 
-    @objc private func privacyTapped() {
-        onPrivacyTapped?()
-    }
-
-    @objc private func termsTapped() {
-        onTermsTapped?()
+    @objc private func legalTapped() {
+        onLegalTapped?()
     }
 
     @objc private func signOutTapped() {
