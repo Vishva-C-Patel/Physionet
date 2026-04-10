@@ -55,9 +55,6 @@ final class GoogleOAuthHandler: NSObject {
         }
         presentingWindow = window
 
-        // Supabase SDK v2 — signInWithOAuth with a launchFlow closure.
-        // The closure receives the generated OAuth URL, opens it in
-        // ASWebAuthenticationSession, and returns the callback URL.
         try await SupabaseManager.shared.client.auth.signInWithOAuth(
             provider: .google,
             redirectTo: Self.redirectURL,

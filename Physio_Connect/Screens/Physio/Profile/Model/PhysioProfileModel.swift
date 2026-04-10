@@ -8,6 +8,12 @@
 import Foundation
 import Supabase
 
+private struct DeleteAccountErrorResponse: Decodable {
+    let error: String?
+    let details: String?
+    let message: String?
+}
+
 struct PhysioProfileModel {
     private let client = SupabaseManager.shared.client
     private let avatarBuckets = ["physiotherapists", "physio_proofs"]
@@ -45,6 +51,10 @@ struct PhysioProfileModel {
 
     static func cachedAvatarURL() -> String? {
         UserDefaults.standard.string(forKey: avatarURLDefaultsKey)
+    }
+
+    static func clearCachedAvatarURL() {
+        UserDefaults.standard.removeObject(forKey: avatarURLDefaultsKey)
     }
 
     private static func cacheAvatarURL(_ url: String?) {
@@ -265,6 +275,95 @@ struct PhysioProfileModel {
             _ = try? await client.auth.update(user: UserAttributes(data: metadata))
         }
         Self.cacheAvatarURL(publicURL)
+    }
+
+    func deleteAccount() async throws {
+        let session = try await client.auth.session
+        do {
+            _ = try await client.auth.refreshSession()
+        } catch {
+            throw NSError(
+                domain: "delete_account",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "Session expired. Please log in again and retry."]
+            )
+        }
+
+        try await invokeDeleteAccountEndpoint(accessToken: session.accessToken)
+
+        try? await client.auth.signOut()
+    }
+
+    func hasBookedAppointments() async throws -> Bool {
+        let session = try await client.auth.session
+        let userID = session.user.id.uuidString
+
+        struct Row: Decodable { let id: UUID }
+        let rows: [Row] = try await client
+            .from("appointments")
+            .select("id")
+            .eq("physio_id", value: userID)
+            .eq("status", value: "booked")
+            .limit(1)
+            .execute()
+            .value
+        return !rows.isEmpty
+    }
+
+    private func userFacingDeleteError(from data: Data) -> String? {
+        if let payload = try? JSONDecoder().decode(DeleteAccountErrorResponse.self, from: data) {
+            let details = payload.details?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let details, !details.isEmpty {
+                return details
+            }
+            let message = payload.error?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? payload.message?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let message, !message.isEmpty {
+                return message
+            }
+        }
+
+        let raw = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (raw?.isEmpty == false) ? raw : nil
+    }
+
+    private func invokeDeleteAccountEndpoint(accessToken: String) async throws {
+        guard
+            let base = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+            let publishableKey = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String
+        else {
+            throw NSError(
+                domain: "delete_account",
+                code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Missing Supabase config in app."]
+            )
+        }
+
+        let endpoint = "\(base.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/functions/v1/delete_account"
+        guard let url = URL(string: endpoint) else {
+            throw NSError(
+                domain: "delete_account",
+                code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid delete account endpoint URL."]
+            )
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(publishableKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = #"{"confirm":true}"#.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw NSError(domain: "delete_account", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid server response."])
+        }
+
+        guard (200...299).contains(http.statusCode) else {
+            let message = userFacingDeleteError(from: data) ?? "Delete account failed (\(http.statusCode))."
+            throw NSError(domain: "delete_account", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: message])
+        }
     }
 }
 

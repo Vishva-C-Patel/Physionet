@@ -331,24 +331,27 @@ final class CreateAccountView: UIView {
 
         stack.addArrangedSubview(createAccountButton)
 
-        // Or divider
-        stack.addArrangedSubview(orDivider)
+        /*
+         GOOGLE_SIGNIN_TEMP_DISABLED
+         // Or divider
+         stack.addArrangedSubview(orDivider)
 
-        // Social button (Google only, centered)
-        styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
-        googleButton.translatesAutoresizingMaskIntoConstraints = false
+         // Social button (Google only, centered)
+         styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
+         googleButton.translatesAutoresizingMaskIntoConstraints = false
 
-        let socialWrapper = UIView()
-        socialWrapper.translatesAutoresizingMaskIntoConstraints = false
-        socialWrapper.addSubview(googleButton)
-        NSLayoutConstraint.activate([
-            googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
-            googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
-            googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
-            googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
-        ])
+         let socialWrapper = UIView()
+         socialWrapper.translatesAutoresizingMaskIntoConstraints = false
+         socialWrapper.addSubview(googleButton)
+         NSLayoutConstraint.activate([
+             googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
+             googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
+             googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
+             googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
+         ])
 
-        stack.addArrangedSubview(socialWrapper)
+         stack.addArrangedSubview(socialWrapper)
+         */
 
         // Login link
         loginButton.setTitle("Already have an account? Log in", for: .normal)

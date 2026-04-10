@@ -49,7 +49,8 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
 
         createView.createAccountButton.addTarget(self, action: #selector(createAccountTapped), for: .touchUpInside)
 
-        createView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
+        // GOOGLE_SIGNIN_TEMP_DISABLED
+        // createView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
 
         createView.loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
 
@@ -219,56 +220,59 @@ final class CreateAccountViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    @objc private func googleTapped() {
-        Task {
-            do {
-                try await GoogleOAuthHandler.shared.signIn(from: self)
-                let session = try await SupabaseManager.shared.client.auth.session
-                let userId = session.user.id.uuidString
-                let email = session.user.email ?? ""
-                let fullName = session.user.userMetadata["full_name"]?.stringValue ?? "Google User"
+    /*
+     GOOGLE_SIGNIN_TEMP_DISABLED
+     @objc private func googleTapped() {
+         Task {
+             do {
+                 try await GoogleOAuthHandler.shared.signIn(from: self)
+                 let session = try await SupabaseManager.shared.client.auth.session
+                 let userId = session.user.id.uuidString
+                 let email = session.user.email ?? ""
+                 let fullName = session.user.userMetadata["full_name"]?.stringValue ?? "Google User"
 
-                let isValidPatient = await RoleAccessGate.isSessionValid(for: .patient)
-                if isValidPatient {
-                    await MainActor.run {
-                        self.onSignupComplete?()
-                    }
-                    return
-                }
+                 let isValidPatient = await RoleAccessGate.isSessionValid(for: .patient)
+                 if isValidPatient {
+                     await MainActor.run {
+                         self.onSignupComplete?()
+                     }
+                     return
+                 }
 
-                // If not valid, check if they are a physio
-                struct PhysioRow: Decodable { let id: UUID }
-                let physioRows: [PhysioRow] = (try? await SupabaseManager.shared.client.from("physiotherapists").select("id").eq("id", value: userId).limit(1).execute().value) ?? []
-                let isPhysio = !physioRows.isEmpty
+                 // If not valid, check if they are a physio
+                 struct PhysioRow: Decodable { let id: UUID }
+                 let physioRows: [PhysioRow] = (try? await SupabaseManager.shared.client.from("physiotherapists").select("id").eq("id", value: userId).limit(1).execute().value) ?? []
+                 let isPhysio = !physioRows.isEmpty
 
-                if isPhysio {
-                    try? await SupabaseManager.shared.client.auth.signOut()
-                    await MainActor.run {
-                        self.showAlert(title: "Unauthorized", message: "This account is registered for physiotherapists. Please sign up on the physio side.")
-                    }
-                    return
-                }
+                 if isPhysio {
+                     try? await SupabaseManager.shared.client.auth.signOut()
+                     await MainActor.run {
+                         self.showAlert(title: "Unauthorized", message: "This account is registered for physiotherapists. Please sign up on the physio side.")
+                     }
+                     return
+                 }
 
-                // Treat as new customer
-                struct CustomerInsert: Encodable {
-                    let id: UUID
-                    let full_name: String
-                    let email: String
-                    let phone: String
-                }
-                let payload = CustomerInsert(id: session.user.id, full_name: fullName, email: email, phone: "")
-                _ = try await SupabaseManager.shared.client.from("customers").upsert(payload).execute()
+                 // Treat as new customer
+                 struct CustomerInsert: Encodable {
+                     let id: UUID
+                     let full_name: String
+                     let email: String
+                     let phone: String
+                 }
+                 let payload = CustomerInsert(id: session.user.id, full_name: fullName, email: email, phone: "")
+                 _ = try await SupabaseManager.shared.client.from("customers").upsert(payload).execute()
 
-                await MainActor.run {
-                    self.onSignupComplete?()
-                }
-            } catch {
-                await MainActor.run {
-                    self.showAlert(title: "Google Sign-In Failed", message: error.localizedDescription)
-                }
-            }
-        }
-    }
+                 await MainActor.run {
+                     self.onSignupComplete?()
+                 }
+             } catch {
+                 await MainActor.run {
+                     self.showAlert(title: "Google Sign-In Failed", message: error.localizedDescription)
+                 }
+             }
+         }
+     }
+     */
 
     // MARK: - UITextFieldDelegate (phone formatting)
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {

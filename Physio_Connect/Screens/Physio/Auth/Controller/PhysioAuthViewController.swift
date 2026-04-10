@@ -140,7 +140,8 @@ final class PhysioAuthViewController: UIViewController {
         signupView.onPickIdProof = { [weak self] in self?.presentPicker(for: .idProof) }
         signupView.onPickLicenseProof = { [weak self] in self?.presentPicker(for: .licenseProof) }
 
-        loginView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
+        // GOOGLE_SIGNIN_TEMP_DISABLED
+        // loginView.googleButton.addTarget(self, action: #selector(googleTapped), for: .touchUpInside)
     }
 
     private func show(mode: Mode, animated: Bool) {
@@ -287,29 +288,32 @@ final class PhysioAuthViewController: UIViewController {
         }
     }
 
-    @objc private func googleTapped() {
-        Task {
-            do {
-                try await GoogleOAuthHandler.shared.signIn(from: self)
-                let isValid = await RoleAccessGate.isSessionValid(for: .physiotherapist)
-                if isValid {
-                    await MainActor.run {
-                        UserDefaults.standard.set(true, forKey: self.onboardingKey)
-                        self.routeToHome()
-                    }
-                } else {
-                    try? await SupabaseManager.shared.client.auth.signOut()
-                    await MainActor.run {
-                        self.presentInlineAlert(title: "Unauthorized", message: "No physiotherapist account found. Please sign up using email and provide the required documents.")
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.presentInlineAlert(title: "Google Sign-In Failed", message: error.localizedDescription)
-                }
-            }
-        }
-    }
+    /*
+     GOOGLE_SIGNIN_TEMP_DISABLED
+     @objc private func googleTapped() {
+         Task {
+             do {
+                 try await GoogleOAuthHandler.shared.signIn(from: self)
+                 let isValid = await RoleAccessGate.isSessionValid(for: .physiotherapist)
+                 if isValid {
+                     await MainActor.run {
+                         UserDefaults.standard.set(true, forKey: self.onboardingKey)
+                         self.routeToHome()
+                     }
+                 } else {
+                     try? await SupabaseManager.shared.client.auth.signOut()
+                     await MainActor.run {
+                         self.presentInlineAlert(title: "Unauthorized", message: "No physiotherapist account found. Please sign up using email and provide the required documents.")
+                     }
+                 }
+             } catch {
+                 await MainActor.run {
+                     self.presentInlineAlert(title: "Google Sign-In Failed", message: error.localizedDescription)
+                 }
+             }
+         }
+     }
+     */
 
     @objc private func handleBackNavigation() {
         AppLogout.backToRoleSelection(from: view, signOut: false)

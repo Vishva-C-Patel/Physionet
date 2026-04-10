@@ -17,6 +17,7 @@ final class ProfileView: UIView {
     var onPrivacyTapped: (() -> Void)?
     var onTermsTapped: (() -> Void)?
     var onSignOut: (() -> Void)?
+    var onDeleteAccount: (() -> Void)?
     var onLogin: (() -> Void)?
     var onSignup: (() -> Void)?
 
@@ -79,6 +80,7 @@ final class ProfileView: UIView {
 
     private let authStack = UIStackView()
     private let signOutButton = UIButton(type: .system)
+    private let deleteAccountButton = UIButton(type: .system)
     private let loginButton = UIButton(type: .system)
     private let signUpButton = UIButton(type: .system)
 
@@ -576,6 +578,7 @@ final class ProfileView: UIView {
     func setLoggedIn(_ loggedIn: Bool) {
         isLoggedInState = loggedIn
         signOutButton.isHidden = !loggedIn
+        deleteAccountButton.isHidden = !loggedIn
         loginButton.isHidden = loggedIn
         signUpButton.isHidden = loggedIn
 
@@ -590,7 +593,7 @@ final class ProfileView: UIView {
 
 
     private func buildSignOut() {
-        signOutButton.setTitle("Sign Out", for: .normal)
+        signOutButton.setTitle("Log Out", for: .normal)
         signOutButton.setTitleColor(.systemRed, for: .normal)
         signOutButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         signOutButton.backgroundColor = UITheme.Colors.surface
@@ -599,8 +602,26 @@ final class ProfileView: UIView {
         signOutButton.layer.shadowOpacity = 0.05
         signOutButton.layer.shadowRadius = 10
         signOutButton.layer.shadowOffset = CGSize(width: 0, height: 6)
-        signOutButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
+        let signOutHeight = signOutButton.heightAnchor.constraint(equalToConstant: 52)
+        signOutHeight.priority = UILayoutPriority(999)
+        signOutHeight.isActive = true
         signOutButton.addTarget(self, action: #selector(signOutTapped), for: .touchUpInside)
+
+        deleteAccountButton.setTitle("Delete Account", for: .normal)
+        deleteAccountButton.setTitleColor(.white, for: .normal)
+        deleteAccountButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        deleteAccountButton.backgroundColor = .systemRed
+        deleteAccountButton.layer.cornerRadius = 26
+        deleteAccountButton.layer.borderWidth = 0
+        deleteAccountButton.layer.borderColor = UIColor.clear.cgColor
+        deleteAccountButton.layer.shadowColor = UIColor.black.cgColor
+        deleteAccountButton.layer.shadowOpacity = 0.05
+        deleteAccountButton.layer.shadowRadius = 10
+        deleteAccountButton.layer.shadowOffset = CGSize(width: 0, height: 6)
+        let deleteHeight = deleteAccountButton.heightAnchor.constraint(equalToConstant: 52)
+        deleteHeight.priority = UILayoutPriority(999)
+        deleteHeight.isActive = true
+        deleteAccountButton.addTarget(self, action: #selector(deleteAccountTapped), for: .touchUpInside)
 
         loginButton.setTitle("Log In", for: .normal)
         loginButton.setTitleColor(.white, for: .normal)
@@ -611,7 +632,9 @@ final class ProfileView: UIView {
         loginButton.layer.shadowOpacity = 0.05
         loginButton.layer.shadowRadius = 10
         loginButton.layer.shadowOffset = CGSize(width: 0, height: 6)
-        loginButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
+        let loginHeight = loginButton.heightAnchor.constraint(equalToConstant: 52)
+        loginHeight.priority = UILayoutPriority(999)
+        loginHeight.isActive = true
         loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
 
         signUpButton.setTitle("Sign Up", for: .normal)
@@ -623,7 +646,9 @@ final class ProfileView: UIView {
         signUpButton.layer.shadowOpacity = 0.05
         signUpButton.layer.shadowRadius = 10
         signUpButton.layer.shadowOffset = CGSize(width: 0, height: 6)
-        signUpButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
+        let signUpHeight = signUpButton.heightAnchor.constraint(equalToConstant: 52)
+        signUpHeight.priority = UILayoutPriority(999)
+        signUpHeight.isActive = true
         signUpButton.addTarget(self, action: #selector(signUpTapped), for: .touchUpInside)
 
         // ✅ Switch Role button (secondary style)
@@ -636,16 +661,19 @@ final class ProfileView: UIView {
         switchRoleButton.layer.shadowOpacity = 0.05
         switchRoleButton.layer.shadowRadius = 10
         switchRoleButton.layer.shadowOffset = CGSize(width: 0, height: 6)
-        switchRoleButton.heightAnchor.constraint(equalToConstant: 52).isActive = true
+        let switchRoleHeight = switchRoleButton.heightAnchor.constraint(equalToConstant: 52)
+        switchRoleHeight.priority = UILayoutPriority(999)
+        switchRoleHeight.isActive = true
         switchRoleButton.addTarget(self, action: #selector(switchRolePressed), for: .touchUpInside)
 
         authStack.axis = .vertical
         authStack.spacing = 12
 
         // Order:
-        // logged in: Sign Out + Switch Role
+        // logged in: Log Out + Delete Account + Switch Role
         // logged out: Log In + Sign Up + Switch Role
         authStack.addArrangedSubview(signOutButton)
+        authStack.addArrangedSubview(deleteAccountButton)
         authStack.addArrangedSubview(loginButton)
         authStack.addArrangedSubview(signUpButton)
         authStack.addArrangedSubview(switchRoleButton)
@@ -740,6 +768,10 @@ final class ProfileView: UIView {
 
     @objc private func signOutTapped() {
         onSignOut?()
+    }
+
+    @objc private func deleteAccountTapped() {
+        onDeleteAccount?()
     }
 
     @objc private func loginTapped() {
