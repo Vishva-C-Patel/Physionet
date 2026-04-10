@@ -159,7 +159,7 @@ final class PaymentView: UIView {
         savedLine2.translatesAutoresizingMaskIntoConstraints = false
         savedLine2.font = UITheme.Typography.caption
         savedLine2.textColor = UITheme.Colors.textSecondary
-        savedLine2.text = "Pay now to confirm your booking"
+        savedLine2.text = "Confirm your booking to continue"
 
         let savedTextStack = UIStackView(arrangedSubviews: [savedTitle, savedLine1, savedLine2])
         savedTextStack.axis = .vertical
@@ -215,7 +215,7 @@ final class PaymentView: UIView {
         stack.addArrangedSubview(detailsCard)
         stack.setCustomSpacing(24, after: detailsCard)
 
-        paymentLabel.text = "Payment"
+        paymentLabel.text = "Booking Confirmation"
         paymentLabel.font = UITheme.Typography.sectionTitle
         paymentLabel.textColor = UITheme.Colors.textSecondary
         stack.addArrangedSubview(paymentLabel)
@@ -289,12 +289,12 @@ final class PaymentView: UIView {
         paymentMethodIcon.tintColor = UITheme.Colors.accent
 
         paymentMethodTitle.translatesAutoresizingMaskIntoConstraints = false
-        paymentMethodTitle.text = "Payment Method"
+        paymentMethodTitle.text = "Confirmation Step"
         paymentMethodTitle.font = .systemFont(ofSize: 15, weight: .semibold)
         paymentMethodTitle.textColor = UIColor.label
 
         paymentMethodSub.translatesAutoresizingMaskIntoConstraints = false
-        paymentMethodSub.text = "Pay securely with UPI, card, or netbanking"
+        paymentMethodSub.text = "No in-app charge is processed in this step"
         paymentMethodSub.font = UITheme.Typography.caption
         paymentMethodSub.textColor = UITheme.Colors.textSecondary
 
@@ -386,7 +386,7 @@ final class PaymentView: UIView {
             payGradient.frame = self.payButton.bounds
         }
 
-        payHint.text = "Payment is required to confirm your appointment"
+        payHint.text = "Payment details are finalized directly with your physiotherapist"
         payHint.font = UITheme.Typography.caption
         payHint.textColor = UITheme.Colors.textSecondary
         payHint.textAlignment = .center

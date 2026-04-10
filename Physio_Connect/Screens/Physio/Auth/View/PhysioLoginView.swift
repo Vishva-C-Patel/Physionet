@@ -125,52 +125,55 @@ final class PhysioLoginView: UIView {
         loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
         stack.addArrangedSubview(loginButton)
 
-        let orDivider = UIView()
-        orDivider.translatesAutoresizingMaskIntoConstraints = false
-        orDivider.heightAnchor.constraint(equalToConstant: 24).isActive = true
-        let line1 = UIView()
-        let line2 = UIView()
-        let label = UILabel()
-        line1.translatesAutoresizingMaskIntoConstraints = false
-        line2.translatesAutoresizingMaskIntoConstraints = false
-        line1.backgroundColor = UITheme.Colors.border
-        line2.backgroundColor = UITheme.Colors.border
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "or continue with"
-        label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .placeholderText
-        orDivider.addSubview(line1)
-        orDivider.addSubview(line2)
-        orDivider.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: orDivider.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
-            line1.leadingAnchor.constraint(equalTo: orDivider.leadingAnchor),
-            line1.trailingAnchor.constraint(equalTo: label.leadingAnchor, constant: -12),
-            line1.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
-            line1.heightAnchor.constraint(equalToConstant: 1),
-            line2.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 12),
-            line2.trailingAnchor.constraint(equalTo: orDivider.trailingAnchor),
-            line2.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
-            line2.heightAnchor.constraint(equalToConstant: 1)
-        ])
-        stack.addArrangedSubview(orDivider)
+        /*
+         GOOGLE_SIGNIN_TEMP_DISABLED
+         let orDivider = UIView()
+         orDivider.translatesAutoresizingMaskIntoConstraints = false
+         orDivider.heightAnchor.constraint(equalToConstant: 24).isActive = true
+         let line1 = UIView()
+         let line2 = UIView()
+         let label = UILabel()
+         line1.translatesAutoresizingMaskIntoConstraints = false
+         line2.translatesAutoresizingMaskIntoConstraints = false
+         line1.backgroundColor = UITheme.Colors.border
+         line2.backgroundColor = UITheme.Colors.border
+         label.translatesAutoresizingMaskIntoConstraints = false
+         label.text = "or continue with"
+         label.font = .systemFont(ofSize: 12, weight: .medium)
+         label.textColor = .placeholderText
+         orDivider.addSubview(line1)
+         orDivider.addSubview(line2)
+         orDivider.addSubview(label)
+         NSLayoutConstraint.activate([
+             label.centerXAnchor.constraint(equalTo: orDivider.centerXAnchor),
+             label.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
+             line1.leadingAnchor.constraint(equalTo: orDivider.leadingAnchor),
+             line1.trailingAnchor.constraint(equalTo: label.leadingAnchor, constant: -12),
+             line1.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
+             line1.heightAnchor.constraint(equalToConstant: 1),
+             line2.leadingAnchor.constraint(equalTo: label.trailingAnchor, constant: 12),
+             line2.trailingAnchor.constraint(equalTo: orDivider.trailingAnchor),
+             line2.centerYAnchor.constraint(equalTo: orDivider.centerYAnchor),
+             line2.heightAnchor.constraint(equalToConstant: 1)
+         ])
+         stack.addArrangedSubview(orDivider)
 
-        styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
-        googleButton.translatesAutoresizingMaskIntoConstraints = false
+         styleOutlineSocialButton(googleButton, title: "Google", icon: drawGoogleLogo(size: 20))
+         googleButton.translatesAutoresizingMaskIntoConstraints = false
 
-        let socialWrapper = UIView()
-        socialWrapper.translatesAutoresizingMaskIntoConstraints = false
-        socialWrapper.addSubview(googleButton)
-        NSLayoutConstraint.activate([
-            googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
-            googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
-            googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
-            googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
-        ])
+         let socialWrapper = UIView()
+         socialWrapper.translatesAutoresizingMaskIntoConstraints = false
+         socialWrapper.addSubview(googleButton)
+         NSLayoutConstraint.activate([
+             googleButton.centerXAnchor.constraint(equalTo: socialWrapper.centerXAnchor),
+             googleButton.topAnchor.constraint(equalTo: socialWrapper.topAnchor),
+             googleButton.bottomAnchor.constraint(equalTo: socialWrapper.bottomAnchor),
+             googleButton.widthAnchor.constraint(equalTo: socialWrapper.widthAnchor, multiplier: 0.6)
+         ])
 
-        stack.addArrangedSubview(socialWrapper)
-        stack.setCustomSpacing(22, after: socialWrapper)
+         stack.addArrangedSubview(socialWrapper)
+         stack.setCustomSpacing(22, after: socialWrapper)
+         */
 
         signUpButton.setTitle("Don't have an account? Sign up", for: .normal)
         signUpButton.setTitleColor(primaryBlue, for: .normal)

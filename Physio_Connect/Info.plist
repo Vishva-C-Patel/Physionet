@@ -6,6 +6,8 @@
 	<string></string>
 	<key>N8N_WEBHOOK_URL</key>
 	<string>https://n8n.ayushrai.in/webhook-test/articles-trigger</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to show nearby physiotherapists and relevant appointment options.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>sb_publishable_CQrdtsEZH2JTGsm2tjELfQ_RYm63cyq</string>
 	<key>SUPABASE_URL</key>

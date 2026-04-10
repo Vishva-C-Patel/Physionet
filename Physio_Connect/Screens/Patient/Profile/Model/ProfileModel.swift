@@ -175,7 +175,7 @@ final class ProfileModel {
     }
 
     func deleteAccount() async throws {
-        _ = try await client.auth.session
+        let session = try await client.auth.session
         do {
             _ = try await client.auth.refreshSession()
         } catch {
@@ -186,22 +186,7 @@ final class ProfileModel {
             )
         }
 
-        struct DeletePayload: Encodable { let confirm: Bool }
-        do {
-            try await client.functions.invoke(
-                "delete_account",
-                options: FunctionInvokeOptions(
-                    method: .post,
-                    body: DeletePayload(confirm: true)
-                )
-            )
-        } catch let error as FunctionsError {
-            if case let .httpError(_, data) = error,
-               let message = userFacingDeleteError(from: data) {
-                throw NSError(domain: "delete_account", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
-            }
-            throw error
-        }
+        try await invokeDeleteAccountEndpoint(accessToken: session.accessToken)
 
         try? await client.auth.signOut()
     }
@@ -237,6 +222,45 @@ final class ProfileModel {
 
         let raw = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
         return (raw?.isEmpty == false) ? raw : nil
+    }
+
+    private func invokeDeleteAccountEndpoint(accessToken: String) async throws {
+        guard
+            let base = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL") as? String,
+            let publishableKey = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_PUBLISHABLE_KEY") as? String
+        else {
+            throw NSError(
+                domain: "delete_account",
+                code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Missing Supabase config in app."]
+            )
+        }
+
+        let endpoint = "\(base.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/functions/v1/delete_account"
+        guard let url = URL(string: endpoint) else {
+            throw NSError(
+                domain: "delete_account",
+                code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid delete account endpoint URL."]
+            )
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(publishableKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = #"{"confirm":true}"#.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw NSError(domain: "delete_account", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid server response."])
+        }
+
+        guard (200...299).contains(http.statusCode) else {
+            let message = userFacingDeleteError(from: data) ?? "Delete account failed (\(http.statusCode))."
+            throw NSError(domain: "delete_account", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: message])
+        }
     }
 
     func uploadAvatarImage(_ imageData: Data) async throws {
